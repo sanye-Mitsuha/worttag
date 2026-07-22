@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       type: "website",
       locale: "zh_CN",
-      images: [{ url: imageUrl, width: 1659, height: 948, alt: "Worttag 德语词汇记忆" }],
+      images: [{ url: imageUrl, width: 1200, height: 686, alt: "Worttag 德语词汇记忆" }],
     },
     twitter: {
       card: "summary_large_image",
