@@ -1,12 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { A1_WORDS, A2_WORDS } from "./wordbooks-a1-a2";
+import { B1_ADDITIONS, B2_WORDS, C1_WORDS } from "./wordbooks-advanced";
 
 type RecallStatus = "unknown" | "fuzzy" | "known";
-type View = "learn" | "review" | "library" | "progress" | "story";
+type View = "learn" | "review" | "library" | "progress" | "story" | "settings";
+type ThemeMode = "light" | "dark" | "system";
+type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1";
+type WordOrder = "sequential" | "random";
+type SpeechSpeed = "slow" | "standard" | "natural";
 
 type WordCard = {
   id: string;
+  level: CEFRLevel;
   term: string;
   forms: string;
   type: string;
@@ -39,16 +46,63 @@ type LearningState = {
   todayWordIds: string[];
   streakDays: number;
   sessionComplete: boolean;
+  todayQueuesCompleted: number;
+  todayQueueLevel: CEFRLevel | null;
+  todayQueueGoal: number | null;
+};
+
+type AppSettings = {
+  theme: ThemeMode;
+  wordsPerQueue: number;
+  queuesPerDay: number;
+  level: CEFRLevel;
+  order: WordOrder;
+  autoPronounce: boolean;
+  showTranslation: boolean;
+  dueFirst: boolean;
+  speechSpeed: SpeechSpeed;
 };
 
 const STORAGE_KEY = "worttag-learning-state-v1";
+const SETTINGS_KEY = "worttag-settings-v1";
 const MINUTE = 60_000;
 const DAY = 86_400_000;
 const INTERVAL_DAYS = [0, 1, 3, 7, 14, 30, 60, 120, 180] as const;
 
-const WORDS: WordCard[] = [
+const DEFAULT_SETTINGS: AppSettings = {
+  theme: "system",
+  wordsPerQueue: 10,
+  queuesPerDay: 2,
+  level: "A1",
+  order: "sequential",
+  autoPronounce: false,
+  showTranslation: true,
+  dueFirst: true,
+  speechSpeed: "standard",
+};
+
+const LEVEL_META: Record<CEFRLevel, { title: string; description: string; story: string; storyZh: string; topic: string }> = {
+  A1: { title: "入门", description: "自我介绍、家庭与日常动作", story: "Ein ganz normaler Tag", storyZh: "平常的一天", topic: "Alltag" },
+  A2: { title: "基础", description: "住房、工作、旅行与简单经历", story: "Ein neuer Anfang", storyZh: "新的开始", topic: "Neuanfang" },
+  B1: { title: "独立", description: "叙述经历、处理问题与表达看法", story: "Ein kleiner Umweg", storyZh: "一个小小的绕路", topic: "Alltag" },
+  B2: { title: "进阶", description: "复杂讨论、因果关系与抽象主题", story: "Ein Bahnhof für alle", storyZh: "属于大家的车站", topic: "Stadtleben" },
+  C1: { title: "熟练", description: "精确表达、学术与专业语境", story: "Eine Frage der Tragweite", storyZh: "影响深远的问题", topic: "Bildung" },
+};
+
+const SPEECH_RATES: Record<SpeechSpeed, number> = {
+  slow: 0.68,
+  standard: 0.82,
+  natural: 0.98,
+};
+
+function currentTimestamp() {
+  return Date.now();
+}
+
+const B1_BASE_WORDS: WordCard[] = [
   {
     id: "gewohnheit",
+    level: "B1",
     term: "die Gewohnheit",
     forms: "die Gewohnheiten",
     type: "名词 · 阴性",
@@ -63,6 +117,7 @@ const WORDS: WordCard[] = [
   },
   {
     id: "verspaetung",
+    level: "B1",
     term: "die Verspätung",
     forms: "die Verspätungen",
     type: "名词 · 阴性",
@@ -77,6 +132,7 @@ const WORDS: WordCard[] = [
   },
   {
     id: "entscheiden",
+    level: "B1",
     term: "sich entscheiden",
     forms: "entscheidet sich · entschied sich · hat sich entschieden",
     type: "反身动词",
@@ -91,6 +147,7 @@ const WORDS: WordCard[] = [
   },
   {
     id: "umweg",
+    level: "B1",
     term: "der Umweg",
     forms: "die Umwege",
     type: "名词 · 阳性",
@@ -105,6 +162,7 @@ const WORDS: WordCard[] = [
   },
   {
     id: "ruecksicht",
+    level: "B1",
     term: "Rücksicht nehmen",
     forms: "nimmt Rücksicht · nahm Rücksicht · hat Rücksicht genommen",
     type: "固定搭配",
@@ -119,6 +177,7 @@ const WORDS: WordCard[] = [
   },
   {
     id: "zuverlaessig",
+    level: "B1",
     term: "zuverlässig",
     forms: "zuverlässiger · am zuverlässigsten",
     type: "形容词",
@@ -133,6 +192,7 @@ const WORDS: WordCard[] = [
   },
   {
     id: "gelegenheit",
+    level: "B1",
     term: "die Gelegenheit",
     forms: "die Gelegenheiten",
     type: "名词 · 阴性",
@@ -147,6 +207,7 @@ const WORDS: WordCard[] = [
   },
   {
     id: "erledigen",
+    level: "B1",
     term: "etwas erledigen",
     forms: "erledigt · erledigte · hat erledigt",
     type: "及物动词",
@@ -161,6 +222,7 @@ const WORDS: WordCard[] = [
   },
   {
     id: "gewoehnen",
+    level: "B1",
     term: "sich an etwas gewöhnen",
     forms: "gewöhnt sich · gewöhnte sich · hat sich gewöhnt",
     type: "反身动词",
@@ -175,6 +237,7 @@ const WORDS: WordCard[] = [
   },
   {
     id: "vereinbaren",
+    level: "B1",
     term: "etwas vereinbaren",
     forms: "vereinbart · vereinbarte · hat vereinbart",
     type: "及物动词",
@@ -189,6 +252,7 @@ const WORDS: WordCard[] = [
   },
   {
     id: "kuemmern",
+    level: "B1",
     term: "sich um etwas kümmern",
     forms: "kümmert sich · kümmerte sich · hat sich gekümmert",
     type: "反身动词",
@@ -203,6 +267,7 @@ const WORDS: WordCard[] = [
   },
   {
     id: "vermeiden",
+    level: "B1",
     term: "etwas vermeiden",
     forms: "vermeidet · vermied · hat vermieden",
     type: "及物动词",
@@ -215,6 +280,15 @@ const WORDS: WordCard[] = [
     storyDe: "So kann sie ihm helfen, zukünftigen Ärger mit dem Gerät zu vermeiden.",
     storyZh: "这样她可以帮助他避免以后再为这台设备烦恼。",
   },
+];
+
+const WORDS: WordCard[] = [
+  ...A1_WORDS,
+  ...A2_WORDS,
+  ...B1_BASE_WORDS,
+  ...B1_ADDITIONS,
+  ...B2_WORDS,
+  ...C1_WORDS,
 ];
 
 const STATUS_META: Record<RecallStatus, { label: string; short: string }> = {
@@ -246,84 +320,51 @@ function dayDifference(fromKey: string, toKey: string) {
 }
 
 function createInitialState(now = Date.now()): LearningState {
-  const due = (daysAgo: number) => now - daysAgo * DAY;
   return {
-    records: {
-      gewohnheit: {
-        status: "unknown",
-        stage: 0,
-        dueAt: due(2),
-        intervalDays: 0,
-        knownStreak: 0,
-        lapseCount: 1,
-        lastReviewedAt: due(3),
-        sameDayLapses: 0,
-        lapseDayKey: null,
-      },
-      zuverlaessig: {
-        status: "known",
-        stage: 2,
-        dueAt: due(1),
-        intervalDays: 3,
-        knownStreak: 2,
-        lapseCount: 0,
-        lastReviewedAt: due(4),
-        sameDayLapses: 0,
-        lapseDayKey: null,
-      },
-      vereinbaren: {
-        status: "fuzzy",
-        stage: 1,
-        dueAt: now - 3 * 60 * MINUTE,
-        intervalDays: 1,
-        knownStreak: 0,
-        lapseCount: 0,
-        lastReviewedAt: due(1),
-        sameDayLapses: 0,
-        lapseDayKey: null,
-      },
-      verspaetung: {
-        status: "fuzzy",
-        stage: 1,
-        dueAt: now - 2 * 60 * MINUTE,
-        intervalDays: 1,
-        knownStreak: 0,
-        lapseCount: 1,
-        lastReviewedAt: due(1),
-        sameDayLapses: 0,
-        lapseDayKey: null,
-      },
-      erledigen: {
-        status: "known",
-        stage: 3,
-        dueAt: now - 30 * MINUTE,
-        intervalDays: 7,
-        knownStreak: 3,
-        lapseCount: 0,
-        lastReviewedAt: due(7),
-        sameDayLapses: 0,
-        lapseDayKey: null,
-      },
-    },
+    records: {},
     todayKey: dayKey(now),
     todayReviewed: 0,
     todayWordIds: [],
-    streakDays: 8,
+    streakDays: 1,
     sessionComplete: false,
+    todayQueuesCompleted: 0,
+    todayQueueLevel: null,
+    todayQueueGoal: null,
   };
 }
 
 function prepareSavedState(saved: LearningState, now = Date.now()): LearningState {
   const currentDay = dayKey(now);
-  if (saved.todayKey === currentDay) return saved;
-  const gap = dayDifference(saved.todayKey, currentDay);
+  const savedQueueGoal = [1, 2, 3, 4, 5].includes(saved.todayQueueGoal ?? -1)
+    ? saved.todayQueueGoal
+    : null;
+  const normalized: LearningState = {
+    records: saved.records ?? {},
+    todayKey: saved.todayKey ?? currentDay,
+    todayReviewed: saved.todayReviewed ?? 0,
+    todayWordIds: saved.todayWordIds ?? [],
+    streakDays: saved.streakDays ?? 1,
+    sessionComplete: saved.sessionComplete ?? false,
+    todayQueuesCompleted:
+      saved.todayQueuesCompleted ?? (saved.sessionComplete ? 1 : 0),
+    todayQueueLevel:
+      saved.todayQueueLevel ??
+      WORDS.find((word) => (saved.todayWordIds ?? []).includes(word.id))?.level ??
+      null,
+    todayQueueGoal: savedQueueGoal,
+  };
+  if (normalized.todayKey === currentDay) return normalized;
+  const gap = dayDifference(normalized.todayKey, currentDay);
   return {
-    ...saved,
+    ...normalized,
     todayKey: currentDay,
     todayReviewed: 0,
     todayWordIds: [],
-    streakDays: gap === 1 ? saved.streakDays + 1 : 1,
+    streakDays: gap === 1 ? normalized.streakDays + 1 : 1,
     sessionComplete: false,
+    todayQueuesCompleted: 0,
+    todayQueueLevel: null,
+    todayQueueGoal: null,
   };
 }
 
@@ -412,15 +453,33 @@ function gradeMemory(
   };
 }
 
-function previewDue(record: MemoryRecord | undefined, rating: RecallStatus) {
-  return gradeMemory(record, rating).dueLabel;
+function previewDue(record: MemoryRecord | undefined, rating: RecallStatus, now: number) {
+  return gradeMemory(record, rating, now).dueLabel;
 }
 
-function buildDailyQueue(state: LearningState, now = Date.now()) {
-  const completed = new Set(state.todayWordIds);
+function seededShuffle<T>(items: T[], seedText: string) {
+  let seed = 2166136261;
+  for (let index = 0; index < seedText.length; index += 1) {
+    seed = Math.imul(seed ^ seedText.charCodeAt(index), 16777619);
+  }
+  const next = [...items];
+  for (let index = next.length - 1; index > 0; index -= 1) {
+    seed += 0x6d2b79f5;
+    let value = seed;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    const random = ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+    const swapIndex = Math.floor(random * (index + 1));
+    [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
+  }
+  return next;
+}
+
+function buildDailyQueue(state: LearningState, settings: AppSettings, now = Date.now()) {
+  const book = WORDS.filter((word) => word.level === settings.level);
+  const bookIds = new Set(book.map((word) => word.id));
   const due = Object.entries(state.records)
-    .filter(([, record]) => record.lastReviewedAt !== null && record.dueAt <= now)
-    .filter(([id]) => !completed.has(id))
+    .filter(([id, record]) => bookIds.has(id) && record.lastReviewedAt !== null && record.dueAt <= now)
     .sort(([, a], [, b]) => {
       const bucketA = a.stage === 0 ? 0 : 1;
       const bucketB = b.stage === 0 ? 0 : 1;
@@ -428,9 +487,14 @@ function buildDailyQueue(state: LearningState, now = Date.now()) {
     })
     .map(([id]) => id);
 
-  const fresh = WORDS.filter((word) => !state.records[word.id] && !completed.has(word.id))
-    .slice(0, 7)
-    .map((word) => word.id);
+  let fresh = book.filter((word) => !state.records[word.id]).map((word) => word.id);
+  if (settings.order === "random") {
+    fresh = seededShuffle(fresh, `${state.todayKey}-${state.todayQueuesCompleted}-${settings.level}`);
+  }
+
+  if (settings.dueFirst) {
+    return [...due, ...fresh].slice(0, settings.wordsPerQueue);
+  }
 
   const queue: string[] = [];
   while (due.length || fresh.length) {
@@ -439,7 +503,7 @@ function buildDailyQueue(state: LearningState, now = Date.now()) {
     }
     if (fresh.length) queue.push(fresh.shift()!);
   }
-  return queue;
+  return queue.slice(0, settings.wordsPerQueue);
 }
 
 function formatDate(timestamp: number) {
@@ -453,73 +517,194 @@ function formatDate(timestamp: number) {
   return date.toLocaleDateString("zh-CN", { month: "short", day: "numeric" });
 }
 
-function uniqueIds(ids: string[]) {
-  return [...new Set(ids)];
+function prepareSavedSettings(value: unknown): AppSettings {
+  if (!value || typeof value !== "object") return DEFAULT_SETTINGS;
+  const saved = value as Partial<AppSettings>;
+  const themes: ThemeMode[] = ["light", "dark", "system"];
+  const levels: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
+  const orders: WordOrder[] = ["sequential", "random"];
+  const speeds: SpeechSpeed[] = ["slow", "standard", "natural"];
+  const queueSizes = [5, 10, 15, 20];
+  const dailyQueues = [1, 2, 3, 4, 5];
+  return {
+    theme: themes.includes(saved.theme as ThemeMode) ? saved.theme! : DEFAULT_SETTINGS.theme,
+    wordsPerQueue: queueSizes.includes(saved.wordsPerQueue ?? -1)
+      ? saved.wordsPerQueue!
+      : DEFAULT_SETTINGS.wordsPerQueue,
+    queuesPerDay: dailyQueues.includes(saved.queuesPerDay ?? -1)
+      ? saved.queuesPerDay!
+      : DEFAULT_SETTINGS.queuesPerDay,
+    level: levels.includes(saved.level as CEFRLevel) ? saved.level! : DEFAULT_SETTINGS.level,
+    order: orders.includes(saved.order as WordOrder) ? saved.order! : DEFAULT_SETTINGS.order,
+    autoPronounce: typeof saved.autoPronounce === "boolean" ? saved.autoPronounce : DEFAULT_SETTINGS.autoPronounce,
+    showTranslation: typeof saved.showTranslation === "boolean" ? saved.showTranslation : DEFAULT_SETTINGS.showTranslation,
+    dueFirst: typeof saved.dueFirst === "boolean" ? saved.dueFirst : DEFAULT_SETTINGS.dueFirst,
+    speechSpeed: speeds.includes(saved.speechSpeed as SpeechSpeed)
+      ? saved.speechSpeed!
+      : DEFAULT_SETTINGS.speechSpeed,
+  };
 }
 
 export default function Home() {
   const [ready, setReady] = useState(false);
   const [view, setView] = useState<View>("learn");
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [learning, setLearning] = useState<LearningState>(() => createInitialState());
   const [sessionQueue, setSessionQueue] = useState<string[]>([]);
+  const [queueSource, setQueueSource] = useState<"daily" | "review" | "manual">("daily");
+  const [returnView, setReturnView] = useState<View>("learn");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [grading, setGrading] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [settingsNotice, setSettingsNotice] = useState("所有设置都会自动保存在当前设备");
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [planDirty, setPlanDirty] = useState(false);
+  const [queueUnavailable, setQueueUnavailable] = useState(false);
+  const [clock, setClock] = useState(0);
   const [libraryFilter, setLibraryFilter] = useState<"all" | RecallStatus>("all");
 
   useEffect(() => {
     let next = createInitialState();
+    let nextSettings = DEFAULT_SETTINGS;
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) next = prepareSavedState(JSON.parse(raw) as LearningState);
     } catch {
       next = createInitialState();
     }
+    try {
+      const rawSettings = window.localStorage.getItem(SETTINGS_KEY);
+      if (rawSettings) nextSettings = prepareSavedSettings(JSON.parse(rawSettings));
+    } catch {
+      nextSettings = DEFAULT_SETTINGS;
+    }
+    if (next.todayQueueLevel !== nextSettings.level) {
+      next = {
+        ...next,
+        todayQueuesCompleted: 0,
+        sessionComplete: false,
+        todayQueueLevel: nextSettings.level,
+        todayQueueGoal: nextSettings.queuesPerDay,
+      };
+    } else if (next.todayQueueGoal === null) {
+      next = { ...next, todayQueueGoal: nextSettings.queuesPerDay };
+    }
+    const initialGoal = next.todayQueueGoal ?? nextSettings.queuesPerDay;
+    const initialComplete = next.todayQueueLevel === nextSettings.level &&
+      (next.sessionComplete || next.todayQueuesCompleted >= initialGoal);
+    const initialQueue = initialComplete ? [] : buildDailyQueue(next, nextSettings);
+    // Client-only preferences are intentionally hydrated after the first mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSettings(nextSettings);
     setLearning(next);
-    setSessionQueue(buildDailyQueue(next));
+    setSessionQueue(initialQueue);
+    setQueueUnavailable(!initialQueue.length && !initialComplete);
+    setClock(currentTimestamp());
     setReady(true);
   }, []);
 
   useEffect(() => {
     if (!ready) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(learning));
+    const timer = window.setInterval(() => setClock(currentTimestamp()), MINUTE);
+    return () => window.clearInterval(timer);
+  }, [ready]);
+
+  useEffect(() => {
+    if (!ready || !clock || dayKey(clock) === learning.todayKey) return;
+    const nextDay: LearningState = {
+      ...prepareSavedState(learning, clock),
+      todayQueueLevel: settings.level,
+      todayQueueGoal: settings.queuesPerDay,
+    };
+    const nextQueue = buildDailyQueue(nextDay, settings, clock);
+    // The minute clock is also responsible for rolling an open app into a new study day.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLearning(nextDay);
+    setSessionQueue(nextQueue);
+    setQueueSource("daily");
+    setCurrentIndex(0);
+    setRevealed(false);
+    setGrading(false);
+    setQueueUnavailable(!nextQueue.length);
+  }, [clock, learning, ready, settings]);
+
+  useEffect(() => {
+    if (!ready) return;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(learning));
+    } catch {
+      window.setTimeout(() => setSettingsNotice("当前浏览器未能保存进度，请检查隐私设置"), 0);
+    }
   }, [learning, ready]);
+
+  useEffect(() => {
+    if (!ready) return;
+    try {
+      window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch {
+      window.setTimeout(() => setSettingsNotice("当前浏览器未能保存设置，请检查隐私设置"), 0);
+    }
+  }, [settings, ready]);
+
+  useEffect(() => {
+    if (!ready) return;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const applyTheme = () => {
+      const resolved = settings.theme === "system" ? (media.matches ? "dark" : "light") : settings.theme;
+      document.documentElement.dataset.theme = resolved;
+      document.documentElement.style.colorScheme = resolved;
+    };
+    applyTheme();
+    if (settings.theme === "system") media.addEventListener("change", applyTheme);
+    return () => media.removeEventListener("change", applyTheme);
+  }, [ready, settings.theme]);
 
   const currentWord = WORDS.find((word) => word.id === sessionQueue[currentIndex]);
   const currentRecord = currentWord ? learning.records[currentWord.id] : undefined;
+  const bookWords = useMemo(
+    () => WORDS.filter((word) => word.level === settings.level),
+    [settings.level],
+  );
   const learnedToday = useMemo(
-    () => WORDS.filter((word) => new Set(learning.todayWordIds).has(word.id)),
-    [learning.todayWordIds],
+    () => {
+      const learnedIds = new Set(learning.todayWordIds);
+      return WORDS.filter((word) => word.level === settings.level && learnedIds.has(word.id));
+    },
+    [learning.todayWordIds, settings.level],
   );
 
   const counts = useMemo(() => {
     const result = { unknown: 0, fuzzy: 0, known: 0 };
-    WORDS.forEach((word) => {
+    bookWords.forEach((word) => {
       result[learning.records[word.id]?.status ?? "unknown"] += 1;
     });
     return result;
-  }, [learning.records]);
+  }, [bookWords, learning.records]);
 
   const dueWords = useMemo(
     () =>
-      WORDS.filter((word) => {
+      bookWords.filter((word) => {
         const record = learning.records[word.id];
-        return record?.lastReviewedAt !== null && record?.dueAt <= Date.now();
+        return record?.lastReviewedAt !== null && record?.dueAt <= clock;
       }).sort(
         (a, b) =>
           (learning.records[a.id]?.dueAt ?? 0) - (learning.records[b.id]?.dueAt ?? 0),
       ),
-    [learning.records],
+    [bookWords, clock, learning.records],
   );
 
-  const reviewTotal = Object.values(learning.records).filter(
-    (record) => record.lastReviewedAt !== null,
-  ).length;
-  const newTotal = WORDS.length - reviewTotal;
+  const reviewTotal = bookWords.filter((word) => learning.records[word.id]?.lastReviewedAt !== null && learning.records[word.id]).length;
+  const newTotal = bookWords.length - reviewTotal;
+  const activeQueueGoal = learning.todayQueueLevel === settings.level
+    ? (learning.todayQueueGoal ?? settings.queuesPerDay)
+    : settings.queuesPerDay;
+  const dailyComplete = learning.todayQueueLevel === settings.level &&
+    (learning.sessionComplete || learning.todayQueuesCompleted >= activeQueueGoal);
+  const dailyTarget = settings.wordsPerQueue * settings.queuesPerDay;
   const sessionProgress = sessionQueue.length
-    ? Math.round((currentIndex / sessionQueue.length) * 100)
-    : 100;
+    ? Math.round(((currentIndex + (grading ? 1 : 0)) / sessionQueue.length) * 100)
+    : dailyComplete ? 100 : Math.round((learning.todayQueuesCompleted / activeQueueGoal) * 100);
 
   function speak(word: WordCard) {
     if (!("speechSynthesis" in window)) {
@@ -529,22 +714,44 @@ export default function Home() {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(word.term.replace("etwas ", ""));
     utterance.lang = "de-DE";
-    utterance.rate = 0.82;
+    utterance.rate = SPEECH_RATES[settings.speechSpeed];
     window.speechSynthesis.speak(utterance);
   }
 
   function finishSession(nextState: LearningState) {
-    setLearning({ ...nextState, sessionComplete: true });
+    const completedQueues = queueSource === "daily"
+      ? Math.min(activeQueueGoal, nextState.todayQueuesCompleted + 1)
+      : nextState.todayQueuesCompleted;
+    const finishedDay = queueSource === "daily" && completedQueues >= activeQueueGoal;
+    const finalState: LearningState = {
+      ...nextState,
+      todayQueuesCompleted: completedQueues,
+      sessionComplete: nextState.sessionComplete || finishedDay,
+      todayQueueLevel: queueSource === "daily" ? settings.level : nextState.todayQueueLevel,
+      todayQueueGoal: queueSource === "daily" ? activeQueueGoal : nextState.todayQueueGoal,
+    };
+    setLearning(finalState);
     window.setTimeout(() => {
       setFeedback(null);
       setGrading(false);
-      setView("story");
+      setCurrentIndex(0);
+      setRevealed(false);
+      if (queueSource === "daily") {
+        setSessionQueue([]);
+        if (finishedDay) setView("story");
+      } else {
+        const dailyQueue = dailyComplete ? [] : buildDailyQueue(finalState, settings);
+        setSessionQueue(dailyQueue);
+        setQueueUnavailable(!dailyQueue.length && !dailyComplete);
+        setQueueSource("daily");
+        setView(returnView);
+      }
     }, 680);
   }
 
   function rateCurrent(rating: RecallStatus) {
     if (!currentWord || !revealed || grading) return;
-    const now = Date.now();
+    const now = currentTimestamp();
     const { next, dueLabel } = gradeMemory(learning.records[currentWord.id], rating, now);
     const nextState: LearningState = {
       ...learning,
@@ -569,7 +776,14 @@ export default function Home() {
     }, 620);
   }
 
-  function startQueue(ids: string[]) {
+  function startQueue(
+    ids: string[],
+    source: "daily" | "review" | "manual" = "manual",
+  ) {
+    if (source !== "daily") setReturnView(view);
+    if (source === "daily") setPlanDirty(false);
+    setQueueUnavailable(false);
+    setQueueSource(source);
     setSessionQueue(ids);
     setCurrentIndex(0);
     setRevealed(false);
@@ -578,10 +792,136 @@ export default function Home() {
     setView("learn");
   }
 
+  function startNextDailyQueue() {
+    const ids = buildDailyQueue(learning, settings);
+    if (!ids.length) {
+      if (learnedToday.length > 0) {
+        finishDayWithAvailableWords();
+        return;
+      }
+      setQueueUnavailable(true);
+      return;
+    }
+    startQueue(ids, "daily");
+  }
+
+  function finishDayWithAvailableWords() {
+    setLearning((current) => ({
+      ...current,
+      sessionComplete: true,
+      todayQueuesCompleted: activeQueueGoal,
+      todayQueueLevel: settings.level,
+      todayQueueGoal: activeQueueGoal,
+    }));
+    setQueueUnavailable(false);
+    setView("story");
+  }
+
+  function revealAnswer() {
+    if (!currentWord) return;
+    setRevealed(true);
+    if (settings.autoPronounce) speak(currentWord);
+  }
+
+  function updateSetting<K extends keyof AppSettings>(key: K, value: AppSettings[K]) {
+    setSettings((current) => ({ ...current, [key]: value }));
+    if (["wordsPerQueue", "level", "order", "dueFirst"].includes(key)) setPlanDirty(true);
+    if (key === "level") {
+      const nextLevel = value as CEFRLevel;
+      setLearning((current) => ({
+        ...current,
+        todayQueuesCompleted: 0,
+        sessionComplete: false,
+        todayQueueLevel: nextLevel,
+        todayQueueGoal: settings.queuesPerDay,
+      }));
+      setQueueUnavailable(false);
+      setSettingsNotice(`已切换到 ${nextLevel} · 今日队列将按新词书重新开始`);
+    } else if (key === "queuesPerDay") {
+      const canApplyToday = learning.todayReviewed === 0 && learning.todayQueuesCompleted === 0;
+      if (canApplyToday) {
+        setLearning((current) => ({ ...current, todayQueueGoal: value as number }));
+        setSettingsNotice("已自动保存 · 今天就按新的队列数量学习");
+      } else {
+        setSettingsNotice(`已自动保存 · 新的每日队列数明天生效，今天仍为 ${activeQueueGoal} 个`);
+      }
+    } else {
+      setSettingsNotice("已自动保存 · 新的学习计划从下一队列开始生效");
+    }
+    setConfirmReset(false);
+  }
+
+  function restoreDefaultSettings() {
+    setSettings(DEFAULT_SETTINGS);
+    setPlanDirty(true);
+    setLearning((current) => {
+      const levelChanged = current.todayQueueLevel !== DEFAULT_SETTINGS.level;
+      const canApplyGoal = current.todayReviewed === 0 && current.todayQueuesCompleted === 0;
+      return {
+        ...current,
+        todayQueuesCompleted: levelChanged ? 0 : current.todayQueuesCompleted,
+        sessionComplete: levelChanged ? false : current.sessionComplete,
+        todayQueueLevel: DEFAULT_SETTINGS.level,
+        todayQueueGoal: levelChanged || canApplyGoal ? DEFAULT_SETTINGS.queuesPerDay : current.todayQueueGoal,
+      };
+    });
+    setQueueUnavailable(false);
+    setSettingsNotice("已恢复默认设置；如果今天已经开始学习，新的每日队列数明天生效");
+    setConfirmReset(false);
+  }
+
+  function clearLearningProgress() {
+    const fresh: LearningState = {
+      ...createInitialState(),
+      todayQueueLevel: settings.level,
+      todayQueueGoal: settings.queuesPerDay,
+    };
+    setLearning(fresh);
+    setSessionQueue(buildDailyQueue(fresh, settings));
+    setQueueSource("daily");
+    setPlanDirty(false);
+    setQueueUnavailable(false);
+    setCurrentIndex(0);
+    setRevealed(false);
+    setView("learn");
+    setConfirmReset(false);
+  }
+
   function switchView(nextView: View) {
+    const shouldRestoreDaily = nextView === "learn" && (
+      queueSource !== "daily" ||
+      (view !== "learn" && !sessionQueue.length) ||
+      planDirty
+    );
+    if (shouldRestoreDaily) {
+      const dailyQueue = dailyComplete ? [] : buildDailyQueue(learning, settings);
+      setSessionQueue(dailyQueue);
+      setQueueUnavailable(!dailyQueue.length && !dailyComplete);
+      setQueueSource("daily");
+      setPlanDirty(false);
+      setCurrentIndex(0);
+      setRevealed(false);
+      setGrading(false);
+    }
     setView(nextView);
     setFeedback(null);
   }
+
+  useEffect(() => {
+    if (view !== "learn" || !currentWord || grading) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("button, input, select, textarea, a")) return;
+      if (event.code === "Space" && !revealed) {
+        event.preventDefault();
+        revealAnswer();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // revealAnswer deliberately reads the latest speech preferences listed below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentWord, grading, revealed, settings.autoPronounce, settings.speechSpeed, view]);
 
   if (!ready) {
     return (
@@ -595,7 +935,7 @@ export default function Home() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习">
+        <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
         </button>
@@ -605,11 +945,13 @@ export default function Home() {
             ["review", "复习"],
             ["library", "词库"],
             ["progress", "进度"],
+            ["settings", "设置"],
           ] as const).map(([id, label]) => (
             <button
               key={id}
               className={view === id ? "nav-item active" : "nav-item"}
               onClick={() => switchView(id)}
+              disabled={grading}
               aria-current={view === id ? "page" : undefined}
             >
               {label}
@@ -627,13 +969,13 @@ export default function Home() {
           <>
             <section className="page-heading learn-heading">
               <div>
-                <p className="kicker">Mittwoch · 今日词课</p>
-                <h1>先想起来，再看答案。</h1>
+                <p className="kicker">{queueSource === "daily" ? `${new Date().toLocaleDateString("de-DE", { weekday: "long" })} · ${settings.level} 今日词课` : queueSource === "review" ? "Wiederholen · 到期复习" : "Einzelkarte · 单独学习"}</p>
+                <h1>{queueSource === "daily" ? "先想起来，再看答案。" : queueSource === "review" ? "到期的词，认真想一次。" : "只学这一张，也算向前一步。"}</h1>
               </div>
-              <div className="heading-progress" aria-label={`今日进度 ${sessionProgress}%`}>
+              <div className="heading-progress" aria-label={`今日计划进度 ${sessionProgress}%`}>
                 <div className="progress-copy">
-                  <span>今日进度</span>
-                  <strong>{currentIndex} / {sessionQueue.length || learning.todayReviewed}</strong>
+                  <span>{queueSource === "daily" ? `今日计划 · 第 ${Math.min(learning.todayQueuesCompleted + 1, activeQueueGoal)} / ${activeQueueGoal} 队列` : queueSource === "review" ? "本次复习" : "本次单独学习"}</span>
+                  <strong>{queueSource === "daily" && !sessionQueue.length ? `${learning.todayQueuesCompleted} / ${activeQueueGoal}` : `${currentIndex} / ${sessionQueue.length}`}</strong>
                 </div>
                 <div className="progress-track"><span style={{ width: `${sessionProgress}%` }} /></div>
               </div>
@@ -644,7 +986,7 @@ export default function Home() {
                 <aside className="session-panel paper-panel" aria-label="今日学习队列">
                   <div className="panel-heading">
                     <span className="folio">01</span>
-                    <div><p className="kicker">Sitzung</p><h2>今日队列</h2></div>
+                    <div><p className="kicker">Sitzung</p><h2>{queueSource === "daily" ? "今日队列" : queueSource === "review" ? "复习队列" : "单独学习"}</h2></div>
                   </div>
                   <div className="queue-list">
                     {sessionQueue.map((id, index) => {
@@ -664,7 +1006,7 @@ export default function Home() {
 
                 <section className={revealed ? "word-card revealed" : "word-card"}>
                   <div className="card-topline">
-                    <span className="card-mode">{currentRecord ? "复习" : "新词"} · {String(currentIndex + 1).padStart(2, "0")}</span>
+                    <span className="card-mode">{queueSource === "manual" ? "单独学习" : currentRecord ? "复习" : "新词"} · {String(currentIndex + 1).padStart(2, "0")}</span>
                     <button className="speak-button" onClick={() => speak(currentWord)} aria-label={`朗读 ${currentWord.term}`}>
                       <span className="sound-rings" aria-hidden="true">◖))</span> 听发音
                     </button>
@@ -680,7 +1022,7 @@ export default function Home() {
                     <div className="recall-prompt">
                       <div className="ink-divider"><span>想一想</span></div>
                       <p>它是什么意思？试着在脑中说出一个搭配。</p>
-                      <button className="reveal-button" onClick={() => setRevealed(true)}>
+                      <button className="reveal-button" onClick={revealAnswer}>
                         查看释义 <span aria-hidden="true">→</span>
                       </button>
                     </div>
@@ -692,7 +1034,7 @@ export default function Home() {
                       </div>
                       <blockquote>
                         <p>{currentWord.example}</p>
-                        <footer>{currentWord.exampleZh}</footer>
+                        {settings.showTranslation && <footer>{currentWord.exampleZh}</footer>}
                       </blockquote>
                       <div className="explanation-grid">
                         <article>
@@ -718,7 +1060,7 @@ export default function Home() {
                               <span className="rating-icon" aria-hidden="true">
                                 {status === "unknown" ? "×" : status === "fuzzy" ? "~" : "✓"}
                               </span>
-                              <span><strong>{STATUS_META[status].label}</strong><small>{previewDue(currentRecord, status)}</small></span>
+                              <span><strong>{STATUS_META[status].label}</strong><small>{previewDue(currentRecord, status, clock)}</small></span>
                             </button>
                           ))}
                         </div>
@@ -732,12 +1074,12 @@ export default function Home() {
                   <section className="plan-card paper-panel">
                     <div className="panel-heading compact">
                       <span className="folio">02</span>
-                      <div><p className="kicker">Heute</p><h2>今日计划</h2></div>
+                      <div><p className="kicker">Heute</p><h2>{queueSource === "daily" ? "今日计划" : queueSource === "review" ? "到期复习" : "单独学习"}</h2></div>
                     </div>
                     <div className="plan-stats">
-                      <div><strong>{reviewTotal}</strong><span>到期复习</span></div>
-                      <div><strong>{newTotal}</strong><span>新词</span></div>
-                      <div><strong>12</strong><span>约分钟</span></div>
+                      <div><strong>{queueSource === "daily" ? dueWords.length : sessionQueue.length}</strong><span>{queueSource === "daily" ? "到期复习" : "本队词数"}</span></div>
+                      <div><strong>{queueSource === "daily" ? newTotal : dueWords.length}</strong><span>{queueSource === "daily" ? "新词" : "到期总数"}</span></div>
+                      <div><strong>{Math.max(2, Math.round((queueSource === "daily" ? settings.wordsPerQueue : sessionQueue.length) * 1.1))}</strong><span>约分钟</span></div>
                     </div>
                   </section>
                   <section className="rhythm-card">
@@ -750,18 +1092,32 @@ export default function Home() {
                     </div>
                     <p>你的选择会改变下一次出现的时间。</p>
                   </section>
-                  <button className="story-preview" onClick={() => switchView("story")}>
+                  <button className="story-preview" onClick={() => switchView("story")} disabled={grading}>
                     <span className="story-number">03</span>
-                    <span><small>每日短文</small><strong>Ein kleiner Umweg</strong><em>{learning.sessionComplete ? "已经生成 · 阅读 →" : "完成词课后自动生成"}</em></span>
+                    <span><small>{settings.level} · 每日短文</small><strong>{LEVEL_META[settings.level].story}</strong><em>{dailyComplete ? "已经生成 · 阅读 →" : `完成 ${activeQueueGoal} 个队列后自动生成`}</em></span>
                   </button>
                 </aside>
               </div>
+            ) : queueUnavailable && !dailyComplete ? (
+              <section className="empty-state word-card">
+                <p className="kicker">Heute ruhig · {settings.level}</p>
+                <h2>{learnedToday.length ? "今天能学的词已经全部完成。" : "当前词书暂时没有需要学习的词。"}</h2>
+                <p>{learnedToday.length ? `今天已经学习 ${learnedToday.length} 个词，可以直接用这些词生成短文。` : "新词已经完成，下一次复习会按遗忘曲线准时出现。你也可以先切换另一本词书。"}</p>
+                <div className="empty-actions">
+                  <button className="reveal-button" onClick={learnedToday.length ? finishDayWithAvailableWords : () => switchView("settings")}>
+                    {learnedToday.length ? "生成今日短文 →" : "选择其他词书 →"}
+                  </button>
+                  <button className="secondary-action" onClick={() => switchView("review")}>查看复习安排</button>
+                </div>
+              </section>
             ) : (
               <section className="empty-state word-card">
-                <p className="kicker">Heute geschafft</p>
-                <h2>今天的词已经学完了。</h2>
-                <p>复习节奏已排好，现在去读一篇只属于今天的小短文。</p>
-                <button className="reveal-button" onClick={() => switchView("story")}>阅读今日短文 →</button>
+                <p className="kicker">{dailyComplete ? "Heute geschafft" : `Sitzung ${learning.todayQueuesCompleted + 1}`}</p>
+                <h2>{dailyComplete ? "今天的学习已经完成。" : `第 ${learning.todayQueuesCompleted} 个队列完成。`}</h2>
+                <p>{dailyComplete ? "复习节奏已排好，现在去读一篇只属于今天的小短文。" : `今天还剩 ${Math.max(0, activeQueueGoal - learning.todayQueuesCompleted)} 个队列，每个最多 ${settings.wordsPerQueue} 个词。`}</p>
+                <button className="reveal-button" onClick={dailyComplete ? () => switchView("story") : startNextDailyQueue}>
+                  {dailyComplete ? "阅读今日短文 →" : "开始下一队列 →"}
+                </button>
               </section>
             )}
           </>
@@ -770,9 +1126,9 @@ export default function Home() {
         {view === "review" && (
           <section className="secondary-page">
             <div className="page-heading">
-              <div><p className="kicker">Wiederholen</p><h1>到时间的词，才值得复习。</h1></div>
-              <button className="primary-action" disabled={!dueWords.length} onClick={() => startQueue(dueWords.map((word) => word.id))}>
-                {dueWords.length ? `开始复习 ${dueWords.length} 个词` : "今天已清空"}
+              <div><p className="kicker">Wiederholen · {settings.level}</p><h1>到时间的词，才值得复习。</h1></div>
+              <button className="primary-action" disabled={!dueWords.length} onClick={() => startQueue(dueWords.slice(0, settings.wordsPerQueue).map((word) => word.id), "review")}>
+                {dueWords.length ? `开始复习 ${Math.min(dueWords.length, settings.wordsPerQueue)} 个词` : "今天已清空"}
               </button>
             </div>
             <div className="review-summary-grid">
@@ -782,11 +1138,11 @@ export default function Home() {
             </div>
             <div className="due-list paper-panel">
               <div className="list-header"><span>单词</span><span>状态</span><span>上次结果</span><span>下次出现</span></div>
-              {(reviewTotal ? WORDS.filter((word) => learning.records[word.id]) : WORDS.slice(0, 3)).map((word) => {
+              {(reviewTotal ? bookWords.filter((word) => learning.records[word.id]) : bookWords.slice(0, 3)).map((word) => {
                 const record = learning.records[word.id];
                 const status = record?.status ?? "unknown";
                 return (
-                  <button className="due-row" key={word.id} onClick={() => startQueue([word.id])}>
+                  <button className="due-row" key={word.id} onClick={() => startQueue([word.id], "review")}>
                     <span><strong>{word.term}</strong><small>{word.meaning}</small></span>
                     <span className={`status-pill ${status}`}>{STATUS_META[status].label}</span>
                     <span>{record ? `${record.intervalDays || "<1"} 天间隔` : "新词"}</span>
@@ -801,18 +1157,18 @@ export default function Home() {
         {view === "library" && (
           <section className="secondary-page">
             <div className="page-heading library-heading">
-              <div><p className="kicker">Wortschatz</p><h1>你的词，分得清才记得住。</h1></div>
+              <div><p className="kicker">Wortschatz · {settings.level} {LEVEL_META[settings.level].title}</p><h1>你的词，分得清才记得住。</h1></div>
               <div className="filter-tabs" aria-label="按掌握状态筛选">
                 {(["all", "unknown", "fuzzy", "known"] as const).map((filter) => (
                   <button key={filter} className={libraryFilter === filter ? "active" : ""} onClick={() => setLibraryFilter(filter)} aria-pressed={libraryFilter === filter}>
                     {filter === "all" ? "全部" : STATUS_META[filter].label}
-                    <span>{filter === "all" ? WORDS.length : counts[filter]}</span>
+                    <span>{filter === "all" ? bookWords.length : counts[filter]}</span>
                   </button>
                 ))}
               </div>
             </div>
             <div className="word-library-grid">
-              {WORDS.filter((word) => libraryFilter === "all" || (learning.records[word.id]?.status ?? "unknown") === libraryFilter).map((word, index) => {
+              {bookWords.filter((word) => libraryFilter === "all" || (learning.records[word.id]?.status ?? "unknown") === libraryFilter).map((word, index) => {
                 const status = learning.records[word.id]?.status ?? "unknown";
                 return (
                   <article className="library-card" key={word.id}>
@@ -821,7 +1177,7 @@ export default function Home() {
                     <h2>{word.term}</h2>
                     <p className="library-meaning">{word.meaning}</p>
                     <div className="library-grammar"><span>搭配</span>{word.grammarTitle}</div>
-                    <button onClick={() => startQueue([word.id])}>单独学习 <span aria-hidden="true">→</span></button>
+                    <button onClick={() => startQueue([word.id], "manual")}>单独学习 <span aria-hidden="true">→</span></button>
                   </article>
                 );
               })}
@@ -831,12 +1187,12 @@ export default function Home() {
 
         {view === "progress" && (
           <section className="secondary-page">
-            <div className="page-heading"><div><p className="kicker">Fortschritt</p><h1>进步，是记忆留下的痕迹。</h1></div><div className="date-stamp">本周 · 第 30 周</div></div>
+            <div className="page-heading"><div><p className="kicker">Fortschritt</p><h1>进步，是记忆留下的痕迹。</h1></div><div className="date-stamp">{settings.level} · {LEVEL_META[settings.level].title}词书</div></div>
             <div className="progress-stat-grid">
               <article><span>连续学习</span><strong>{learning.streakDays}<small> 天</small></strong><p>比上周多 2 天</p></article>
-              <article><span>已知词汇</span><strong>{counts.known}<small> / {WORDS.length}</small></strong><p>稳定进入长期记忆</p></article>
+              <article><span>已知词汇</span><strong>{counts.known}<small> / {bookWords.length}</small></strong><p>稳定进入长期记忆</p></article>
               <article><span>今日判断</span><strong>{learning.todayReviewed}<small> 次</small></strong><p>未知、模糊、已知</p></article>
-              <article><span>预计保持率</span><strong>{Math.round(((counts.known * 0.88 + counts.fuzzy * 0.58 + counts.unknown * 0.28) / WORDS.length) * 100)}<small>%</small></strong><p>根据当前掌握状态估算</p></article>
+              <article><span>预计保持率</span><strong>{Math.round(((counts.known * 0.88 + counts.fuzzy * 0.58 + counts.unknown * 0.28) / Math.max(1, bookWords.length)) * 100)}<small>%</small></strong><p>根据当前掌握状态估算</p></article>
             </div>
             <div className="progress-detail-grid">
               <section className="curve-card paper-panel">
@@ -851,9 +1207,166 @@ export default function Home() {
                 {(["known", "fuzzy", "unknown"] as const).map((status) => (
                   <div className="mastery-row" key={status}>
                     <div><span className={`legend-dot ${status}`} /><strong>{STATUS_META[status].label}</strong></div><span>{counts[status]} 词</span>
-                    <div className="mastery-bar"><span className={status} style={{ width: `${(counts[status] / WORDS.length) * 100}%` }} /></div>
+                    <div className="mastery-bar"><span className={status} style={{ width: `${(counts[status] / Math.max(1, bookWords.length)) * 100}%` }} /></div>
                   </div>
                 ))}
+              </section>
+            </div>
+          </section>
+        )}
+
+        {view === "settings" && (
+          <section className="secondary-page settings-page">
+            <div className="page-heading settings-heading">
+              <div>
+                <p className="kicker">Einstellungen</p>
+                <h1>把每天的词课，调成你的节奏。</h1>
+              </div>
+              <div className="settings-save-note" aria-live="polite">
+                <span aria-hidden="true">✓</span>{settingsNotice}
+              </div>
+            </div>
+
+            <section className="settings-plan-summary" aria-label="当前学习计划摘要">
+              <div><span>当前词书</span><strong>{settings.level}</strong><small>{LEVEL_META[settings.level].title}</small></div>
+              <div><span>每队列</span><strong>{settings.wordsPerQueue}</strong><small>个单词</small></div>
+              <div><span>每天</span><strong>{settings.queuesPerDay}</strong><small>个队列</small></div>
+              <div className="daily-goal-seal"><span>每日目标</span><strong>{dailyTarget}</strong><small>张词卡</small></div>
+            </section>
+
+            <div className="settings-layout">
+              <fieldset className="settings-card appearance-settings">
+                <legend><span className="settings-index">01</span><span><small>Appearance</small>外观</span></legend>
+                <p className="settings-help">深色模式仍保留羊皮纸质感；跟随系统会随设备外观自动变化。</p>
+                <div className="theme-options">
+                  {([
+                    ["light", "浅色", "明亮羊皮纸"],
+                    ["dark", "深色", "深棕绿纸张"],
+                    ["system", "跟随系统", "自动切换"],
+                  ] as const).map(([value, label, description]) => (
+                    <label className={settings.theme === value ? "theme-option selected" : "theme-option"} key={value}>
+                      <input type="radio" name="theme" value={value} checked={settings.theme === value} onChange={() => updateSetting("theme", value)} />
+                      <span className={`theme-swatch ${value}`} aria-hidden="true"><i /><i /></span>
+                      <strong>{label}</strong><small>{description}</small>
+                      <em>{settings.theme === value ? "已选择" : ""}</em>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset className="settings-card plan-settings">
+                <legend><span className="settings-index">02</span><span><small>Study plan</small>每日学习计划</span></legend>
+                <div className="setting-row">
+                  <div><strong>每个队列的单词数</strong><p>一次专注完成一小组，包含新词与到期复习。</p></div>
+                  <div className="number-options" role="radiogroup" aria-label="每个队列的单词数">
+                    {[5, 10, 15, 20].map((value) => (
+                      <label className={settings.wordsPerQueue === value ? "selected" : ""} key={value}>
+                        <input type="radio" name="wordsPerQueue" checked={settings.wordsPerQueue === value} onChange={() => updateSetting("wordsPerQueue", value)} />
+                        <span>{value}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="setting-row">
+                  <div><strong>每天完成几个队列</strong><p>完成最后一个队列后，生成当天的德语短文。</p></div>
+                  <div className="number-options" role="radiogroup" aria-label="每天的队列数">
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <label className={settings.queuesPerDay === value ? "selected" : ""} key={value}>
+                        <input type="radio" name="queuesPerDay" checked={settings.queuesPerDay === value} onChange={() => updateSetting("queuesPerDay", value)} />
+                        <span>{value}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="goal-note"><span>你的计划</span>每天最多学习 <strong>{dailyTarget}</strong> 张词卡，约 <strong>{Math.max(5, Math.round(dailyTarget * 1.1))}</strong> 分钟。</div>
+                {activeQueueGoal !== settings.queuesPerDay && (
+                  <p className="active-goal-note">今天已经开始学习，因此仍按 {activeQueueGoal} 个队列完成；新的数量从明天生效。</p>
+                )}
+              </fieldset>
+
+              <fieldset className="settings-card wordbook-settings">
+                <legend><span className="settings-index">03</span><span><small>CEFR wordbooks</small>选择单词书</span></legend>
+                <p className="settings-help">按 CEFR 能力等级整理的 Worttag 精选词书。切换词书不会丢失已经学过的记录。</p>
+                <div className="level-options">
+                  {(["A1", "A2", "B1", "B2", "C1"] as const).map((level) => {
+                    const levelCount = WORDS.filter((word) => word.level === level).length;
+                    const learnedCount = WORDS.filter((word) => word.level === level && learning.records[word.id]).length;
+                    return (
+                      <label className={settings.level === level ? "level-option selected" : "level-option"} key={level}>
+                        <input type="radio" name="wordbook" checked={settings.level === level} onChange={() => updateSetting("level", level)} />
+                        <span className="level-mark">{level}</span>
+                        <span><strong>{LEVEL_META[level].title}</strong><small>{LEVEL_META[level].description}</small></span>
+                        <em>{learnedCount} / {levelCount}</em>
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="cefr-note">CEFR 描述的是语言能力等级，并没有唯一的官方固定词表；这里按常见交际场景与课程进度精心分级。</p>
+              </fieldset>
+
+              <fieldset className="settings-card order-settings">
+                <legend><span className="settings-index">04</span><span><small>Order</small>新词顺序</span></legend>
+                <div className="order-options">
+                  {([
+                    ["sequential", "顺序学习", "按词书编排逐个前进，适合从 A1 系统起步。"],
+                    ["random", "每日乱序", "每天稳定打乱一次；刷新页面不会改变当日顺序。"],
+                  ] as const).map(([value, label, description]) => (
+                    <label className={settings.order === value ? "order-option selected" : "order-option"} key={value}>
+                      <input type="radio" name="wordOrder" checked={settings.order === value} onChange={() => updateSetting("order", value)} />
+                      <span className="order-symbol" aria-hidden="true">{value === "sequential" ? "1·2·3" : "2·1·3"}</span>
+                      <span><strong>{label}</strong><small>{description}</small></span>
+                      <em>{settings.order === value ? "✓" : ""}</em>
+                    </label>
+                  ))}
+                </div>
+                <p className="settings-help compact-help">到期复习始终按紧急程度排序，不会被乱序设置打散。</p>
+              </fieldset>
+
+              <fieldset className="settings-card experience-settings">
+                <legend><span className="settings-index">05</span><span><small>Learning experience</small>学习体验</span></legend>
+                <label className="toggle-row">
+                  <span><strong>揭晓时自动朗读</strong><small>显示答案时自动播放德语发音。</small></span>
+                  <input type="checkbox" checked={settings.autoPronounce} onChange={(event) => updateSetting("autoPronounce", event.target.checked)} />
+                  <span className="toggle-control" aria-hidden="true" />
+                </label>
+                <label className="toggle-row">
+                  <span><strong>显示中文译文</strong><small>在例句与每日短文旁显示中文。</small></span>
+                  <input type="checkbox" checked={settings.showTranslation} onChange={(event) => updateSetting("showTranslation", event.target.checked)} />
+                  <span className="toggle-control" aria-hidden="true" />
+                </label>
+                <label className="toggle-row">
+                  <span><strong>到期复习优先</strong><small>先处理该词书中已经到期的词，再加入新词。</small></span>
+                  <input type="checkbox" checked={settings.dueFirst} onChange={(event) => updateSetting("dueFirst", event.target.checked)} />
+                  <span className="toggle-control" aria-hidden="true" />
+                </label>
+                <div className="speech-setting">
+                  <div><strong>朗读速度</strong><small>只影响德语单词朗读。</small></div>
+                  <div className="speech-options">
+                    {([ ["slow", "慢速"], ["standard", "标准"], ["natural", "自然"] ] as const).map(([value, label]) => (
+                      <label className={settings.speechSpeed === value ? "selected" : ""} key={value}>
+                        <input type="radio" name="speechSpeed" checked={settings.speechSpeed === value} onChange={() => updateSetting("speechSpeed", value)} />
+                        <span>{label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </fieldset>
+
+              <section className="settings-card data-settings">
+                <div className="data-heading"><span className="settings-index">06</span><span><small>Local data</small><strong>学习数据</strong></span></div>
+                <p>学习记录和设置只保存在当前设备。恢复默认设置不会删除背词进度。</p>
+                <div className="data-actions">
+                  <button className="secondary-action" onClick={restoreDefaultSettings}>恢复默认设置</button>
+                  {!confirmReset ? (
+                    <button className="danger-link" onClick={() => setConfirmReset(true)}>清空学习进度</button>
+                  ) : (
+                    <div className="reset-confirm" role="alert">
+                      <span>确定清空所有等级的学习记录？此操作无法撤销。</span>
+                      <button onClick={clearLearningProgress}>确认清空</button>
+                      <button onClick={() => setConfirmReset(false)}>取消</button>
+                    </div>
+                  )}
+                </div>
               </section>
             </div>
           </section>
@@ -865,36 +1378,41 @@ export default function Home() {
               <button className="back-link" onClick={() => switchView("learn")}>← 返回词课</button>
               <div className="story-date"><span>WORTTAG · TAGESGESCHICHTE</span><strong>{new Date().toLocaleDateString("zh-CN", { month: "long", day: "numeric" })}</strong></div>
             </div>
-            {learning.sessionComplete || learnedToday.length >= 3 ? (
+            {dailyComplete && learnedToday.length > 0 ? (
               <article className="generated-story">
-                <div className="story-title-block"><p className="kicker">B1 · Alltag</p><h1>Ein kleiner Umweg</h1><p>一个小小的绕路</p></div>
-                <div className="story-columns">
+                <div className="story-title-block"><p className="kicker">{settings.level} · {LEVEL_META[settings.level].topic}</p><h1>{LEVEL_META[settings.level].story}</h1><p>{LEVEL_META[settings.level].storyZh}</p></div>
+                <div className={settings.showTranslation ? "story-columns" : "story-columns translation-hidden"}>
                   <div className="german-story">
-                    <span className="drop-cap">M</span>
-                    {WORDS.filter((word) => new Set(uniqueIds(learning.todayWordIds)).has(word.id)).map((word) => (
-                      <span key={word.id}> {word.storyDe}</span>
+                    {learnedToday.map((word, index) => (
+                      <span className={index === 0 ? "story-first-sentence" : undefined} key={word.id}>{index === 0 ? word.storyDe : ` ${word.storyDe}`}</span>
                     ))}
-                    <span> Am Ende kommt Mara zwar später, aber gut gelaunt im Büro an. Aus dem ungeplanten Umweg ist eine schöne Begegnung geworden.</span>
                   </div>
-                  <div className="translation-panel">
+                  {settings.showTranslation && <div className="translation-panel">
                     <p className="note-label">中文译文</p>
-                    {WORDS.filter((word) => new Set(uniqueIds(learning.todayWordIds)).has(word.id)).map((word) => <span key={word.id}>{word.storyZh}</span>)}
-                    <span>最后，玛拉虽然晚了一点，但心情愉快地到了办公室。一次计划之外的绕路，变成了一场温暖的相遇。</span>
-                  </div>
+                    {learnedToday.map((word, index) => <span key={word.id}>{index === 0 ? word.storyZh : ` ${word.storyZh}`}</span>)}
+                  </div>}
                 </div>
                 <footer className="story-vocabulary">
                   <div><p className="kicker">Heute gelernt</p><h2>短文使用了 {learnedToday.length} 个今日词汇</h2></div>
-                  <div className="story-chips">{learnedToday.map((word) => <button key={word.id} onClick={() => startQueue([word.id])}>{word.term}</button>)}</div>
+                  <div className="story-chips">{learnedToday.map((word) => <button key={word.id} onClick={() => startQueue([word.id], "manual")}>{word.term}</button>)}</div>
                 </footer>
               </article>
+            ) : dailyComplete ? (
+              <div className="story-locked paper-panel">
+                <span className="story-number">03</span>
+                <p className="kicker">Tagesgeschichte</p>
+                <h1>今天没有可用于短文的新词。</h1>
+                <p>到期复习会继续按遗忘曲线安排。你可以切换词书开始新的等级，学习记录不会丢失。</p>
+                <button className="reveal-button" onClick={() => switchView("settings")}>选择词书 →</button>
+              </div>
             ) : (
               <div className="story-locked paper-panel">
                 <span className="story-number">03</span>
                 <p className="kicker">Tagesgeschichte</p>
-                <h1>今天的短文，还差几个词。</h1>
-                <p>完成至少 3 个单词后，Worttag 会把你今天真正学过的词编成一篇连贯的 B1 小短文。</p>
-                <div className="story-lock-progress"><span style={{ width: `${Math.min(100, (learnedToday.length / 3) * 100)}%` }} /></div>
-                <button className="reveal-button" onClick={() => switchView("learn")}>继续学习 · {learnedToday.length} / 3 →</button>
+                <h1>今天的短文，还差几个队列。</h1>
+                <p>完成今日计划后，Worttag 会把你在 {settings.level} 词书里真正学过的词编成一篇连贯短文。</p>
+                <div className="story-lock-progress"><span style={{ width: `${Math.min(100, (learning.todayQueuesCompleted / activeQueueGoal) * 100)}%` }} /></div>
+                <button className="reveal-button" onClick={() => switchView("learn")}>继续学习 · {learning.todayQueuesCompleted} / {activeQueueGoal} 队列 →</button>
               </div>
             )}
           </section>

@@ -4,6 +4,7 @@ import "./globals.css";
 
 const title = "Worttag · 德语词汇记忆";
 const description = "以三档记忆判断、间隔复习、语法例句和每日短文，建立真正留得住的德语词汇。";
+const themeScript = `(() => { try { const saved = JSON.parse(localStorage.getItem("worttag-settings-v1") || "{}"); const mode = ["light", "dark", "system"].includes(saved.theme) ? saved.theme : "system"; const resolved = mode === "system" ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : mode; document.documentElement.dataset.theme = resolved; document.documentElement.style.colorScheme = resolved; } catch { const resolved = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; document.documentElement.dataset.theme = resolved; document.documentElement.style.colorScheme = resolved; } })();`;
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
@@ -32,7 +33,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
       <body>{children}</body>
     </html>
   );
