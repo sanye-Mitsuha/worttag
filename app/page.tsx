@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { A1_WORDS, A2_WORDS } from "./wordbooks-a1-a2";
 import { B1_ADDITIONS, B2_WORDS, C1_WORDS } from "./wordbooks-advanced";
 
@@ -37,6 +37,7 @@ type MemoryRecord = {
   lastReviewedAt: number | null;
   sameDayLapses: number;
   lapseDayKey: string | null;
+  updatedAt: number;
 };
 
 type LearningState = {
@@ -44,11 +45,15 @@ type LearningState = {
   todayKey: string;
   todayReviewed: number;
   todayWordIds: string[];
+  todayReviewEventIds: string[];
   streakDays: number;
   sessionComplete: boolean;
   todayQueuesCompleted: number;
+  todayQueueCompletionIds: string[];
   todayQueueLevel: CEFRLevel | null;
   todayQueueGoal: number | null;
+  updatedAt: number;
+  resetAt: number;
 };
 
 type AppSettings = {
@@ -63,8 +68,38 @@ type AppSettings = {
   speechSpeed: SpeechSpeed;
 };
 
+type SyncedSettings = Pick<
+  AppSettings,
+  "wordsPerQueue" | "queuesPerDay" | "level" | "order" | "dueFirst"
+>;
+type CloudSyncStatus = "connecting" | "saving" | "synced" | "offline" | "signed-out" | "error";
+
+type CloudPayload = {
+  schemaVersion: 1;
+  learning: LearningState;
+  settings: SyncedSettings;
+  settingsUpdatedAt: number;
+};
+
+type CloudSnapshot = {
+  payload: unknown;
+  revision: number;
+  resetAt: number;
+  clientUpdatedAt: number;
+  serverUpdatedAt: string;
+};
+
 const STORAGE_KEY = "worttag-learning-state-v1";
 const SETTINGS_KEY = "worttag-settings-v1";
+const SETTINGS_UPDATED_AT_KEY = "worttag-settings-updated-at-v1";
+const CLOUD_META_KEY = "worttag-cloud-meta-v1";
+const SYNCED_SETTING_KEYS: (keyof SyncedSettings)[] = [
+  "wordsPerQueue",
+  "queuesPerDay",
+  "level",
+  "order",
+  "dueFirst",
+];
 const MINUTE = 60_000;
 const DAY = 86_400_000;
 const INTERVAL_DAYS = [0, 1, 3, 7, 14, 30, 60, 120, 180] as const;
@@ -97,6 +132,17 @@ const SPEECH_RATES: Record<SpeechSpeed, number> = {
 
 function currentTimestamp() {
   return Date.now();
+}
+
+function mutationTimestamp(previous = 0) {
+  return Math.max(currentTimestamp(), previous + 1);
+}
+
+function uniqueId(prefix: string) {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return `${prefix}-${crypto.randomUUID()}`;
+  }
+  return `${prefix}-${currentTimestamp()}-${Math.random().toString(36).slice(2)}`;
 }
 
 const B1_BASE_WORDS: WordCard[] = [
@@ -297,6 +343,15 @@ const STATUS_META: Record<RecallStatus, { label: string; short: string }> = {
   known: { label: "已知", short: "进入下一阶段" },
 };
 
+const CLOUD_STATUS_META: Record<CloudSyncStatus, { label: string; detail: string }> = {
+  connecting: { label: "正在连接", detail: "正在读取这台设备与云端的最新进度" },
+  saving: { label: "正在保存", detail: "学习变化正在上传，请稍候" },
+  synced: { label: "云端已同步", detail: "同一 ChatGPT 账户的设备会自动保持一致" },
+  offline: { label: "离线使用中", detail: "进度已保存在本机，联网后会自动补传" },
+  "signed-out": { label: "需要登录", detail: "登录 ChatGPT 后才能启用跨设备同步" },
+  error: { label: "等待重试", detail: "本机进度安全，Worttag 稍后会再次连接" },
+};
+
 function dayKey(timestamp = Date.now()) {
   const date = new Date(timestamp);
   return [
@@ -325,47 +380,94 @@ function createInitialState(now = Date.now()): LearningState {
     todayKey: dayKey(now),
     todayReviewed: 0,
     todayWordIds: [],
+    todayReviewEventIds: [],
     streakDays: 1,
     sessionComplete: false,
     todayQueuesCompleted: 0,
+    todayQueueCompletionIds: [],
     todayQueueLevel: null,
     todayQueueGoal: null,
+    updatedAt: 0,
+    resetAt: 0,
   };
 }
 
-function prepareSavedState(saved: LearningState, now = Date.now()): LearningState {
+function prepareSavedState(
+  saved: Partial<LearningState>,
+  now = Date.now(),
+  rollIntoCurrentDay = true,
+): LearningState {
   const currentDay = dayKey(now);
-  const savedQueueGoal = [1, 2, 3, 4, 5].includes(saved.todayQueueGoal ?? -1)
-    ? saved.todayQueueGoal
-    : null;
+  const savedRecords = saved.records && typeof saved.records === "object" && !Array.isArray(saved.records)
+    ? saved.records
+    : {};
+  const savedTodayWordIds = Array.isArray(saved.todayWordIds)
+    ? saved.todayWordIds.filter((id): id is string => typeof id === "string")
+    : [];
+  const savedQueueGoal: number | null =
+    typeof saved.todayQueueGoal === "number" && [1, 2, 3, 4, 5].includes(saved.todayQueueGoal)
+      ? saved.todayQueueGoal
+      : null;
+  const recordUpdatedAt = Object.values(savedRecords).reduce(
+    (latest, record) => Math.max(latest, record?.updatedAt ?? record?.lastReviewedAt ?? 0),
+    0,
+  );
+  const legacyReviewEvents = Array.from(
+    { length: Math.max(0, saved.todayReviewed ?? 0) },
+    (_, index) => `legacy-review-${saved.todayKey ?? currentDay}-${index + 1}`,
+  );
+  const legacyQueueEvents = Array.from(
+    { length: Math.max(0, saved.todayQueuesCompleted ?? (saved.sessionComplete ? 1 : 0)) },
+    (_, index) => `legacy-queue-${saved.todayKey ?? currentDay}-${index + 1}`,
+  );
+  const normalizedReviewEvents = Array.isArray(saved.todayReviewEventIds)
+    ? saved.todayReviewEventIds.filter((id): id is string => typeof id === "string")
+    : legacyReviewEvents;
+  const normalizedQueueEvents = Array.isArray(saved.todayQueueCompletionIds)
+    ? saved.todayQueueCompletionIds.filter((id): id is string => typeof id === "string")
+    : legacyQueueEvents;
   const normalized: LearningState = {
-    records: saved.records ?? {},
+    records: savedRecords,
     todayKey: saved.todayKey ?? currentDay,
-    todayReviewed: saved.todayReviewed ?? 0,
-    todayWordIds: saved.todayWordIds ?? [],
+    todayReviewed: normalizedReviewEvents.length,
+    todayWordIds: savedTodayWordIds,
+    todayReviewEventIds: normalizedReviewEvents,
     streakDays: saved.streakDays ?? 1,
     sessionComplete: saved.sessionComplete ?? false,
-    todayQueuesCompleted:
-      saved.todayQueuesCompleted ?? (saved.sessionComplete ? 1 : 0),
+    todayQueuesCompleted: normalizedQueueEvents.length,
+    todayQueueCompletionIds: normalizedQueueEvents,
     todayQueueLevel:
       saved.todayQueueLevel ??
-      WORDS.find((word) => (saved.todayWordIds ?? []).includes(word.id))?.level ??
+      WORDS.find((word) => savedTodayWordIds.includes(word.id))?.level ??
       null,
     todayQueueGoal: savedQueueGoal,
+    updatedAt: Math.max(saved.updatedAt ?? 0, recordUpdatedAt),
+    resetAt: saved.resetAt ?? 0,
   };
-  if (normalized.todayKey === currentDay) return normalized;
+  if (
+    normalized.todayKey === currentDay ||
+    !rollIntoCurrentDay ||
+    normalized.todayKey > currentDay
+  ) return normalized;
   const gap = dayDifference(normalized.todayKey, currentDay);
   return {
     ...normalized,
     todayKey: currentDay,
     todayReviewed: 0,
     todayWordIds: [],
+    todayReviewEventIds: [],
     streakDays: gap === 1 ? normalized.streakDays + 1 : 1,
     sessionComplete: false,
     todayQueuesCompleted: 0,
+    todayQueueCompletionIds: [],
     todayQueueLevel: null,
     todayQueueGoal: null,
+    updatedAt: mutationTimestamp(normalized.updatedAt),
   };
+}
+
+function touchLearning(state: LearningState, timestamp = mutationTimestamp(state.updatedAt)): LearningState {
+  return { ...state, updatedAt: timestamp };
 }
 
 function freshMemory(): MemoryRecord {
@@ -379,6 +481,7 @@ function freshMemory(): MemoryRecord {
     lastReviewedAt: null,
     sameDayLapses: 0,
     lapseDayKey: null,
+    updatedAt: 0,
   };
 }
 
@@ -390,6 +493,7 @@ function gradeMemory(
   const state = previous ?? freshMemory();
   const today = dayKey(now);
   const sameDayLapses = state.lapseDayKey === today ? state.sameDayLapses : 0;
+  const updatedAt = Math.max(now, (state.updatedAt ?? state.lastReviewedAt ?? 0) + 1);
 
   if (rating === "unknown") {
     const failures = sameDayLapses + 1;
@@ -411,6 +515,7 @@ function gradeMemory(
         lastReviewedAt: now,
         sameDayLapses: failures,
         lapseDayKey: today,
+        updatedAt,
       },
       dueLabel: failures === 1 ? "10 分钟后" : failures === 2 ? "30 分钟后" : "明天",
     };
@@ -430,6 +535,7 @@ function gradeMemory(
         lastReviewedAt: now,
         sameDayLapses,
         lapseDayKey: sameDayLapses > 0 ? today : null,
+        updatedAt,
       },
       dueLabel: days === 1 ? "明天" : `${days} 天后`,
     };
@@ -448,6 +554,7 @@ function gradeMemory(
       lastReviewedAt: now,
       sameDayLapses: 0,
       lapseDayKey: null,
+      updatedAt,
     },
     dueLabel: days === 1 ? "明天" : `${days} 天后`,
   };
@@ -545,11 +652,151 @@ function prepareSavedSettings(value: unknown): AppSettings {
   };
 }
 
+function syncedSettings(settings: AppSettings): SyncedSettings {
+  return {
+    wordsPerQueue: settings.wordsPerQueue,
+    queuesPerDay: settings.queuesPerDay,
+    level: settings.level,
+    order: settings.order,
+    dueFirst: settings.dueFirst,
+  };
+}
+
+function buildCloudPayload(
+  learning: LearningState,
+  settings: AppSettings,
+  settingsUpdatedAt: number,
+): CloudPayload {
+  return {
+    schemaVersion: 1,
+    learning,
+    settings: syncedSettings(settings),
+    settingsUpdatedAt,
+  };
+}
+
+function normalizeCloudPayload(value: unknown): CloudPayload | null {
+  if (!value || typeof value !== "object") return null;
+  const payload = value as Partial<CloudPayload>;
+  if (!payload.learning || typeof payload.learning !== "object") return null;
+  const preparedSettings = prepareSavedSettings({
+    ...(payload.settings && typeof payload.settings === "object" ? payload.settings : {}),
+    theme: "system",
+  });
+  return {
+    schemaVersion: 1,
+    learning: prepareSavedState(payload.learning, Date.now(), false),
+    settings: syncedSettings(preparedSettings),
+    settingsUpdatedAt: Number.isSafeInteger(payload.settingsUpdatedAt)
+      ? Math.max(0, payload.settingsUpdatedAt!)
+      : 0,
+  };
+}
+
+function mergeLearningStates(local: LearningState, remote: LearningState): LearningState {
+  if (local.resetAt !== remote.resetAt) {
+    return local.resetAt > remote.resetAt ? local : remote;
+  }
+
+  const localIsNewer = local.updatedAt > remote.updatedAt;
+  const newer = localIsNewer ? local : remote;
+  const older = localIsNewer ? remote : local;
+  const records: Record<string, MemoryRecord> = { ...older.records };
+  const statusPriority: Record<RecallStatus, number> = { known: 0, fuzzy: 1, unknown: 2 };
+
+  Object.entries(newer.records).forEach(([id, candidate]) => {
+    const existing = records[id];
+    if (!existing) {
+      records[id] = candidate;
+      return;
+    }
+    const candidateTime = candidate.updatedAt ?? candidate.lastReviewedAt ?? candidate.dueAt ?? 0;
+    const existingTime = existing.updatedAt ?? existing.lastReviewedAt ?? existing.dueAt ?? 0;
+    if (
+      candidateTime > existingTime ||
+      (candidateTime === existingTime && statusPriority[candidate.status] >= statusPriority[existing.status])
+    ) {
+      records[id] = candidate;
+    }
+  });
+
+  const sameDay = local.todayKey === remote.todayKey;
+  if (!sameDay) {
+    const currentDayState = local.todayKey > remote.todayKey ? local : remote;
+    return {
+      ...currentDayState,
+      records,
+      resetAt: local.resetAt,
+      updatedAt: Math.max(local.updatedAt, remote.updatedAt),
+    };
+  }
+
+  const reviewEvents = Array.from(new Set([
+    ...local.todayReviewEventIds,
+    ...remote.todayReviewEventIds,
+  ]));
+  const sameQueuePlan = local.todayQueueLevel === remote.todayQueueLevel &&
+    local.todayQueueGoal === remote.todayQueueGoal;
+  const queueEvents = sameQueuePlan
+    ? Array.from(new Set([
+      ...local.todayQueueCompletionIds,
+      ...remote.todayQueueCompletionIds,
+    ]))
+    : [...newer.todayQueueCompletionIds];
+
+  return {
+    ...newer,
+    records,
+    todayReviewed: reviewEvents.length,
+    todayWordIds: Array.from(new Set([...local.todayWordIds, ...remote.todayWordIds])),
+    todayReviewEventIds: reviewEvents,
+    streakDays: Math.max(local.streakDays, remote.streakDays),
+    sessionComplete: sameQueuePlan
+      ? local.sessionComplete || remote.sessionComplete
+      : newer.sessionComplete,
+    todayQueuesCompleted: queueEvents.length,
+    todayQueueCompletionIds: queueEvents,
+    resetAt: local.resetAt,
+    updatedAt: Math.max(local.updatedAt, remote.updatedAt),
+  };
+}
+
+function mergeCloudPayloads(local: CloudPayload, remote: CloudPayload): CloudPayload {
+  const useLocalSettings = local.settingsUpdatedAt > remote.settingsUpdatedAt;
+  return {
+    schemaVersion: 1,
+    learning: mergeLearningStates(local.learning, remote.learning),
+    settings: useLocalSettings ? local.settings : remote.settings,
+    settingsUpdatedAt: Math.max(local.settingsUpdatedAt, remote.settingsUpdatedAt),
+  };
+}
+
+function payloadSignature(payload: CloudPayload) {
+  return JSON.stringify(payload);
+}
+
+function ownerStorageKey(base: string, ownerId: string) {
+  return `${base}:${ownerId}`;
+}
+
+function ArticleTerm({ term }: { term: string }) {
+  const match = /^(der|die|das)\s+(.+)$/i.exec(term.trim());
+  if (!match) return <>{term}</>;
+  const article = match[1].toLowerCase();
+  return (
+    <span className="article-term" lang="de">
+      <span className={`noun-article article-${article}`}>{match[1]}</span>{" "}
+      <span>{match[2]}</span>
+    </span>
+  );
+}
+
 export default function Home() {
   const [ready, setReady] = useState(false);
   const [view, setView] = useState<View>("learn");
-  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
-  const [learning, setLearning] = useState<LearningState>(() => createInitialState());
+  const [settings, setSettingsValue] = useState<AppSettings>(DEFAULT_SETTINGS);
+  const [settingsUpdatedAt, setSettingsUpdatedAtValue] = useState(0);
+  const [learning, setLearningValue] = useState<LearningState>(() => createInitialState());
   const [sessionQueue, setSessionQueue] = useState<string[]>([]);
   const [queueSource, setQueueSource] = useState<"daily" | "review" | "manual">("daily");
   const [returnView, setReturnView] = useState<View>("learn");
@@ -557,32 +804,125 @@ export default function Home() {
   const [revealed, setRevealed] = useState(false);
   const [grading, setGrading] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [settingsNotice, setSettingsNotice] = useState("所有设置都会自动保存在当前设备");
+  const [settingsNotice, setSettingsNotice] = useState("正在准备安全的云端同步");
   const [confirmReset, setConfirmReset] = useState(false);
   const [planDirty, setPlanDirty] = useState(false);
   const [queueUnavailable, setQueueUnavailable] = useState(false);
   const [clock, setClock] = useState(0);
   const [libraryFilter, setLibraryFilter] = useState<"all" | RecallStatus>("all");
+  const [cloudStatus, setCloudStatus] = useState<CloudSyncStatus>("connecting");
+  const [cloudDisplayName, setCloudDisplayName] = useState<string | null>(null);
+  const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
+
+  const learningRef = useRef(learning);
+  const settingsRef = useRef(settings);
+  const settingsUpdatedAtRef = useRef(settingsUpdatedAt);
+  const cloudReadyRef = useRef(false);
+  const cloudRevisionRef = useRef(0);
+  const cloudOwnerIdRef = useRef<string | null>(null);
+  const localOwnerIdRef = useRef<string | null>(null);
+  const syncInFlightRef = useRef(false);
+  const syncQueuedRef = useRef(false);
+  const pendingPullRef = useRef(false);
+  const lastCloudSignatureRef = useRef("");
+  const resetConfirmedRef = useRef(false);
+  const pendingResetRef = useRef<number | null>(null);
+  const hasLocalInteractionRef = useRef(false);
+  const resetTriggerRef = useRef<HTMLButtonElement>(null);
+  const resetCancelRef = useRef<HTMLButtonElement>(null);
+  const resetDialogRef = useRef<HTMLElement>(null);
+  const transitionTimerRef = useRef<number | null>(null);
+
+  function setLearning(
+    next: LearningState | ((current: LearningState) => LearningState),
+  ) {
+    setLearningValue((current) => {
+      const resolved = typeof next === "function" ? next(current) : next;
+      learningRef.current = resolved;
+      return resolved;
+    });
+  }
+
+  function setSettings(
+    next: AppSettings | ((current: AppSettings) => AppSettings),
+  ) {
+    setSettingsValue((current) => {
+      const resolved = typeof next === "function" ? next(current) : next;
+      settingsRef.current = resolved;
+      return resolved;
+    });
+  }
+
+  function setSettingsUpdatedAt(
+    next: number | ((current: number) => number),
+  ) {
+    setSettingsUpdatedAtValue((current) => {
+      const resolved = typeof next === "function" ? next(current) : next;
+      settingsUpdatedAtRef.current = resolved;
+      return resolved;
+    });
+  }
+
+  function clearTransitionTimer() {
+    if (transitionTimerRef.current !== null) {
+      window.clearTimeout(transitionTimerRef.current);
+      transitionTimerRef.current = null;
+    }
+  }
 
   useEffect(() => {
     let next = createInitialState();
     let nextSettings = DEFAULT_SETTINGS;
+    let nextSettingsUpdatedAt = 0;
+    let savedOwnerId: string | null = null;
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
+      const rawCloudMeta = window.localStorage.getItem(CLOUD_META_KEY);
+      if (rawCloudMeta) {
+        const cloudMeta = JSON.parse(rawCloudMeta) as {
+          ownerId?: string;
+          lastSyncedAt?: number;
+        };
+        if (typeof cloudMeta.ownerId === "string" && cloudMeta.ownerId) {
+          savedOwnerId = cloudMeta.ownerId;
+          localOwnerIdRef.current = cloudMeta.ownerId;
+        }
+        if (Number.isSafeInteger(cloudMeta.lastSyncedAt)) {
+          window.setTimeout(() => setLastSyncedAt(cloudMeta.lastSyncedAt!), 0);
+        }
+      }
+    } catch {
+      savedOwnerId = null;
+    }
+    const progressKey = savedOwnerId ? ownerStorageKey(STORAGE_KEY, savedOwnerId) : STORAGE_KEY;
+    const settingsKey = savedOwnerId ? ownerStorageKey(SETTINGS_KEY, savedOwnerId) : SETTINGS_KEY;
+    const settingsUpdatedAtKey = savedOwnerId
+      ? ownerStorageKey(SETTINGS_UPDATED_AT_KEY, savedOwnerId)
+      : SETTINGS_UPDATED_AT_KEY;
+    try {
+      const raw = window.localStorage.getItem(progressKey);
       if (raw) next = prepareSavedState(JSON.parse(raw) as LearningState);
     } catch {
       next = createInitialState();
     }
     try {
-      const rawSettings = window.localStorage.getItem(SETTINGS_KEY);
+      const rawSettings = window.localStorage.getItem(settingsKey);
       if (rawSettings) nextSettings = prepareSavedSettings(JSON.parse(rawSettings));
     } catch {
       nextSettings = DEFAULT_SETTINGS;
+    }
+    try {
+      const rawUpdatedAt = Number(window.localStorage.getItem(settingsUpdatedAtKey));
+      if (Number.isSafeInteger(rawUpdatedAt) && rawUpdatedAt > 0) {
+        nextSettingsUpdatedAt = rawUpdatedAt;
+      }
+    } catch {
+      nextSettingsUpdatedAt = 0;
     }
     if (next.todayQueueLevel !== nextSettings.level) {
       next = {
         ...next,
         todayQueuesCompleted: 0,
+        todayQueueCompletionIds: [],
         sessionComplete: false,
         todayQueueLevel: nextSettings.level,
         todayQueueGoal: nextSettings.queuesPerDay,
@@ -595,13 +935,19 @@ export default function Home() {
       (next.sessionComplete || next.todayQueuesCompleted >= initialGoal);
     const initialQueue = initialComplete ? [] : buildDailyQueue(next, nextSettings);
     // Client-only preferences are intentionally hydrated after the first mount.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSettings(nextSettings);
-    setLearning(next);
-    setSessionQueue(initialQueue);
-    setQueueUnavailable(!initialQueue.length && !initialComplete);
-    setClock(currentTimestamp());
-    setReady(true);
+    learningRef.current = next;
+    settingsRef.current = nextSettings;
+    settingsUpdatedAtRef.current = nextSettingsUpdatedAt;
+    const hydrationTimer = window.setTimeout(() => {
+      setSettings(nextSettings);
+      setSettingsUpdatedAt(nextSettingsUpdatedAt);
+      setLearning(next);
+      setSessionQueue(initialQueue);
+      setQueueUnavailable(!initialQueue.length && !initialComplete);
+      setClock(currentTimestamp());
+      setReady(true);
+    }, 0);
+    return () => window.clearTimeout(hydrationTimer);
   }, []);
 
   useEffect(() => {
@@ -618,21 +964,24 @@ export default function Home() {
       todayQueueGoal: settings.queuesPerDay,
     };
     const nextQueue = buildDailyQueue(nextDay, settings, clock);
-    // The minute clock is also responsible for rolling an open app into a new study day.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLearning(nextDay);
-    setSessionQueue(nextQueue);
-    setQueueSource("daily");
-    setCurrentIndex(0);
-    setRevealed(false);
-    setGrading(false);
-    setQueueUnavailable(!nextQueue.length);
+    const updateTimer = window.setTimeout(() => {
+      setLearning(nextDay);
+      setSessionQueue(nextQueue);
+      setQueueSource("daily");
+      setCurrentIndex(0);
+      setRevealed(false);
+      setGrading(false);
+      setQueueUnavailable(!nextQueue.length);
+    }, 0);
+    return () => window.clearTimeout(updateTimer);
   }, [clock, learning, ready, settings]);
 
   useEffect(() => {
     if (!ready) return;
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(learning));
+      const ownerId = cloudOwnerIdRef.current ?? localOwnerIdRef.current;
+      const progressKey = ownerId ? ownerStorageKey(STORAGE_KEY, ownerId) : STORAGE_KEY;
+      window.localStorage.setItem(progressKey, JSON.stringify(learning));
     } catch {
       window.setTimeout(() => setSettingsNotice("当前浏览器未能保存进度，请检查隐私设置"), 0);
     }
@@ -641,11 +990,421 @@ export default function Home() {
   useEffect(() => {
     if (!ready) return;
     try {
-      window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      const ownerId = cloudOwnerIdRef.current ?? localOwnerIdRef.current;
+      const settingsKey = ownerId ? ownerStorageKey(SETTINGS_KEY, ownerId) : SETTINGS_KEY;
+      const updatedAtKey = ownerId
+        ? ownerStorageKey(SETTINGS_UPDATED_AT_KEY, ownerId)
+        : SETTINGS_UPDATED_AT_KEY;
+      window.localStorage.setItem(settingsKey, JSON.stringify(settings));
+      window.localStorage.setItem(updatedAtKey, String(settingsUpdatedAt));
     } catch {
       window.setTimeout(() => setSettingsNotice("当前浏览器未能保存设置，请检查隐私设置"), 0);
     }
-  }, [settings, ready]);
+  }, [settings, settingsUpdatedAt, ready]);
+
+  function loadOwnerLocalPayload(ownerId: string): CloudPayload {
+    let ownerLearning = createInitialState();
+    let ownerSettings: AppSettings = {
+      ...DEFAULT_SETTINGS,
+      theme: settingsRef.current.theme,
+      autoPronounce: settingsRef.current.autoPronounce,
+      showTranslation: settingsRef.current.showTranslation,
+      speechSpeed: settingsRef.current.speechSpeed,
+    };
+    let ownerSettingsUpdatedAt = 0;
+    try {
+      const rawLearning = window.localStorage.getItem(ownerStorageKey(STORAGE_KEY, ownerId));
+      if (rawLearning) ownerLearning = prepareSavedState(JSON.parse(rawLearning) as LearningState);
+      const rawSettings = window.localStorage.getItem(ownerStorageKey(SETTINGS_KEY, ownerId));
+      if (rawSettings) {
+        ownerSettings = prepareSavedSettings({
+          ...JSON.parse(rawSettings),
+          theme: settingsRef.current.theme,
+        });
+      }
+      const rawUpdatedAt = Number(
+        window.localStorage.getItem(ownerStorageKey(SETTINGS_UPDATED_AT_KEY, ownerId)),
+      );
+      if (Number.isSafeInteger(rawUpdatedAt) && rawUpdatedAt > 0) {
+        ownerSettingsUpdatedAt = rawUpdatedAt;
+      }
+    } catch {
+      ownerLearning = createInitialState();
+      ownerSettings = {
+        ...DEFAULT_SETTINGS,
+        theme: settingsRef.current.theme,
+        autoPronounce: settingsRef.current.autoPronounce,
+        showTranslation: settingsRef.current.showTranslation,
+        speechSpeed: settingsRef.current.speechSpeed,
+      };
+      ownerSettingsUpdatedAt = 0;
+    }
+    return buildCloudPayload(ownerLearning, ownerSettings, ownerSettingsUpdatedAt);
+  }
+
+  function buildRebasedResetPayload(candidate: CloudPayload, remote: CloudPayload) {
+    const mergedPreferences = mergeCloudPayloads(candidate, remote);
+    const resetAt = Math.max(
+      currentTimestamp(),
+      candidate.learning.resetAt + 1,
+      remote.learning.resetAt + 1,
+    );
+    const rebasedLearning: LearningState = {
+      ...candidate.learning,
+      resetAt,
+      updatedAt: Math.max(resetAt, candidate.learning.updatedAt + 1),
+    };
+    pendingResetRef.current = resetAt;
+    return { ...mergedPreferences, learning: rebasedLearning };
+  }
+
+  function applyCloudPayload(payload: CloudPayload, rebuildDailyQueue: boolean) {
+    const previousLearning = learningRef.current;
+    const previousSettings = settingsRef.current;
+    const nextLearning = prepareSavedState(payload.learning, currentTimestamp(), false);
+    const nextSettings = prepareSavedSettings({
+      ...settingsRef.current,
+      ...payload.settings,
+      theme: settingsRef.current.theme,
+    });
+    learningRef.current = nextLearning;
+    settingsRef.current = nextSettings;
+    settingsUpdatedAtRef.current = payload.settingsUpdatedAt;
+    setLearning(nextLearning);
+    setSettings(nextSettings);
+    setSettingsUpdatedAt(payload.settingsUpdatedAt);
+    setPlanDirty(true);
+
+    const remoteChangedActivePlan =
+      nextLearning.resetAt !== previousLearning.resetAt ||
+      nextLearning.todayKey !== previousLearning.todayKey ||
+      nextSettings.level !== previousSettings.level;
+    const shouldRebuildQueue = remoteChangedActivePlan ||
+      (rebuildDailyQueue && !hasLocalInteractionRef.current);
+
+    if (shouldRebuildQueue) {
+      clearTransitionTimer();
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      const queueGoal = nextLearning.todayQueueLevel === nextSettings.level
+        ? (nextLearning.todayQueueGoal ?? nextSettings.queuesPerDay)
+        : nextSettings.queuesPerDay;
+      const complete = nextLearning.todayQueueLevel === nextSettings.level &&
+        (nextLearning.sessionComplete || nextLearning.todayQueuesCompleted >= queueGoal);
+      const nextQueue = complete ? [] : buildDailyQueue(nextLearning, nextSettings);
+      setSessionQueue(nextQueue);
+      setQueueSource("daily");
+      setCurrentIndex(0);
+      setRevealed(false);
+      setGrading(false);
+      setFeedback(remoteChangedActivePlan ? "已切换到云端的最新学习计划" : null);
+      setQueueUnavailable(!nextQueue.length && !complete);
+      setPlanDirty(false);
+      hasLocalInteractionRef.current = false;
+    }
+  }
+
+  function rememberSuccessfulSync(serverUpdatedAt?: string) {
+    const normalizedServerTime = serverUpdatedAt && !serverUpdatedAt.includes("T")
+      ? `${serverUpdatedAt.replace(" ", "T")}Z`
+      : serverUpdatedAt;
+    const timestamp = normalizedServerTime ? Date.parse(normalizedServerTime) : currentTimestamp();
+    const safeTimestamp = Number.isFinite(timestamp) ? timestamp : currentTimestamp();
+    setLastSyncedAt(safeTimestamp);
+    try {
+      const ownerId = cloudOwnerIdRef.current;
+      if (ownerId) {
+        localOwnerIdRef.current = ownerId;
+        window.localStorage.setItem(
+          ownerStorageKey(STORAGE_KEY, ownerId),
+          JSON.stringify(learningRef.current),
+        );
+        window.localStorage.setItem(
+          ownerStorageKey(SETTINGS_KEY, ownerId),
+          JSON.stringify(settingsRef.current),
+        );
+        window.localStorage.setItem(
+          ownerStorageKey(SETTINGS_UPDATED_AT_KEY, ownerId),
+          String(settingsUpdatedAtRef.current),
+        );
+      }
+      window.localStorage.setItem(CLOUD_META_KEY, JSON.stringify({
+        ownerId,
+        revision: cloudRevisionRef.current,
+        lastSyncedAt: safeTimestamp,
+      }));
+    } catch {
+      // Cloud sync remains authoritative even when this optional local hint is unavailable.
+    }
+  }
+
+  async function synchronizeCloud(pullFirst = false) {
+    if (!ready) return;
+    if (!pullFirst && cloudReadyRef.current) {
+      const current = buildCloudPayload(
+        learningRef.current,
+        settingsRef.current,
+        settingsUpdatedAtRef.current,
+      );
+      if (payloadSignature(current) === lastCloudSignatureRef.current) return;
+    }
+    if (syncInFlightRef.current) {
+      syncQueuedRef.current = true;
+      if (pullFirst) pendingPullRef.current = true;
+      return;
+    }
+
+    syncInFlightRef.current = true;
+    const firstHydration = !cloudReadyRef.current;
+    setCloudStatus(pullFirst ? "connecting" : "saving");
+
+    try {
+      let candidate = buildCloudPayload(
+        learningRef.current,
+        settingsRef.current,
+        settingsUpdatedAtRef.current,
+      );
+      let revision = cloudRevisionRef.current;
+
+      if (pullFirst || !cloudReadyRef.current) {
+        const response = await fetch("/api/progress", {
+          method: "GET",
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        });
+        const result = await response.json() as {
+          authenticated?: boolean;
+          ownerId?: string;
+          displayName?: string;
+          snapshot?: CloudSnapshot | null;
+        };
+
+        if (response.status === 401) {
+          cloudReadyRef.current = false;
+          cloudOwnerIdRef.current = null;
+          cloudRevisionRef.current = 0;
+          lastCloudSignatureRef.current = "";
+          setCloudDisplayName(null);
+          setCloudStatus("signed-out");
+          return;
+        }
+        if (!response.ok) throw new Error("Cloud progress could not be loaded.");
+        if (!result.ownerId) throw new Error("Cloud owner identity is unavailable.");
+
+        const accountChanged = Boolean(
+          localOwnerIdRef.current && localOwnerIdRef.current !== result.ownerId,
+        );
+        cloudOwnerIdRef.current = result.ownerId;
+        cloudReadyRef.current = true;
+        setCloudDisplayName(result.displayName ?? null);
+        if (accountChanged) {
+          pendingResetRef.current = null;
+          hasLocalInteractionRef.current = false;
+          clearTransitionTimer();
+          lastCloudSignatureRef.current = "";
+          setLastSyncedAt(null);
+          candidate = loadOwnerLocalPayload(result.ownerId);
+          applyCloudPayload(candidate, true);
+        } else {
+          candidate = buildCloudPayload(
+            learningRef.current,
+            settingsRef.current,
+            settingsUpdatedAtRef.current,
+          );
+        }
+        if (result.snapshot) {
+          const remote = normalizeCloudPayload(result.snapshot.payload);
+          if (!remote) throw new Error("Cloud progress has an unsupported format.");
+          remote.learning.resetAt = Math.max(remote.learning.resetAt, result.snapshot.resetAt);
+          revision = result.snapshot.revision;
+          cloudRevisionRef.current = revision;
+          const requestedResetAt = pendingResetRef.current;
+          if (requestedResetAt !== null) {
+            if (remote.learning.resetAt === requestedResetAt) {
+              pendingResetRef.current = null;
+            } else if (remote.learning.resetAt > requestedResetAt) {
+              candidate = buildRebasedResetPayload(candidate, remote);
+              applyCloudPayload(candidate, true);
+            }
+          }
+          const merged = mergeCloudPayloads(candidate, remote);
+          const localChanged = payloadSignature(merged) !== payloadSignature(candidate);
+          const remoteChanged = payloadSignature(merged) !== payloadSignature(remote);
+          candidate = merged;
+
+          if (localChanged) applyCloudPayload(merged, firstHydration);
+          if (!remoteChanged) {
+            lastCloudSignatureRef.current = payloadSignature(remote);
+            setCloudStatus("synced");
+            setSettingsNotice("已安全同步到云端");
+            rememberSuccessfulSync(result.snapshot.serverUpdatedAt);
+            return;
+          }
+        } else {
+          revision = 0;
+          cloudRevisionRef.current = 0;
+        }
+      }
+
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        setCloudStatus("saving");
+        const response = await fetch("/api/progress", {
+          method: "PUT",
+          cache: "no-store",
+          keepalive: true,
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            payload: candidate,
+            expectedRevision: revision,
+            expectedOwnerId: cloudOwnerIdRef.current,
+            resetAt: candidate.learning.resetAt,
+            clientUpdatedAt: Math.max(candidate.learning.updatedAt, candidate.settingsUpdatedAt),
+          }),
+        });
+        const result = await response.json() as {
+          authenticated?: boolean;
+          ownerId?: string;
+          ownerChanged?: boolean;
+          displayName?: string;
+          snapshot?: CloudSnapshot | null;
+        };
+
+        if (response.status === 401) {
+          cloudReadyRef.current = false;
+          cloudOwnerIdRef.current = null;
+          cloudRevisionRef.current = 0;
+          lastCloudSignatureRef.current = "";
+          setCloudDisplayName(null);
+          setCloudStatus("signed-out");
+          return;
+        }
+
+        if (response.status === 409 && result.ownerChanged) {
+          cloudReadyRef.current = false;
+          cloudOwnerIdRef.current = null;
+          cloudRevisionRef.current = 0;
+          lastCloudSignatureRef.current = "";
+          pendingResetRef.current = null;
+          pendingPullRef.current = true;
+          setCloudDisplayName(null);
+          setCloudStatus("connecting");
+          return;
+        }
+
+        if (response.status === 409 && result.snapshot) {
+          const remote = normalizeCloudPayload(result.snapshot.payload);
+          if (!remote) throw new Error("Cloud progress has an unsupported format.");
+          remote.learning.resetAt = Math.max(remote.learning.resetAt, result.snapshot.resetAt);
+          revision = result.snapshot.revision;
+          cloudRevisionRef.current = revision;
+          const latestLocal = buildCloudPayload(
+            learningRef.current,
+            settingsRef.current,
+            settingsUpdatedAtRef.current,
+          );
+          const pendingLocal = mergeCloudPayloads(candidate, latestLocal);
+          const requestedResetAt = pendingResetRef.current;
+          if (requestedResetAt !== null) {
+            if (remote.learning.resetAt === requestedResetAt) {
+              pendingResetRef.current = null;
+            } else if (remote.learning.resetAt > requestedResetAt) {
+              candidate = buildRebasedResetPayload(pendingLocal, remote);
+              applyCloudPayload(candidate, true);
+              continue;
+            }
+          }
+          const merged = mergeCloudPayloads(pendingLocal, remote);
+          candidate = merged;
+          applyCloudPayload(merged, firstHydration);
+          if (payloadSignature(merged) === payloadSignature(remote)) {
+            lastCloudSignatureRef.current = payloadSignature(remote);
+            setCloudStatus("synced");
+            setSettingsNotice("已合并另一台设备上的最新进度");
+            rememberSuccessfulSync(result.snapshot.serverUpdatedAt);
+            return;
+          }
+          continue;
+        }
+
+        if (!response.ok || !result.snapshot) {
+          throw new Error("Cloud progress could not be saved.");
+        }
+
+        revision = result.snapshot.revision;
+        cloudRevisionRef.current = revision;
+        cloudReadyRef.current = true;
+        if (!result.ownerId || result.ownerId !== cloudOwnerIdRef.current) {
+          cloudReadyRef.current = false;
+          pendingPullRef.current = true;
+          return;
+        }
+        cloudOwnerIdRef.current = result.ownerId;
+        setCloudDisplayName(result.displayName ?? cloudDisplayName);
+        lastCloudSignatureRef.current = payloadSignature(candidate);
+        pendingResetRef.current = null;
+        setCloudStatus("synced");
+        setSettingsNotice("已安全同步到云端");
+        rememberSuccessfulSync(result.snapshot.serverUpdatedAt);
+        return;
+      }
+
+      throw new Error("Cloud progress changed too many times while saving.");
+    } catch {
+      setCloudStatus(typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "error");
+      setSettingsNotice("云端暂时不可用；进度已保存在本机，稍后会自动重试");
+    } finally {
+      syncInFlightRef.current = false;
+      const replayPull = pendingPullRef.current;
+      pendingPullRef.current = false;
+      if (syncQueuedRef.current || replayPull) {
+        syncQueuedRef.current = false;
+        window.setTimeout(() => void synchronizeCloud(replayPull), 80);
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (!ready) return;
+    void synchronizeCloud(true);
+    // Initial cloud hydration must run only after local state is ready.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
+
+  useEffect(() => {
+    if (!ready || !cloudReadyRef.current) return;
+    const currentPayload = buildCloudPayload(learning, settings, settingsUpdatedAt);
+    if (payloadSignature(currentPayload) === lastCloudSignatureRef.current) return;
+    const timer = window.setTimeout(() => void synchronizeCloud(false), 850);
+    return () => window.clearTimeout(timer);
+    // Synchronization reads the newest snapshots through refs to avoid stale writes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [learning.updatedAt, ready, settingsUpdatedAt]);
+
+  useEffect(() => {
+    if (!ready) return;
+    const resumeSync = () => void synchronizeCloud(true);
+    const syncForVisibility = () => {
+      if (document.visibilityState === "visible") {
+        resumeSync();
+      } else {
+        void synchronizeCloud(false);
+      }
+    };
+    const flushBeforeLeaving = () => void synchronizeCloud(false);
+    window.addEventListener("online", resumeSync);
+    window.addEventListener("focus", resumeSync);
+    window.addEventListener("pagehide", flushBeforeLeaving);
+    document.addEventListener("visibilitychange", syncForVisibility);
+    const timer = window.setInterval(syncForVisibility, MINUTE);
+    return () => {
+      window.removeEventListener("online", resumeSync);
+      window.removeEventListener("focus", resumeSync);
+      window.removeEventListener("pagehide", flushBeforeLeaving);
+      document.removeEventListener("visibilitychange", syncForVisibility);
+      window.clearInterval(timer);
+    };
+    // Event listeners always synchronize from the latest refs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   useEffect(() => {
     if (!ready) return;
@@ -719,19 +1478,29 @@ export default function Home() {
   }
 
   function finishSession(nextState: LearningState) {
+    const completionIds = [...nextState.todayQueueCompletionIds];
+    if (queueSource === "daily") {
+      completionIds.push(
+        `queue-${nextState.todayKey}-${settings.level}-${Math.min(activeQueueGoal, nextState.todayQueuesCompleted + 1)}`,
+      );
+    }
+    const uniqueCompletionIds = Array.from(new Set(completionIds));
     const completedQueues = queueSource === "daily"
-      ? Math.min(activeQueueGoal, nextState.todayQueuesCompleted + 1)
+      ? Math.min(activeQueueGoal, uniqueCompletionIds.length)
       : nextState.todayQueuesCompleted;
     const finishedDay = queueSource === "daily" && completedQueues >= activeQueueGoal;
-    const finalState: LearningState = {
+    const finalState: LearningState = touchLearning({
       ...nextState,
       todayQueuesCompleted: completedQueues,
+      todayQueueCompletionIds: uniqueCompletionIds,
       sessionComplete: nextState.sessionComplete || finishedDay,
       todayQueueLevel: queueSource === "daily" ? settings.level : nextState.todayQueueLevel,
       todayQueueGoal: queueSource === "daily" ? activeQueueGoal : nextState.todayQueueGoal,
-    };
+    });
     setLearning(finalState);
-    window.setTimeout(() => {
+    clearTransitionTimer();
+    transitionTimerRef.current = window.setTimeout(() => {
+      transitionTimerRef.current = null;
       setFeedback(null);
       setGrading(false);
       setCurrentIndex(0);
@@ -751,14 +1520,21 @@ export default function Home() {
 
   function rateCurrent(rating: RecallStatus) {
     if (!currentWord || !revealed || grading) return;
+    hasLocalInteractionRef.current = true;
     const now = currentTimestamp();
-    const { next, dueLabel } = gradeMemory(learning.records[currentWord.id], rating, now);
-    const nextState: LearningState = {
-      ...learning,
-      records: { ...learning.records, [currentWord.id]: next },
-      todayReviewed: learning.todayReviewed + 1,
-      todayWordIds: [...learning.todayWordIds, currentWord.id],
-    };
+    const latest = learningRef.current;
+    const { next, dueLabel } = gradeMemory(latest.records[currentWord.id], rating, now);
+    const reviewEvents = [
+      ...latest.todayReviewEventIds,
+      uniqueId(`review-${latest.todayKey}-${currentWord.id}`),
+    ];
+    const nextState: LearningState = touchLearning({
+      ...latest,
+      records: { ...latest.records, [currentWord.id]: next },
+      todayReviewed: reviewEvents.length,
+      todayWordIds: Array.from(new Set([...latest.todayWordIds, currentWord.id])),
+      todayReviewEventIds: reviewEvents,
+    });
     setLearning(nextState);
     setFeedback(`${STATUS_META[rating].label} · 已安排 ${dueLabel}复习`);
     setGrading(true);
@@ -768,7 +1544,9 @@ export default function Home() {
       return;
     }
 
-    window.setTimeout(() => {
+    clearTransitionTimer();
+    transitionTimerRef.current = window.setTimeout(() => {
+      transitionTimerRef.current = null;
       setCurrentIndex((index) => index + 1);
       setRevealed(false);
       setFeedback(null);
@@ -780,6 +1558,8 @@ export default function Home() {
     ids: string[],
     source: "daily" | "review" | "manual" = "manual",
   ) {
+    clearTransitionTimer();
+    hasLocalInteractionRef.current = true;
     if (source !== "daily") setReturnView(view);
     if (source === "daily") setPlanDirty(false);
     setQueueUnavailable(false);
@@ -806,31 +1586,42 @@ export default function Home() {
   }
 
   function finishDayWithAvailableWords() {
-    setLearning((current) => ({
-      ...current,
-      sessionComplete: true,
-      todayQueuesCompleted: activeQueueGoal,
-      todayQueueLevel: settings.level,
-      todayQueueGoal: activeQueueGoal,
-    }));
+    setLearning((current) => {
+      const completionIds = Array.from({ length: activeQueueGoal }, (_, index) =>
+        `queue-${current.todayKey}-${settings.level}-${index + 1}`,
+      );
+      return touchLearning({
+        ...current,
+        sessionComplete: true,
+        todayQueuesCompleted: activeQueueGoal,
+        todayQueueCompletionIds: completionIds,
+        todayQueueLevel: settings.level,
+        todayQueueGoal: activeQueueGoal,
+      });
+    });
     setQueueUnavailable(false);
     setView("story");
   }
 
   function revealAnswer() {
     if (!currentWord) return;
+    hasLocalInteractionRef.current = true;
     setRevealed(true);
     if (settings.autoPronounce) speak(currentWord);
   }
 
   function updateSetting<K extends keyof AppSettings>(key: K, value: AppSettings[K]) {
     setSettings((current) => ({ ...current, [key]: value }));
+    if (SYNCED_SETTING_KEYS.includes(key as keyof SyncedSettings)) {
+      setSettingsUpdatedAt((current) => mutationTimestamp(current));
+    }
     if (["wordsPerQueue", "level", "order", "dueFirst"].includes(key)) setPlanDirty(true);
     if (key === "level") {
       const nextLevel = value as CEFRLevel;
-      setLearning((current) => ({
+      setLearning((current) => touchLearning({
         ...current,
         todayQueuesCompleted: 0,
+        todayQueueCompletionIds: [],
         sessionComplete: false,
         todayQueueLevel: nextLevel,
         todayQueueGoal: settings.queuesPerDay,
@@ -840,7 +1631,7 @@ export default function Home() {
     } else if (key === "queuesPerDay") {
       const canApplyToday = learning.todayReviewed === 0 && learning.todayQueuesCompleted === 0;
       if (canApplyToday) {
-        setLearning((current) => ({ ...current, todayQueueGoal: value as number }));
+        setLearning((current) => touchLearning({ ...current, todayQueueGoal: value as number }));
         setSettingsNotice("已自动保存 · 今天就按新的队列数量学习");
       } else {
         setSettingsNotice(`已自动保存 · 新的每日队列数明天生效，今天仍为 ${activeQueueGoal} 个`);
@@ -853,17 +1644,19 @@ export default function Home() {
 
   function restoreDefaultSettings() {
     setSettings(DEFAULT_SETTINGS);
+    setSettingsUpdatedAt((current) => mutationTimestamp(current));
     setPlanDirty(true);
     setLearning((current) => {
       const levelChanged = current.todayQueueLevel !== DEFAULT_SETTINGS.level;
       const canApplyGoal = current.todayReviewed === 0 && current.todayQueuesCompleted === 0;
-      return {
+      return touchLearning({
         ...current,
         todayQueuesCompleted: levelChanged ? 0 : current.todayQueuesCompleted,
+        todayQueueCompletionIds: levelChanged ? [] : current.todayQueueCompletionIds,
         sessionComplete: levelChanged ? false : current.sessionComplete,
         todayQueueLevel: DEFAULT_SETTINGS.level,
         todayQueueGoal: levelChanged || canApplyGoal ? DEFAULT_SETTINGS.queuesPerDay : current.todayQueueGoal,
-      };
+      });
     });
     setQueueUnavailable(false);
     setSettingsNotice("已恢复默认设置；如果今天已经开始学习，新的每日队列数明天生效");
@@ -871,20 +1664,34 @@ export default function Home() {
   }
 
   function clearLearningProgress() {
+    const now = Math.max(currentTimestamp(), learningRef.current.resetAt + 1);
+    resetConfirmedRef.current = true;
+    pendingResetRef.current = now;
+    hasLocalInteractionRef.current = false;
     const fresh: LearningState = {
-      ...createInitialState(),
+      ...createInitialState(now),
       todayQueueLevel: settings.level,
       todayQueueGoal: settings.queuesPerDay,
+      resetAt: now,
+      updatedAt: now,
     };
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    clearTransitionTimer();
     setLearning(fresh);
     setSessionQueue(buildDailyQueue(fresh, settings));
     setQueueSource("daily");
+    setReturnView("learn");
     setPlanDirty(false);
     setQueueUnavailable(false);
     setCurrentIndex(0);
     setRevealed(false);
+    setGrading(false);
+    setFeedback(null);
+    setLibraryFilter("all");
+    setSettingsNotice("学习进度已清空，正在同步到所有设备");
     setView("learn");
     setConfirmReset(false);
+    window.setTimeout(() => void synchronizeCloud(false), 0);
   }
 
   function switchView(nextView: View) {
@@ -922,6 +1729,65 @@ export default function Home() {
     // revealAnswer deliberately reads the latest speech preferences listed below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentWord, grading, revealed, settings.autoPronounce, settings.speechSpeed, view]);
+
+  useEffect(() => {
+    if (!confirmReset) return;
+    resetConfirmedRef.current = false;
+    const resetTrigger = resetTriggerRef.current;
+    const previousOverflow = document.body.style.overflow;
+    const backgroundElements = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        ".app-shell > .topbar, .app-shell > .main-content, .app-shell > .site-footer",
+      ),
+    );
+    const previousAccessibility = backgroundElements.map((element) => ({
+      element,
+      ariaHidden: element.getAttribute("aria-hidden"),
+      inert: element.hasAttribute("inert"),
+    }));
+    backgroundElements.forEach((element) => {
+      element.setAttribute("inert", "");
+      element.setAttribute("aria-hidden", "true");
+    });
+    document.body.style.overflow = "hidden";
+    window.setTimeout(() => resetCancelRef.current?.focus(), 0);
+
+    const handleDialogKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setConfirmReset(false);
+        return;
+      }
+      if (event.key !== "Tab" || !resetDialogRef.current) return;
+      const focusable = Array.from(
+        resetDialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleDialogKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      previousAccessibility.forEach(({ element, ariaHidden, inert }) => {
+        if (!inert) element.removeAttribute("inert");
+        if (ariaHidden === null) element.removeAttribute("aria-hidden");
+        else element.setAttribute("aria-hidden", ariaHidden);
+      });
+      window.removeEventListener("keydown", handleDialogKeyDown);
+      if (!resetConfirmedRef.current && resetTrigger?.isConnected) resetTrigger.focus();
+    };
+  }, [confirmReset]);
 
   if (!ready) {
     return (
@@ -996,7 +1862,7 @@ export default function Home() {
                       return (
                         <div className={`queue-item ${itemStatus}`} key={`${id}-${index}`}>
                           <span className="queue-dot">{index < currentIndex ? "✓" : index + 1}</span>
-                          <span className="queue-name">{word.term.replace("etwas ", "")}</span>
+                          <span className="queue-name"><ArticleTerm term={word.term.replace(/^etwas\s+/, "")} /></span>
                         </div>
                       );
                     })}
@@ -1014,7 +1880,7 @@ export default function Home() {
 
                   <div className="word-front">
                     <p className="word-type">{currentWord.type}</p>
-                    <h2>{currentWord.term}</h2>
+                    <h2><ArticleTerm term={currentWord.term} /></h2>
                     <p className="word-forms">{currentWord.forms}</p>
                   </div>
 
@@ -1143,7 +2009,7 @@ export default function Home() {
                 const status = record?.status ?? "unknown";
                 return (
                   <button className="due-row" key={word.id} onClick={() => startQueue([word.id], "review")}>
-                    <span><strong>{word.term}</strong><small>{word.meaning}</small></span>
+                    <span><strong><ArticleTerm term={word.term} /></strong><small>{word.meaning}</small></span>
                     <span className={`status-pill ${status}`}>{STATUS_META[status].label}</span>
                     <span>{record ? `${record.intervalDays || "<1"} 天间隔` : "新词"}</span>
                     <span>{record ? formatDate(record.dueAt) : "尚未学习"}</span>
@@ -1174,7 +2040,7 @@ export default function Home() {
                   <article className="library-card" key={word.id}>
                     <div className="library-card-top"><span className="folio">{String(index + 1).padStart(2, "0")}</span><span className={`status-pill ${status}`}>{STATUS_META[status].label}</span></div>
                     <p className="word-type">{word.type}</p>
-                    <h2>{word.term}</h2>
+                    <h2><ArticleTerm term={word.term} /></h2>
                     <p className="library-meaning">{word.meaning}</p>
                     <div className="library-grammar"><span>搭配</span>{word.grammarTitle}</div>
                     <button onClick={() => startQueue([word.id], "manual")}>单独学习 <span aria-hidden="true">→</span></button>
@@ -1222,7 +2088,7 @@ export default function Home() {
                 <p className="kicker">Einstellungen</p>
                 <h1>把每天的词课，调成你的节奏。</h1>
               </div>
-              <div className="settings-save-note" aria-live="polite">
+              <div className="settings-save-note">
                 <span aria-hidden="true">✓</span>{settingsNotice}
               </div>
             </div>
@@ -1352,20 +2218,42 @@ export default function Home() {
                 </div>
               </fieldset>
 
+              <section className={`settings-card cloud-settings cloud-${cloudStatus}`}>
+                <div className="data-heading"><span className="settings-index">06</span><span><small>Cloud archive</small><strong>云端存档</strong></span></div>
+                <div className="cloud-status-copy" role="status" aria-live="polite" aria-atomic="true">
+                  <span className="cloud-status-mark" aria-hidden="true">{cloudStatus === "synced" ? "✓" : cloudStatus === "offline" ? "↯" : cloudStatus === "signed-out" ? "⌑" : "↻"}</span>
+                  <span><strong>{CLOUD_STATUS_META[cloudStatus].label}</strong><small>{CLOUD_STATUS_META[cloudStatus].detail}</small></span>
+                </div>
+                <div className="device-row" aria-label="支持的同步设备">
+                  <span>Mac</span><i aria-hidden="true" /><span>iPad</span><i aria-hidden="true" /><span>iPhone</span>
+                </div>
+                <p>使用同一 ChatGPT 账户打开 Worttag，即可同步 A1–C1 的掌握状态、复习排期和每日计划。外观、朗读与译文显示偏好仍由每台设备单独决定。</p>
+                <div className="cloud-account-row">
+                  <span>{cloudDisplayName ? `账户 · ${cloudDisplayName}` : "ChatGPT 安全账户"}<small>{lastSyncedAt ? `上次同步 ${new Date(lastSyncedAt).toLocaleString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}` : "首次连接后会自动建立云存档"}</small></span>
+                  {cloudStatus === "signed-out" ? (
+                    <a className="secondary-action" href="/signin-with-chatgpt?return_to=%2F">登录并同步</a>
+                  ) : (
+                    <button className="secondary-action" onClick={() => void synchronizeCloud(true)} disabled={cloudStatus === "connecting" || cloudStatus === "saving"}>立即同步</button>
+                  )}
+                </div>
+              </section>
+
               <section className="settings-card data-settings">
-                <div className="data-heading"><span className="settings-index">06</span><span><small>Local data</small><strong>学习数据</strong></span></div>
-                <p>学习记录和设置只保存在当前设备。恢复默认设置不会删除背词进度。</p>
+                <div className="data-heading"><span className="settings-index">07</span><span><small>Data controls</small><strong>学习数据</strong></span></div>
+                <p>恢复默认设置只调整学习偏好，不删除背词记录。清空进度会同步至使用同一账户的所有设备。</p>
                 <div className="data-actions">
                   <button className="secondary-action" onClick={restoreDefaultSettings}>恢复默认设置</button>
-                  {!confirmReset ? (
-                    <button className="danger-link" onClick={() => setConfirmReset(true)}>清空学习进度</button>
-                  ) : (
-                    <div className="reset-confirm" role="alert">
-                      <span>确定清空所有等级的学习记录？此操作无法撤销。</span>
-                      <button onClick={clearLearningProgress}>确认清空</button>
-                      <button onClick={() => setConfirmReset(false)}>取消</button>
-                    </div>
-                  )}
+                  <button
+                    ref={resetTriggerRef}
+                    className="danger-link"
+                    aria-haspopup="dialog"
+                    onClick={() => {
+                      resetConfirmedRef.current = false;
+                      setConfirmReset(true);
+                    }}
+                  >
+                    重置学习进度
+                  </button>
                 </div>
               </section>
             </div>
@@ -1394,7 +2282,7 @@ export default function Home() {
                 </div>
                 <footer className="story-vocabulary">
                   <div><p className="kicker">Heute gelernt</p><h2>短文使用了 {learnedToday.length} 个今日词汇</h2></div>
-                  <div className="story-chips">{learnedToday.map((word) => <button key={word.id} onClick={() => startQueue([word.id], "manual")}>{word.term}</button>)}</div>
+                  <div className="story-chips">{learnedToday.map((word) => <button key={word.id} onClick={() => startQueue([word.id], "manual")}><ArticleTerm term={word.term} /></button>)}</div>
                 </footer>
               </article>
             ) : dailyComplete ? (
@@ -1419,9 +2307,39 @@ export default function Home() {
         )}
       </main>
 
+      {confirmReset && (
+        <div
+          className="warning-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setConfirmReset(false);
+          }}
+        >
+          <section
+            ref={resetDialogRef}
+            className="warning-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="reset-progress-title"
+            aria-describedby="reset-progress-description"
+          >
+            <div className="warning-emblem" aria-hidden="true">!</div>
+            <p className="kicker">Achtung · 不可撤销</p>
+            <h2 id="reset-progress-title">确定重置所有学习进度？</h2>
+            <p id="reset-progress-description">
+              这会清空 A1–C1 的掌握状态、艾宾浩斯复习排期、连续学习天数和今日短文，并把这次清空同步到 Mac、iPad 与 iPhone。
+            </p>
+            <div className="warning-note"><span aria-hidden="true">✓</span>你的外观、词书与学习设置会保留。</div>
+            <div className="warning-actions">
+              <button ref={resetCancelRef} className="secondary-action" onClick={() => setConfirmReset(false)}>取消，保留进度</button>
+              <button className="confirm-danger" onClick={clearLearningProgress}>确认重置所有设备</button>
+            </div>
+          </section>
+        </div>
+      )}
+
       <footer className="site-footer">
         <span>Wort für Wort, Tag für Tag.</span>
-        <span>进度保存在当前设备</span>
+        <span>{cloudStatus === "synced" ? "云存档已同步 · Mac · iPad · iPhone" : cloudStatus === "signed-out" ? "登录 ChatGPT 后可跨设备同步" : "进度已保存在本机，云端会自动重试"}</span>
       </footer>
     </div>
   );
