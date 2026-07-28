@@ -2200,9 +2200,9 @@ export default function Home() {
         {view === "learn" && (
           <>
             <section className="page-heading learn-heading">
-              <div>
-                <p className="kicker">{queueSource === "daily" ? `${new Date().toLocaleDateString("de-DE", { weekday: "long" })} · ${settings.level} 今日词课` : queueSource === "review" ? "Wiederholen · 到期复习" : "Einzelkarte · 单独学习"}</p>
-                <h1>{queueSource === "daily" ? "先想起来，再看答案。" : queueSource === "review" ? "到期的词，认真想一次。" : "只学这一张，也算向前一步。"}</h1>
+              <div className={queueSource === "daily" ? "learn-title daily-library-title" : "learn-title"}>
+                <p className="kicker">{queueSource === "daily" ? new Date().toLocaleDateString("de-DE", { weekday: "long" }) : queueSource === "review" ? "Wiederholen · 到期复习" : "Einzelkarte · 单独学习"}</p>
+                <h1>{queueSource === "daily" ? `${settings.level} 今日词库` : queueSource === "review" ? "到期的词，认真想一次。" : "只学这一张，也算向前一步。"}</h1>
               </div>
               <div className="heading-progress" aria-label={`今日计划进度 ${sessionProgress}%`}>
                 <div className="progress-copy">
@@ -2224,11 +2224,14 @@ export default function Home() {
                     {sessionQueue.map((id, index) => {
                       const word = WORD_BY_ID.get(id);
                       if (!word) return null;
+                      const recallStatus = index < currentIndex ? learning.records[id]?.status : undefined;
                       const itemStatus =
                         index < currentIndex ? "done" : index === currentIndex ? "current" : "upcoming";
+                      const statusIcon =
+                        recallStatus === "known" ? "✓" : recallStatus === "fuzzy" ? "~" : recallStatus === "unknown" ? "×" : index + 1;
                       return (
-                        <div className={`queue-item ${itemStatus}`} key={`${id}-${index}`}>
-                          <span className="queue-dot">{index < currentIndex ? "✓" : index + 1}</span>
+                        <div className={`queue-item ${itemStatus}${recallStatus ? ` recall-${recallStatus}` : ""}`} key={`${id}-${index}`}>
+                          <span className="queue-dot" title={recallStatus ? STATUS_META[recallStatus].label : undefined}>{statusIcon}</span>
                           <span className="queue-name"><ArticleTerm term={word.term.replace(/^etwas\s+/, "")} /></span>
                         </div>
                       );
@@ -2314,16 +2317,6 @@ export default function Home() {
                       <div><strong>{queueSource === "daily" ? newTotal : dueWords.length}</strong><span>{queueSource === "daily" ? "新词" : "到期总数"}</span></div>
                       <div><strong>{Math.max(2, Math.round((queueSource === "daily" ? settings.wordsPerQueue : sessionQueue.length) * 1.1))}</strong><span>约分钟</span></div>
                     </div>
-                  </section>
-                  <section className="rhythm-card">
-                    <p className="kicker">Vergessenskurve</p>
-                    <h2>记住，不靠死撑。</h2>
-                    <div className="mini-schedule" aria-label="复习间隔：今天、1天、3天、7天、14天">
-                      {["今天", "1天", "3天", "7天", "14天"].map((label, index) => (
-                        <div className="schedule-stop" key={label}><span className={index === 0 ? "active" : ""} /><small>{label}</small></div>
-                      ))}
-                    </div>
-                    <p>你的选择会改变下一次出现的时间。</p>
                   </section>
                   <button className="story-preview" onClick={() => switchView("story")} disabled={grading}>
                     <span className="story-number">03</span>

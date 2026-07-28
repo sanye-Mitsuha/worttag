@@ -282,7 +282,7 @@ a:focus-visible {
 .study-layout {
   display: grid;
   grid-template-columns: 228px minmax(560px, 1fr) 292px;
-  align-items: start;
+  align-items: stretch;
   gap: 20px;
 }
 
@@ -445,6 +445,36 @@ a:focus-visible {
   border-color: #9cac9d;
   background: var(--sage);
   color: var(--known);
+}
+
+.queue-item.done.recall-known {
+  color: var(--known);
+}
+
+.queue-item.done.recall-known .queue-dot {
+  border-color: var(--known);
+  background: var(--known);
+  color: var(--on-solid);
+}
+
+.queue-item.done.recall-fuzzy {
+  color: var(--fuzzy);
+}
+
+.queue-item.done.recall-fuzzy .queue-dot {
+  border-color: var(--fuzzy);
+  background: var(--fuzzy);
+  color: var(--on-solid);
+}
+
+.queue-item.done.recall-unknown {
+  color: var(--unknown);
+}
+
+.queue-item.done.recall-unknown .queue-dot {
+  border-color: var(--unknown);
+  background: var(--unknown);
+  color: var(--on-solid);
 }
 
 .keyboard-note {
@@ -777,12 +807,22 @@ blockquote footer {
 }
 
 .insight-column {
-  display: grid;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   gap: 15px;
 }
 
+.insight-column > * {
+  min-height: 0;
+  flex: 1 1 0;
+}
+
 .plan-card {
-  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 28px 24px;
 }
 
 .plan-stats {
@@ -885,8 +925,10 @@ blockquote footer {
 .story-preview {
   display: grid;
   grid-template-columns: 36px 1fr;
+  align-content: center;
+  align-items: center;
   gap: 13px;
-  padding: 22px;
+  padding: 28px 24px;
   border: 0;
   background:
     repeating-linear-gradient(0deg, transparent 0, transparent 5px, rgb(255 255 255 / 0.025) 5px, rgb(255 255 255 / 0.025) 6px),
@@ -922,7 +964,7 @@ blockquote footer {
 }
 
 .story-preview strong {
-  font: 600 20px/1.25 var(--serif);
+  font: 600 24px/1.25 var(--serif);
 }
 
 .story-preview em {
@@ -2636,7 +2678,9 @@ html[data-theme="dark"] .warning-note {
 
   .insight-column {
     grid-column: 1 / -1;
-    grid-template-columns: repeat(3, 1fr);
+    height: auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .word-card {
@@ -2696,7 +2740,7 @@ html[data-theme="dark"] .warning-note {
   }
 
   .story-preview {
-    grid-column: 1 / -1;
+    grid-column: auto;
   }
 
   .progress-stat-grid {
