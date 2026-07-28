@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { packCloudPayload, unpackCloudPayload } from "./cloud-payload";
 import { A1_WORDS, A2_WORDS } from "./wordbooks-a1-a2";
 import { B1_ADDITIONS, B2_WORDS, C1_WORDS } from "./wordbooks-advanced";
 
@@ -25,6 +26,41 @@ type WordCard = {
   memory: string;
   storyDe: string;
   storyZh: string;
+};
+
+type PackedWordType =
+  | "nm"
+  | "nf"
+  | "nn"
+  | "v"
+  | "adj"
+  | "adv"
+  | "prep"
+  | "conj"
+  | "pron"
+  | "det"
+  | "num"
+  | "part"
+  | "intj"
+  | "prop"
+  | "phrase";
+
+type PackedWordRow = [
+  id: string,
+  term: string,
+  forms: string,
+  typeCode: PackedWordType,
+  meaning: string,
+  example: string,
+  exampleZh: string,
+];
+
+type PackedWordbook = {
+  schemaVersion: 1;
+  level: CEFRLevel;
+  count: number;
+  fields: ["id", "term", "forms", "typeCode", "meaning", "example", "exampleZh"];
+  words: PackedWordRow[];
 };
 
 type MemoryRecord = {
@@ -103,6 +139,43 @@ const SYNCED_SETTING_KEYS: (keyof SyncedSettings)[] = [
 const MINUTE = 60_000;
 const DAY = 86_400_000;
 const INTERVAL_DAYS = [0, 1, 3, 7, 14, 30, 60, 120, 180] as const;
+const CEFR_LEVELS: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
+const LEVEL_RANK: Record<CEFRLevel, number> = { A1: 0, A2: 1, B1: 2, B2: 3, C1: 4 };
+const SUPPLEMENTAL_WORD_COUNTS: Record<CEFRLevel, number> = {
+  A1: 630,
+  A2: 630,
+  B1: 1080,
+  B2: 1580,
+  C1: 1980,
+};
+const PACKED_WORD_FIELDS: PackedWordbook["fields"] = [
+  "id",
+  "term",
+  "forms",
+  "typeCode",
+  "meaning",
+  "example",
+  "exampleZh",
+];
+const PACKED_WORD_TYPES = new Set<PackedWordType>([
+  "nm",
+  "nf",
+  "nn",
+  "v",
+  "adj",
+  "adv",
+  "prep",
+  "conj",
+  "pron",
+  "det",
+  "num",
+  "part",
+  "intj",
+  "prop",
+  "phrase",
+]);
+const LIBRARY_PAGE_SIZE = 96;
+const REVIEW_PAGE_SIZE = 100;
 
 const DEFAULT_SETTINGS: AppSettings = {
   theme: "system",
@@ -328,7 +401,7 @@ const B1_BASE_WORDS: WordCard[] = [
   },
 ];
 
-const WORDS: WordCard[] = [
+const LEGACY_WORDS: WordCard[] = [
   ...A1_WORDS,
   ...A2_WORDS,
   ...B1_BASE_WORDS,
@@ -336,6 +409,205 @@ const WORDS: WordCard[] = [
   ...B2_WORDS,
   ...C1_WORDS,
 ];
+
+let WORDS: WordCard[] = LEGACY_WORDS;
+let WORD_BY_ID = new Map(LEGACY_WORDS.map((word) => [word.id, word]));
+let expandedWordbooksPromise: Promise<void> | null = null;
+
+function isWordInBook(word: WordCard, level: CEFRLevel) {
+  return LEVEL_RANK[word.level] <= LEVEL_RANK[level];
+}
+
+function packedWordDetails(typeCode: PackedWordType, term: string, forms: string) {
+  const noun = term.replace(/^(der|die|das)\s+/i, "");
+  switch (typeCode) {
+    case "nm":
+      return {
+        type: "名词 · 阳性",
+        grammarTitle: forms,
+        grammar: "阳性名词单数通常与 der 连用；复数名词使用 die。请把冠词、单数和复数形式作为一个整体记忆。",
+        memory: `先记住 der，再用例句固定 ${noun} 的含义。`,
+      };
+    case "nf":
+      return {
+        type: "名词 · 阴性",
+        grammarTitle: forms,
+        grammar: "阴性名词单数通常与 die 连用；复数名词同样使用 die。请把冠词、单数和复数形式作为一个整体记忆。",
+        memory: `先记住 die，再用例句固定 ${noun} 的含义。`,
+      };
+    case "nn":
+      return {
+        type: "名词 · 中性",
+        grammarTitle: forms,
+        grammar: "中性名词单数通常与 das 连用；复数名词使用 die。请把冠词、单数和复数形式作为一个整体记忆。",
+        memory: `先记住 das，再用例句固定 ${noun} 的含义。`,
+      };
+    case "v":
+      return {
+        type: "动词",
+        grammarTitle: forms,
+        grammar: "请把动词和例句中的宾语或介词搭配一起记忆；词形栏帮助你识别现在时、过去时和完成时。",
+        memory: `先读完整例句，再用 ${term} 复述同一个动作。`,
+      };
+    case "adj":
+      return {
+        type: "形容词",
+        grammarTitle: `${term} sein / ${term} + Nomen`,
+        grammar: "形容词可作表语，也可放在名词前；放在名词前时，词尾会随冠词、性、数和格发生变化。",
+        memory: `把 ${term} 和例句里描述的对象一起记。`,
+      };
+    case "adv":
+      return {
+        type: "副词",
+        grammarTitle: `例句中的 ${term}`,
+        grammar: "副词通常不变格，用来补充动作发生的时间、地点、方式或程度；注意它在例句中的位置。",
+        memory: `用例句的语境记住 ${term}，比单独背译义更牢。`,
+      };
+    case "prep":
+      return {
+        type: "介词",
+        grammarTitle: `${term} + 名词短语`,
+        grammar: "介词要和它支配的格及完整搭配一起记忆；请特别观察例句中冠词和名词的形式。",
+        memory: `把 ${term} 连同例句后的名词短语一起朗读。`,
+      };
+    case "conj":
+      return {
+        type: "连词",
+        grammarTitle: `${term} + 句子`,
+        grammar: "连词用来连接词组或句子。请观察例句中谓语的位置，并把整个句型作为一个结构记忆。",
+        memory: `先找出 ${term} 连接的两部分，再复述整句。`,
+      };
+    case "pron":
+      return {
+        type: "代词",
+        grammarTitle: `例句中的 ${term}`,
+        grammar: "代词代替已经明确的人或事物；它的形式可能随人称、性、数和格变化，请结合例句判断作用。",
+        memory: `想清楚例句中的 ${term} 指代谁或什么。`,
+      };
+    case "det":
+      return {
+        type: "限定词",
+        grammarTitle: `${term} + Nomen`,
+        grammar: "限定词通常放在名词前，其词尾会受到名词的性、数和格影响；请连同后面的名词一起记忆。",
+        memory: `把 ${term} 和例句中的名词组合成一个整体。`,
+      };
+    case "num":
+      return {
+        type: "数词",
+        grammarTitle: `例句中的 ${term}`,
+        grammar: "数词用来表示数量或顺序。注意基数词和序数词在句子中的不同形式与位置。",
+        memory: `把 ${term} 放回例句的数量情境中记忆。`,
+      };
+    case "part":
+      return {
+        type: "小品词",
+        grammarTitle: `例句中的 ${term}`,
+        grammar: "小品词通常不变形，但会改变语气、重点或表达方向；它的准确含义需要结合上下文理解。",
+        memory: `对比有无 ${term} 时整句话的语气。`,
+      };
+    case "intj":
+      return {
+        type: "感叹词",
+        grammarTitle: `${term}!`,
+        grammar: "感叹词常独立出现，用来表达反应、情绪或呼唤；真实语气和使用场景比逐字翻译更重要。",
+        memory: `想象例句的场景和语气，再说出 ${term}。`,
+      };
+    case "prop":
+      return {
+        type: "专有名词",
+        grammarTitle: `例句中的 ${term}`,
+        grammar: "德语专有名词通常首字母大写；是否使用冠词取决于名称类别和具体语境。",
+        memory: `把 ${term} 与例句中的地点、人物或机构联系起来。`,
+      };
+    case "phrase":
+      return {
+        type: "固定表达",
+        grammarTitle: term,
+        grammar: "固定表达适合整块记忆。请保留原有词序，并留意例句中可能发生的人称、时态或格变化。",
+        memory: `不要拆开翻译，直接把 ${term} 当成一个表达来使用。`,
+      };
+  }
+}
+
+function isPackedWordRow(value: unknown): value is PackedWordRow {
+  return Array.isArray(value) &&
+    value.length === PACKED_WORD_FIELDS.length &&
+    value.every((field) => typeof field === "string" && field.trim().length > 0) &&
+    PACKED_WORD_TYPES.has(value[3] as PackedWordType);
+}
+
+function parsePackedWordbook(value: unknown, expectedLevel: CEFRLevel): PackedWordbook {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${expectedLevel} wordbook is not an object.`);
+  }
+  const candidate = value as Partial<PackedWordbook>;
+  const validFields = Array.isArray(candidate.fields) &&
+    candidate.fields.length === PACKED_WORD_FIELDS.length &&
+    PACKED_WORD_FIELDS.every((field, index) => candidate.fields?.[index] === field);
+  if (
+    candidate.schemaVersion !== 1 ||
+    candidate.level !== expectedLevel ||
+    candidate.count !== SUPPLEMENTAL_WORD_COUNTS[expectedLevel] ||
+    !validFields ||
+    !Array.isArray(candidate.words) ||
+    candidate.words.length !== candidate.count ||
+    !candidate.words.every(isPackedWordRow)
+  ) {
+    throw new Error(`${expectedLevel} wordbook failed schema validation.`);
+  }
+  return candidate as PackedWordbook;
+}
+
+function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
+  return resource.words.map(([id, term, forms, typeCode, meaning, example, exampleZh]) => {
+    const details = packedWordDetails(typeCode, term, forms);
+    return {
+      id,
+      level: resource.level,
+      term,
+      forms,
+      type: details.type,
+      meaning,
+      example,
+      exampleZh,
+      grammarTitle: details.grammarTitle,
+      grammar: details.grammar,
+      memory: details.memory,
+      storyDe: example,
+      storyZh: exampleZh,
+    };
+  });
+}
+
+function loadExpandedWordbooks() {
+  if (expandedWordbooksPromise) return expandedWordbooksPromise;
+  expandedWordbooksPromise = Promise.all(
+    CEFR_LEVELS.map(async (level) => {
+      const response = await fetch(`/wordbooks/${level.toLowerCase()}-v1.json`, { cache: "force-cache" });
+      if (!response.ok) throw new Error(`${level} wordbook could not be loaded.`);
+      return parsePackedWordbook(await response.json(), level);
+    }),
+  ).then((resources) => {
+    const supplementalByLevel = new Map(
+      resources.map((resource) => [resource.level, expandPackedWordbook(resource)]),
+    );
+    const ids = new Set<string>();
+    const expanded = CEFR_LEVELS.flatMap((level) => [
+      ...LEGACY_WORDS.filter((word) => word.level === level),
+      ...(supplementalByLevel.get(level) ?? []),
+    ]);
+    expanded.forEach((word) => {
+      if (ids.has(word.id)) throw new Error(`Duplicate word id: ${word.id}`);
+      ids.add(word.id);
+    });
+    WORDS = expanded;
+    WORD_BY_ID = new Map(expanded.map((word) => [word.id, word]));
+  }).catch((error) => {
+    expandedWordbooksPromise = null;
+    throw error;
+  });
+  return expandedWordbooksPromise;
+}
 
 const STATUS_META: Record<RecallStatus, { label: string; short: string }> = {
   unknown: { label: "未知", short: "10 分钟后" },
@@ -438,7 +710,7 @@ function prepareSavedState(
     todayQueueCompletionIds: normalizedQueueEvents,
     todayQueueLevel:
       saved.todayQueueLevel ??
-      WORDS.find((word) => savedTodayWordIds.includes(word.id))?.level ??
+      savedTodayWordIds.map((id) => WORD_BY_ID.get(id)).find((word) => word !== undefined)?.level ??
       null,
     todayQueueGoal: savedQueueGoal,
     updatedAt: Math.max(saved.updatedAt ?? 0, recordUpdatedAt),
@@ -583,7 +855,7 @@ function seededShuffle<T>(items: T[], seedText: string) {
 }
 
 function buildDailyQueue(state: LearningState, settings: AppSettings, now = Date.now()) {
-  const book = WORDS.filter((word) => word.level === settings.level);
+  const book = WORDS.filter((word) => isWordInBook(word, settings.level));
   const bookIds = new Set(book.map((word) => word.id));
   const due = Object.entries(state.records)
     .filter(([id, record]) => bookIds.has(id) && record.lastReviewedAt !== null && record.dueAt <= now)
@@ -676,8 +948,9 @@ function buildCloudPayload(
 }
 
 function normalizeCloudPayload(value: unknown): CloudPayload | null {
-  if (!value || typeof value !== "object") return null;
-  const payload = value as Partial<CloudPayload>;
+  const unpacked = unpackCloudPayload(value);
+  if (!unpacked) return null;
+  const payload = unpacked as unknown as Partial<CloudPayload>;
   if (!payload.learning || typeof payload.learning !== "object") return null;
   const preparedSettings = prepareSavedSettings({
     ...(payload.settings && typeof payload.settings === "object" ? payload.settings : {}),
@@ -793,6 +1066,7 @@ function ArticleTerm({ term }: { term: string }) {
 
 export default function Home() {
   const [ready, setReady] = useState(false);
+  const [wordbookRevision, setWordbookRevision] = useState(0);
   const [view, setView] = useState<View>("learn");
   const [settings, setSettingsValue] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [settingsUpdatedAt, setSettingsUpdatedAtValue] = useState(0);
@@ -810,6 +1084,8 @@ export default function Home() {
   const [queueUnavailable, setQueueUnavailable] = useState(false);
   const [clock, setClock] = useState(0);
   const [libraryFilter, setLibraryFilter] = useState<"all" | RecallStatus>("all");
+  const [libraryVisibleCount, setLibraryVisibleCount] = useState(LIBRARY_PAGE_SIZE);
+  const [reviewVisibleCount, setReviewVisibleCount] = useState(REVIEW_PAGE_SIZE);
   const [cloudStatus, setCloudStatus] = useState<CloudSyncStatus>("connecting");
   const [cloudDisplayName, setCloudDisplayName] = useState<string | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
@@ -832,6 +1108,8 @@ export default function Home() {
   const resetCancelRef = useRef<HTMLButtonElement>(null);
   const resetDialogRef = useRef<HTMLElement>(null);
   const transitionTimerRef = useRef<number | null>(null);
+  const libraryLoadMoreRef = useRef<HTMLDivElement>(null);
+  const reviewLoadMoreRef = useRef<HTMLDivElement>(null);
 
   function setLearning(
     next: LearningState | ((current: LearningState) => LearningState),
@@ -871,83 +1149,103 @@ export default function Home() {
   }
 
   useEffect(() => {
-    let next = createInitialState();
-    let nextSettings = DEFAULT_SETTINGS;
-    let nextSettingsUpdatedAt = 0;
-    let savedOwnerId: string | null = null;
-    try {
-      const rawCloudMeta = window.localStorage.getItem(CLOUD_META_KEY);
-      if (rawCloudMeta) {
-        const cloudMeta = JSON.parse(rawCloudMeta) as {
-          ownerId?: string;
-          lastSyncedAt?: number;
+    let cancelled = false;
+    let hydrationTimer: number | null = null;
+
+    const hydrate = async () => {
+      try {
+        await loadExpandedWordbooks();
+      } catch (error) {
+        // Keep the curated built-in cards available if a static resource is temporarily unreachable.
+        console.error("Expanded wordbooks could not be loaded.", error);
+      }
+      if (cancelled) return;
+
+      let next = createInitialState();
+      let nextSettings = DEFAULT_SETTINGS;
+      let nextSettingsUpdatedAt = 0;
+      let savedOwnerId: string | null = null;
+      try {
+        const rawCloudMeta = window.localStorage.getItem(CLOUD_META_KEY);
+        if (rawCloudMeta) {
+          const cloudMeta = JSON.parse(rawCloudMeta) as {
+            ownerId?: string;
+            lastSyncedAt?: number;
+          };
+          if (typeof cloudMeta.ownerId === "string" && cloudMeta.ownerId) {
+            savedOwnerId = cloudMeta.ownerId;
+            localOwnerIdRef.current = cloudMeta.ownerId;
+          }
+          if (Number.isSafeInteger(cloudMeta.lastSyncedAt)) {
+            window.setTimeout(() => setLastSyncedAt(cloudMeta.lastSyncedAt!), 0);
+          }
+        }
+      } catch {
+        savedOwnerId = null;
+      }
+      const progressKey = savedOwnerId ? ownerStorageKey(STORAGE_KEY, savedOwnerId) : STORAGE_KEY;
+      const settingsKey = savedOwnerId ? ownerStorageKey(SETTINGS_KEY, savedOwnerId) : SETTINGS_KEY;
+      const settingsUpdatedAtKey = savedOwnerId
+        ? ownerStorageKey(SETTINGS_UPDATED_AT_KEY, savedOwnerId)
+        : SETTINGS_UPDATED_AT_KEY;
+      try {
+        const raw = window.localStorage.getItem(progressKey);
+        if (raw) next = prepareSavedState(JSON.parse(raw) as LearningState);
+      } catch {
+        next = createInitialState();
+      }
+      try {
+        const rawSettings = window.localStorage.getItem(settingsKey);
+        if (rawSettings) nextSettings = prepareSavedSettings(JSON.parse(rawSettings));
+      } catch {
+        nextSettings = DEFAULT_SETTINGS;
+      }
+      try {
+        const rawUpdatedAt = Number(window.localStorage.getItem(settingsUpdatedAtKey));
+        if (Number.isSafeInteger(rawUpdatedAt) && rawUpdatedAt > 0) {
+          nextSettingsUpdatedAt = rawUpdatedAt;
+        }
+      } catch {
+        nextSettingsUpdatedAt = 0;
+      }
+      if (next.todayQueueLevel !== nextSettings.level) {
+        next = {
+          ...next,
+          todayQueuesCompleted: 0,
+          todayQueueCompletionIds: [],
+          sessionComplete: false,
+          todayQueueLevel: nextSettings.level,
+          todayQueueGoal: nextSettings.queuesPerDay,
         };
-        if (typeof cloudMeta.ownerId === "string" && cloudMeta.ownerId) {
-          savedOwnerId = cloudMeta.ownerId;
-          localOwnerIdRef.current = cloudMeta.ownerId;
-        }
-        if (Number.isSafeInteger(cloudMeta.lastSyncedAt)) {
-          window.setTimeout(() => setLastSyncedAt(cloudMeta.lastSyncedAt!), 0);
-        }
+      } else if (next.todayQueueGoal === null) {
+        next = { ...next, todayQueueGoal: nextSettings.queuesPerDay };
       }
-    } catch {
-      savedOwnerId = null;
-    }
-    const progressKey = savedOwnerId ? ownerStorageKey(STORAGE_KEY, savedOwnerId) : STORAGE_KEY;
-    const settingsKey = savedOwnerId ? ownerStorageKey(SETTINGS_KEY, savedOwnerId) : SETTINGS_KEY;
-    const settingsUpdatedAtKey = savedOwnerId
-      ? ownerStorageKey(SETTINGS_UPDATED_AT_KEY, savedOwnerId)
-      : SETTINGS_UPDATED_AT_KEY;
-    try {
-      const raw = window.localStorage.getItem(progressKey);
-      if (raw) next = prepareSavedState(JSON.parse(raw) as LearningState);
-    } catch {
-      next = createInitialState();
-    }
-    try {
-      const rawSettings = window.localStorage.getItem(settingsKey);
-      if (rawSettings) nextSettings = prepareSavedSettings(JSON.parse(rawSettings));
-    } catch {
-      nextSettings = DEFAULT_SETTINGS;
-    }
-    try {
-      const rawUpdatedAt = Number(window.localStorage.getItem(settingsUpdatedAtKey));
-      if (Number.isSafeInteger(rawUpdatedAt) && rawUpdatedAt > 0) {
-        nextSettingsUpdatedAt = rawUpdatedAt;
-      }
-    } catch {
-      nextSettingsUpdatedAt = 0;
-    }
-    if (next.todayQueueLevel !== nextSettings.level) {
-      next = {
-        ...next,
-        todayQueuesCompleted: 0,
-        todayQueueCompletionIds: [],
-        sessionComplete: false,
-        todayQueueLevel: nextSettings.level,
-        todayQueueGoal: nextSettings.queuesPerDay,
-      };
-    } else if (next.todayQueueGoal === null) {
-      next = { ...next, todayQueueGoal: nextSettings.queuesPerDay };
-    }
-    const initialGoal = next.todayQueueGoal ?? nextSettings.queuesPerDay;
-    const initialComplete = next.todayQueueLevel === nextSettings.level &&
-      (next.sessionComplete || next.todayQueuesCompleted >= initialGoal);
-    const initialQueue = initialComplete ? [] : buildDailyQueue(next, nextSettings);
-    // Client-only preferences are intentionally hydrated after the first mount.
-    learningRef.current = next;
-    settingsRef.current = nextSettings;
-    settingsUpdatedAtRef.current = nextSettingsUpdatedAt;
-    const hydrationTimer = window.setTimeout(() => {
-      setSettings(nextSettings);
-      setSettingsUpdatedAt(nextSettingsUpdatedAt);
-      setLearning(next);
-      setSessionQueue(initialQueue);
-      setQueueUnavailable(!initialQueue.length && !initialComplete);
-      setClock(currentTimestamp());
-      setReady(true);
-    }, 0);
-    return () => window.clearTimeout(hydrationTimer);
+      const initialGoal = next.todayQueueGoal ?? nextSettings.queuesPerDay;
+      const initialComplete = next.todayQueueLevel === nextSettings.level &&
+        (next.sessionComplete || next.todayQueuesCompleted >= initialGoal);
+      const initialQueue = initialComplete ? [] : buildDailyQueue(next, nextSettings);
+      // Client-only preferences are intentionally hydrated after the first mount.
+      learningRef.current = next;
+      settingsRef.current = nextSettings;
+      settingsUpdatedAtRef.current = nextSettingsUpdatedAt;
+      hydrationTimer = window.setTimeout(() => {
+        if (cancelled) return;
+        setSettings(nextSettings);
+        setSettingsUpdatedAt(nextSettingsUpdatedAt);
+        setLearning(next);
+        setSessionQueue(initialQueue);
+        setQueueUnavailable(!initialQueue.length && !initialComplete);
+        setClock(currentTimestamp());
+        setWordbookRevision((revision) => revision + 1);
+        setReady(true);
+      }, 0);
+    };
+
+    void hydrate();
+    return () => {
+      cancelled = true;
+      if (hydrationTimer !== null) window.clearTimeout(hydrationTimer);
+    };
   }, []);
 
   useEffect(() => {
@@ -1247,18 +1545,20 @@ export default function Home() {
 
       for (let attempt = 0; attempt < 3; attempt += 1) {
         setCloudStatus("saving");
+        const wirePayload = packCloudPayload(candidate);
+        const requestBody = JSON.stringify({
+          payload: wirePayload,
+          expectedRevision: revision,
+          expectedOwnerId: cloudOwnerIdRef.current,
+          resetAt: candidate.learning.resetAt,
+          clientUpdatedAt: Math.max(candidate.learning.updatedAt, candidate.settingsUpdatedAt),
+        });
         const response = await fetch("/api/progress", {
           method: "PUT",
           cache: "no-store",
-          keepalive: true,
+          keepalive: requestBody.length < 60_000,
           headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify({
-            payload: candidate,
-            expectedRevision: revision,
-            expectedOwnerId: cloudOwnerIdRef.current,
-            resetAt: candidate.learning.resetAt,
-            clientUpdatedAt: Math.max(candidate.learning.updatedAt, candidate.settingsUpdatedAt),
-          }),
+          body: requestBody,
         });
         const result = await response.json() as {
           authenticated?: boolean;
@@ -1419,18 +1719,22 @@ export default function Home() {
     return () => media.removeEventListener("change", applyTheme);
   }, [ready, settings.theme]);
 
-  const currentWord = WORDS.find((word) => word.id === sessionQueue[currentIndex]);
+  const currentWord = WORD_BY_ID.get(sessionQueue[currentIndex]);
   const currentRecord = currentWord ? learning.records[currentWord.id] : undefined;
   const bookWords = useMemo(
-    () => WORDS.filter((word) => word.level === settings.level),
-    [settings.level],
+    () => {
+      void wordbookRevision;
+      return WORDS.filter((word) => isWordInBook(word, settings.level));
+    },
+    [settings.level, wordbookRevision],
   );
   const learnedToday = useMemo(
     () => {
+      void wordbookRevision;
       const learnedIds = new Set(learning.todayWordIds);
-      return WORDS.filter((word) => word.level === settings.level && learnedIds.has(word.id));
+      return WORDS.filter((word) => isWordInBook(word, settings.level) && learnedIds.has(word.id));
     },
-    [learning.todayWordIds, settings.level],
+    [learning.todayWordIds, settings.level, wordbookRevision],
   );
 
   const counts = useMemo(() => {
@@ -1455,6 +1759,60 @@ export default function Home() {
 
   const reviewTotal = bookWords.filter((word) => learning.records[word.id]?.lastReviewedAt !== null && learning.records[word.id]).length;
   const newTotal = bookWords.length - reviewTotal;
+  const reviewWords = useMemo(
+    () => reviewTotal
+      ? bookWords.filter((word) => learning.records[word.id])
+      : bookWords.slice(0, 3),
+    [bookWords, learning.records, reviewTotal],
+  );
+  const libraryWords = useMemo(
+    () => bookWords.filter(
+      (word) => libraryFilter === "all" ||
+        (learning.records[word.id]?.status ?? "unknown") === libraryFilter,
+    ),
+    [bookWords, learning.records, libraryFilter],
+  );
+
+  useEffect(() => {
+    if (view !== "library" || libraryVisibleCount >= libraryWords.length) return;
+    const target = libraryLoadMoreRef.current;
+    if (!target) return;
+    if (!("IntersectionObserver" in window)) {
+      const timer = window.setTimeout(() => setLibraryVisibleCount(libraryWords.length), 0);
+      return () => window.clearTimeout(timer);
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setLibraryVisibleCount((count) => Math.min(count + LIBRARY_PAGE_SIZE, libraryWords.length));
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [libraryVisibleCount, libraryWords.length, view]);
+
+  useEffect(() => {
+    if (view !== "review" || reviewVisibleCount >= reviewWords.length) return;
+    const target = reviewLoadMoreRef.current;
+    if (!target) return;
+    if (!("IntersectionObserver" in window)) {
+      const timer = window.setTimeout(() => setReviewVisibleCount(reviewWords.length), 0);
+      return () => window.clearTimeout(timer);
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setReviewVisibleCount((count) => Math.min(count + REVIEW_PAGE_SIZE, reviewWords.length));
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [reviewVisibleCount, reviewWords.length, view]);
+
   const activeQueueGoal = learning.todayQueueLevel === settings.level
     ? (learning.todayQueueGoal ?? settings.queuesPerDay)
     : settings.queuesPerDay;
@@ -1618,6 +1976,8 @@ export default function Home() {
     if (["wordsPerQueue", "level", "order", "dueFirst"].includes(key)) setPlanDirty(true);
     if (key === "level") {
       const nextLevel = value as CEFRLevel;
+      setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
+      setReviewVisibleCount(REVIEW_PAGE_SIZE);
       setLearning((current) => touchLearning({
         ...current,
         todayQueuesCompleted: 0,
@@ -1644,6 +2004,8 @@ export default function Home() {
 
   function restoreDefaultSettings() {
     setSettings(DEFAULT_SETTINGS);
+    setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
+    setReviewVisibleCount(REVIEW_PAGE_SIZE);
     setSettingsUpdatedAt((current) => mutationTimestamp(current));
     setPlanDirty(true);
     setLearning((current) => {
@@ -1688,6 +2050,8 @@ export default function Home() {
     setGrading(false);
     setFeedback(null);
     setLibraryFilter("all");
+    setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
+    setReviewVisibleCount(REVIEW_PAGE_SIZE);
     setSettingsNotice("学习进度已清空，正在同步到所有设备");
     setView("learn");
     setConfirmReset(false);
@@ -1695,6 +2059,8 @@ export default function Home() {
   }
 
   function switchView(nextView: View) {
+    if (nextView === "library") setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
+    if (nextView === "review") setReviewVisibleCount(REVIEW_PAGE_SIZE);
     const shouldRestoreDaily = nextView === "learn" && (
       queueSource !== "daily" ||
       (view !== "learn" && !sessionQueue.length) ||
@@ -1856,7 +2222,8 @@ export default function Home() {
                   </div>
                   <div className="queue-list">
                     {sessionQueue.map((id, index) => {
-                      const word = WORDS.find((item) => item.id === id)!;
+                      const word = WORD_BY_ID.get(id);
+                      if (!word) return null;
                       const itemStatus =
                         index < currentIndex ? "done" : index === currentIndex ? "current" : "upcoming";
                       return (
@@ -2004,7 +2371,7 @@ export default function Home() {
             </div>
             <div className="due-list paper-panel">
               <div className="list-header"><span>单词</span><span>状态</span><span>上次结果</span><span>下次出现</span></div>
-              {(reviewTotal ? bookWords.filter((word) => learning.records[word.id]) : bookWords.slice(0, 3)).map((word) => {
+              {reviewWords.slice(0, reviewVisibleCount).map((word) => {
                 const record = learning.records[word.id];
                 const status = record?.status ?? "unknown";
                 return (
@@ -2016,6 +2383,9 @@ export default function Home() {
                   </button>
                 );
               })}
+              {reviewVisibleCount < reviewWords.length && (
+                <div className="incremental-list-sentinel" ref={reviewLoadMoreRef} aria-hidden="true" />
+              )}
             </div>
           </section>
         )}
@@ -2026,7 +2396,15 @@ export default function Home() {
               <div><p className="kicker">Wortschatz · {settings.level} {LEVEL_META[settings.level].title}</p><h1>你的词，分得清才记得住。</h1></div>
               <div className="filter-tabs" aria-label="按掌握状态筛选">
                 {(["all", "unknown", "fuzzy", "known"] as const).map((filter) => (
-                  <button key={filter} className={libraryFilter === filter ? "active" : ""} onClick={() => setLibraryFilter(filter)} aria-pressed={libraryFilter === filter}>
+                  <button
+                    key={filter}
+                    className={libraryFilter === filter ? "active" : ""}
+                    onClick={() => {
+                      setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
+                      setLibraryFilter(filter);
+                    }}
+                    aria-pressed={libraryFilter === filter}
+                  >
                     {filter === "all" ? "全部" : STATUS_META[filter].label}
                     <span>{filter === "all" ? bookWords.length : counts[filter]}</span>
                   </button>
@@ -2034,7 +2412,7 @@ export default function Home() {
               </div>
             </div>
             <div className="word-library-grid">
-              {bookWords.filter((word) => libraryFilter === "all" || (learning.records[word.id]?.status ?? "unknown") === libraryFilter).map((word, index) => {
+              {libraryWords.slice(0, libraryVisibleCount).map((word, index) => {
                 const status = learning.records[word.id]?.status ?? "unknown";
                 return (
                   <article className="library-card" key={word.id}>
@@ -2048,6 +2426,9 @@ export default function Home() {
                 );
               })}
             </div>
+            {libraryVisibleCount < libraryWords.length && (
+              <div className="incremental-list-sentinel" ref={libraryLoadMoreRef} aria-hidden="true" />
+            )}
           </section>
         )}
 
@@ -2155,8 +2536,9 @@ export default function Home() {
                 <p className="settings-help">按 CEFR 能力等级整理的 Worttag 精选词书。切换词书不会丢失已经学过的记录。</p>
                 <div className="level-options">
                   {(["A1", "A2", "B1", "B2", "C1"] as const).map((level) => {
-                    const levelCount = WORDS.filter((word) => word.level === level).length;
-                    const learnedCount = WORDS.filter((word) => word.level === level && learning.records[word.id]).length;
+                    const levelWords = WORDS.filter((word) => isWordInBook(word, level));
+                    const levelCount = levelWords.length;
+                    const learnedCount = levelWords.filter((word) => learning.records[word.id]).length;
                     return (
                       <label className={settings.level === level ? "level-option selected" : "level-option"} key={level}>
                         <input type="radio" name="wordbook" checked={settings.level === level} onChange={() => updateSetting("level", level)} />

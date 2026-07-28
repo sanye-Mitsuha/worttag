@@ -4,10 +4,14 @@ import {
   readSnapshot,
   writeSnapshot,
 } from "../../../db/cloud-progress";
+import {
+  cloudPayloadByteLength,
+  MAX_CLOUD_SNAPSHOT_BYTES,
+  unpackCloudPayload,
+} from "../../cloud-payload";
 
 export const dynamic = "force-dynamic";
 
-const MAX_SNAPSHOT_BYTES = 500_000;
 const MAX_FUTURE_CLOCK_SKEW = 86_400_000;
 
 function noStoreJson(body: unknown, init?: ResponseInit) {
@@ -77,11 +81,15 @@ export async function PUT(request: Request) {
     const expectedRevision = Number(body.expectedRevision);
     const resetAt = Number(body.resetAt);
     const clientUpdatedAt = Number(body.clientUpdatedAt);
-    const serialized = body.payload && typeof body.payload === "object"
-      ? JSON.stringify(body.payload)
-      : "";
-    const payload = body.payload as {
-      schemaVersion?: unknown;
+    const snapshotBytes = cloudPayloadByteLength(body.payload);
+    if (snapshotBytes !== null && snapshotBytes > MAX_CLOUD_SNAPSHOT_BYTES) {
+      return noStoreJson(
+        { error: "Cloud progress payload is too large." },
+        { status: 413 },
+      );
+    }
+
+    const payload = unpackCloudPayload(body.payload) as {
       learning?: {
         resetAt?: unknown;
         updatedAt?: unknown;
@@ -98,15 +106,14 @@ export async function PUT(request: Request) {
         dueFirst?: unknown;
       };
       settingsUpdatedAt?: unknown;
-    } | undefined;
+    } | null;
     const payloadLearningUpdatedAt = Number(payload?.learning?.updatedAt);
     const payloadSettingsUpdatedAt = Number(payload?.settingsUpdatedAt);
     const maxAcceptedTimestamp = Date.now() + MAX_FUTURE_CLOCK_SKEW;
-    const snapshotBytes = new TextEncoder().encode(serialized).byteLength;
 
     if (
       !payload ||
-      payload.schemaVersion !== 1 ||
+      snapshotBytes === null ||
       !payload.learning ||
       !payload.settings ||
       !payload.learning.records ||
@@ -132,8 +139,7 @@ export async function PUT(request: Request) {
       clientUpdatedAt > maxAcceptedTimestamp ||
       !Number.isSafeInteger(payloadLearningUpdatedAt) ||
       !Number.isSafeInteger(payloadSettingsUpdatedAt) ||
-      clientUpdatedAt !== Math.max(payloadLearningUpdatedAt, payloadSettingsUpdatedAt) ||
-      snapshotBytes > MAX_SNAPSHOT_BYTES
+      clientUpdatedAt !== Math.max(payloadLearningUpdatedAt, payloadSettingsUpdatedAt)
     ) {
       return noStoreJson({ error: "Invalid cloud progress payload." }, { status: 400 });
     }

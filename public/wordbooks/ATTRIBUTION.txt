@@ -1,0 +1,55 @@
+Worttag supplemental wordbooks v1 — data attribution
+=====================================================
+
+Scope and changes
+-----------------
+These notices apply to the supplemental JSON resources in this directory, not
+to Worttag's application code or its original curated cards. Worttag filtered,
+normalised, deduplicated and reclassified the source material; corrected noun
+gender and inflection; selected senses against examples; generated additional
+examples where needed; and added Simplified Chinese translations. The CEFR
+bands are Worttag course classifications and are not official Goethe word
+lists. The source selection and ordering of Goethe exam lists were not copied.
+
+Vocabulary and example source
+-----------------------------
+German Language Community, commit
+2dae0f5bbfee5ba6ba73a31c630c8f87d7b47fc5
+https://github.com/IamHamud/German-Language-Community
+
+Its Wiktionary-derived vocabulary is licensed under CC BY-SA 4.0. Its
+Tatoeba-derived example sentences are licensed under CC BY 2.0 FR.
+https://creativecommons.org/licenses/by-sa/4.0/
+https://creativecommons.org/licenses/by/2.0/fr/
+https://www.wiktionary.org/
+https://tatoeba.org/
+
+Lexical validation and sense alignment
+--------------------------------------
+german-nouns 1.2.5, a German Wiktionary-derived noun inflection dataset,
+licensed under CC BY-SA 4.0.
+https://pypi.org/project/german-nouns/
+
+OdeNet 1.4 (Offenes Deutsches WordNet), Melanie Siegel and Francis Bond,
+licensed under CC BY-SA 4.0.
+https://github.com/hdaSprachtechnologie/odenet
+
+Open English WordNet 2024, licensed under CC BY 4.0.
+https://github.com/globalwordnet/english-wordnet
+https://creativecommons.org/licenses/by/4.0/
+
+Chinese Open Wordnet 1.4, Shan Wang and Francis Bond, distributed under its
+WordNet license.
+https://bond-lab.github.io/cow/
+
+Frequency ordering
+------------------
+FrequencyWords German frequency data, licensed under CC BY-SA 4.0.
+https://github.com/hermitdave/FrequencyWords
+
+Derivative-data license
+-----------------------
+Except where an example sentence retains the CC BY 2.0 FR notice described
+above, the supplemental lexical resources in this directory are distributed
+under CC BY-SA 4.0. Changes by Worttag are indicated in the Scope and changes
+section above. No warranty is provided.

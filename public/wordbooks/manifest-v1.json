@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-07-22",
+  "supplementalCounts": {
+    "A1": 630,
+    "A2": 630,
+    "B1": 1080,
+    "B2": 1580,
+    "C1": 1980
+  },
+  "legacyCounts": {
+    "A1": 20,
+    "A2": 20,
+    "B1": 20,
+    "B2": 20,
+    "C1": 20
+  },
+  "cumulativeCourseCounts": {
+    "A1": 650,
+    "A2": 1300,
+    "B1": 2400,
+    "B2": 4000,
+    "C1": 6000
+  },
+  "fields": [
+    "id",
+    "term",
+    "forms",
+    "typeCode",
+    "meaning",
+    "example",
+    "exampleZh"
+  ],
+  "attribution": "/wordbooks/ATTRIBUTION.txt"
+}

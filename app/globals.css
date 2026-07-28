@@ -1111,6 +1111,13 @@ blockquote footer {
   gap: 16px;
 }
 
+.incremental-list-sentinel {
+  width: 100%;
+  height: 1px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .library-card {
   min-height: 260px;
   padding: 22px 24px 20px;

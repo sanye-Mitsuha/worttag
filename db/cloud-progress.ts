@@ -1,4 +1,5 @@
 import { env } from "cloudflare:workers";
+import { cloudPayloadSchemaVersion } from "../app/cloud-payload";
 
 export type StoredSnapshot = {
   payload: unknown;
@@ -55,16 +56,21 @@ export async function writeSnapshot(options: {
   clientUpdatedAt: number;
 }): Promise<{ saved: true; snapshot: StoredSnapshot } | { saved: false; snapshot: StoredSnapshot }> {
   const stateJson = JSON.stringify(options.payload);
+  const schemaVersion = cloudPayloadSchemaVersion(options.payload);
+  if (schemaVersion === null) {
+    throw new Error("Cloud progress has an unsupported schema version.");
+  }
 
   if (options.expectedRevision === 0) {
     const inserted = await env.DB.prepare(
       `INSERT OR IGNORE INTO user_learning_snapshots
        (owner_key, state_json, schema_version, revision, reset_at, client_updated_at, updated_at)
-       VALUES (?, ?, 1, 1, ?, ?, CURRENT_TIMESTAMP)
+       VALUES (?, ?, ?, 1, ?, ?, CURRENT_TIMESTAMP)
        RETURNING state_json, revision, reset_at, client_updated_at, updated_at`,
     ).bind(
       options.ownerKey,
       stateJson,
+      schemaVersion,
       options.resetAt,
       options.clientUpdatedAt,
     ).first<SnapshotRow>();
@@ -74,7 +80,7 @@ export async function writeSnapshot(options: {
     const updated = await env.DB.prepare(
       `UPDATE user_learning_snapshots
        SET state_json = ?,
-           schema_version = 1,
+           schema_version = ?,
            revision = revision + 1,
            reset_at = ?,
            client_updated_at = ?,
@@ -85,6 +91,7 @@ export async function writeSnapshot(options: {
        RETURNING state_json, revision, reset_at, client_updated_at, updated_at`,
     ).bind(
       stateJson,
+      schemaVersion,
       options.resetAt,
       options.clientUpdatedAt,
       options.ownerKey,
