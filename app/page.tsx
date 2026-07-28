@@ -7,6 +7,7 @@ import {
   matchesLibrarySearch,
   tokenizeLibraryQuery,
 } from "./library-search";
+import { expandedMeaning } from "./meaning-overrides";
 import { A1_WORDS, A2_WORDS } from "./wordbooks-a1-a2";
 import { B1_ADDITIONS, B2_WORDS, C1_WORDS } from "./wordbooks-advanced";
 
@@ -416,7 +417,7 @@ const LEGACY_WORDS: WordCard[] = [
   ...B1_ADDITIONS,
   ...B2_WORDS,
   ...C1_WORDS,
-];
+].map((word) => ({ ...word, meaning: expandedMeaning(word.term, word.meaning) }));
 
 let WORDS: WordCard[] = LEGACY_WORDS;
 let WORD_BY_ID = new Map(LEGACY_WORDS.map((word) => [word.id, word]));
@@ -575,7 +576,7 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
       term,
       forms,
       type: details.type,
-      meaning,
+      meaning: expandedMeaning(term, meaning),
       example,
       exampleZh,
       grammarTitle: details.grammarTitle,

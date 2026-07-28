@@ -258,7 +258,7 @@ a:focus-visible {
   border-radius: 50%;
   background: var(--brick);
   color: var(--on-solid);
-  font: 700 13px/1 var(--serif);
+  font: 700 15px/1 var(--serif);
   box-shadow: inset 0 0 0 2px rgb(255 249 235 / 0.26);
 }
 
@@ -277,7 +277,7 @@ a:focus-visible {
   border: 0;
   background: transparent;
   color: #6b6d60;
-  font-size: 14px;
+  font-size: 16px;
   white-space: nowrap;
 }
 
@@ -310,12 +310,12 @@ a:focus-visible {
   align-items: center;
   gap: 9px;
   color: var(--ink-soft);
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .streak strong {
   color: var(--ink);
-  font-size: 17px;
+  font-size: 19px;
 }
 
 .streak-flame {
@@ -353,7 +353,7 @@ a:focus-visible {
 .kicker {
   margin: 0;
   color: var(--brick);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.19em;
   text-transform: uppercase;
@@ -369,12 +369,12 @@ a:focus-visible {
   align-items: baseline;
   margin-bottom: 9px;
   color: var(--ink-soft);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .progress-copy strong {
   color: var(--ink);
-  font: 700 16px/1 var(--serif);
+  font: 700 18px/1 var(--serif);
 }
 
 .progress-track,
@@ -445,7 +445,7 @@ a:focus-visible {
 .folio {
   min-width: 25px;
   color: var(--line-dark);
-  font: italic 13px/1.2 var(--serif);
+  font: italic 15px/1.2 var(--serif);
 }
 
 .panel-heading h2 {
@@ -468,7 +468,7 @@ a:focus-visible {
   gap: 10px;
   padding: 7px 5px;
   color: #7c786b;
-  font-size: 12px;
+  font-size: 14px;
   transition: color 160ms ease, background 160ms ease;
 }
 
@@ -480,7 +480,7 @@ a:focus-visible {
   place-items: center;
   border: 1px solid #cbbd9f;
   border-radius: 50%;
-  font: 700 10px/1 var(--serif);
+  font: 700 12px/1 var(--serif);
 }
 
 .queue-name {
@@ -611,7 +611,7 @@ a:focus-visible {
   padding-top: 14px;
   border-top: 1px solid var(--line);
   color: #817a6d;
-  font-size: 10px;
+  font-size: 12px;
   text-align: center;
 }
 
@@ -657,7 +657,7 @@ kbd {
 
 .card-mode {
   color: #867c6b;
-  font: italic 12px/1 var(--serif);
+  font: italic 14px/1 var(--serif);
   letter-spacing: 0.08em;
 }
 
@@ -670,7 +670,7 @@ kbd {
   border-radius: 999px;
   background: transparent;
   color: var(--ink);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .speak-button:hover {
@@ -691,7 +691,7 @@ kbd {
 .word-type {
   margin: 0 0 12px;
   color: var(--brick);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -737,7 +737,7 @@ kbd {
 .word-forms {
   margin: 11px 0 0;
   color: #756e60;
-  font: italic 15px/1.45 var(--serif);
+  font: italic 17px/1.45 var(--serif);
 }
 
 .word-front.exposure-2 {
@@ -759,7 +759,7 @@ kbd {
   align-items: center;
   gap: 13px;
   color: var(--line-dark);
-  font: italic 11px/1 var(--serif);
+  font: italic 13px/1 var(--serif);
 }
 
 .ink-divider::before,
@@ -773,7 +773,7 @@ kbd {
 .recall-prompt > p {
   margin: 34px 0 29px;
   color: var(--ink-soft);
-  font: 18px/1.55 var(--serif);
+  font: 20px/1.55 var(--serif);
 }
 
 .recall-flow {
@@ -783,7 +783,7 @@ kbd {
   gap: 9px;
   margin-top: 22px;
   color: #8d8575;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -800,7 +800,7 @@ kbd {
 
 .recall-flow i {
   color: var(--line-dark);
-  font: normal 10px/1 var(--serif);
+  font: normal 12px/1 var(--serif);
 }
 
 .choice-recall {
@@ -860,17 +860,17 @@ kbd {
 
 .meaning-option small {
   color: var(--brick);
-  font: italic 10px/1 var(--serif);
+  font: italic 12px/1 var(--serif);
 }
 
 .meaning-option strong {
-  font: 600 14px/1.4 var(--serif);
+  font: 600 16px/1.4 var(--serif);
 }
 
 .choice-instruction {
   margin: 15px 0 0;
   color: var(--ink-soft);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .choice-auto-result {
@@ -890,16 +890,16 @@ kbd {
 }
 
 .choice-auto-result strong {
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .choice-auto-result span {
   color: var(--ink);
-  font: 600 17px/1.35 var(--serif);
+  font: 600 19px/1.35 var(--serif);
 }
 
 .choice-auto-result small {
-  font-size: 9px;
+  font-size: 11px;
   opacity: 0.7;
 }
 
@@ -938,7 +938,7 @@ kbd {
   margin-bottom: 10px;
   padding: 9px 12px;
   border-left: 3px solid;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   text-align: center;
 }
@@ -1018,7 +1018,7 @@ kbd {
 .answer-label,
 .note-label {
   color: var(--brick);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1037,12 +1037,12 @@ blockquote {
 blockquote p {
   margin: 0 0 6px;
   color: #263f38;
-  font: 500 18px/1.45 var(--serif);
+  font: 500 20px/1.45 var(--serif);
 }
 
 blockquote footer {
   color: #746e61;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .explanation-grid {
@@ -1059,13 +1059,13 @@ blockquote footer {
 
 .explanation-grid h3 {
   margin: 7px 0 5px;
-  font: 700 15px/1.3 var(--serif);
+  font: 700 17px/1.3 var(--serif);
 }
 
 .explanation-grid p {
   margin: 0;
   color: var(--ink-soft);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -1081,7 +1081,7 @@ blockquote footer {
 .rating-area > p {
   margin: 0 0 10px;
   color: #777063;
-  font-size: 11px;
+  font-size: 13px;
   text-align: center;
 }
 
@@ -1127,7 +1127,7 @@ blockquote footer {
   place-items: center;
   border: 1px solid currentColor;
   border-radius: 50%;
-  font: 700 14px/1 var(--serif);
+  font: 700 16px/1 var(--serif);
 }
 
 .rating-button strong,
@@ -1136,12 +1136,12 @@ blockquote footer {
 }
 
 .rating-button strong {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .rating-button small {
   margin-top: 2px;
-  font-size: 8px;
+  font-size: 10px;
   opacity: 0.77;
 }
 
@@ -1151,7 +1151,7 @@ blockquote footer {
   padding: 4px 5px 3px;
   border: 1px solid currentColor;
   border-radius: 3px;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 800;
   line-height: 1;
   text-align: center;
@@ -1168,7 +1168,7 @@ blockquote footer {
   border: 1px solid #33594d;
   background: var(--solid-ink);
   color: var(--on-solid);
-  font: 600 13px/1.3 var(--serif);
+  font: 600 15px/1.3 var(--serif);
   text-align: center;
   box-shadow: 5px 5px 0 rgb(23 59 50 / 0.16);
 }
@@ -1215,7 +1215,7 @@ blockquote footer {
   max-width: 520px;
   margin: 0;
   color: var(--ink-soft);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.7;
 }
 
@@ -1224,7 +1224,7 @@ blockquote footer {
   gap: 28px;
   margin: 10px 0 4px;
   color: var(--ink-soft);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .spelling-gate-summary strong {
@@ -1257,7 +1257,7 @@ blockquote footer {
   display: block;
   margin-top: 6px;
   color: var(--ink-soft);
-  font: italic 13px/1 var(--serif);
+  font: italic 15px/1 var(--serif);
 }
 
 .spelling-score {
@@ -1276,7 +1276,7 @@ blockquote footer {
 .spelling-score small {
   margin-top: 5px;
   color: var(--ink-soft);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .spelling-cue {
@@ -1289,7 +1289,7 @@ blockquote footer {
 
 .spelling-cue > span {
   color: var(--brick);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1308,7 +1308,7 @@ blockquote footer {
 
 .spelling-form label {
   color: var(--ink-soft);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .spelling-form input {
@@ -1339,11 +1339,11 @@ blockquote footer {
   gap: 18px;
   padding: 13px 15px;
   border-left: 4px solid;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .spelling-result > span {
-  font: 600 18px/1.2 var(--serif);
+  font: 600 20px/1.2 var(--serif);
 }
 
 .spelling-result.correct {
@@ -1407,7 +1407,7 @@ blockquote footer {
 .plan-stats span {
   margin-top: 6px;
   color: #777063;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .rhythm-card {
@@ -1429,7 +1429,7 @@ blockquote footer {
 .rhythm-card > p:last-child {
   margin: 17px 0 0;
   color: #bdc9c1;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -1471,7 +1471,7 @@ blockquote footer {
 
 .schedule-stop small {
   color: #bdc9c1;
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .story-preview {
@@ -1496,7 +1496,7 @@ blockquote footer {
 }
 
 .story-number {
-  font: italic 17px/1 var(--serif);
+  font: italic 19px/1 var(--serif);
   opacity: 0.62;
 }
 
@@ -1508,7 +1508,7 @@ blockquote footer {
 
 .story-preview small {
   margin-bottom: 8px;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -1521,7 +1521,7 @@ blockquote footer {
 
 .story-preview em {
   margin-top: 10px;
-  font: normal 10px/1.4 var(--sans);
+  font: normal 12px/1.4 var(--sans);
   opacity: 0.72;
 }
 
@@ -1534,7 +1534,7 @@ blockquote footer {
   margin: 0 auto;
   border-top: 1px solid var(--line);
   color: #756e60;
-  font: italic 11px/1 var(--serif);
+  font: italic 13px/1 var(--serif);
 }
 
 .secondary-page {
@@ -1546,7 +1546,7 @@ blockquote footer {
   border: 1px solid var(--line-dark);
   border-radius: 999px;
   color: var(--ink-soft);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .review-summary-grid,
@@ -1571,7 +1571,7 @@ blockquote footer {
 
 .summary-card span {
   color: var(--brick);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1584,7 +1584,7 @@ blockquote footer {
 
 .summary-card small {
   color: #777063;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .due-list {
@@ -1605,7 +1605,7 @@ blockquote footer {
   padding: 10px 15px 15px;
   border-bottom: 1px solid var(--line-dark);
   color: #7a7366;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1618,7 +1618,7 @@ blockquote footer {
   border-bottom: 1px solid #ded3bd;
   background: transparent;
   color: var(--ink-soft);
-  font-size: 11px;
+  font-size: 13px;
   text-align: left;
 }
 
@@ -1633,13 +1633,13 @@ blockquote footer {
 
 .due-row > span:first-child strong {
   color: var(--ink);
-  font: 600 18px/1.25 var(--serif);
+  font: 600 20px/1.25 var(--serif);
 }
 
 .due-row > span:first-child small {
   margin-top: 3px;
   color: #7d7567;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .status-pill {
@@ -1650,7 +1650,7 @@ blockquote footer {
   padding: 5px 9px;
   border: 1px solid currentColor;
   border-radius: 999px;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -1677,7 +1677,7 @@ blockquote footer {
   border: 0;
   background: transparent;
   color: #756e60;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .filter-tabs button span {
@@ -1687,7 +1687,7 @@ blockquote footer {
   place-items: center;
   border-radius: 50%;
   background: #e0d5bd;
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .filter-tabs button.active {
@@ -1736,7 +1736,7 @@ blockquote footer {
   outline: none;
   background: var(--paper-light);
   color: var(--ink);
-  font: 500 13px/1 var(--sans);
+  font: 500 15px/1 var(--sans);
 }
 
 .library-search input::placeholder {
@@ -1756,14 +1756,14 @@ blockquote footer {
   border-bottom: 1px solid var(--brick);
   background: transparent;
   color: var(--brick);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
 }
 
 .library-search-meta {
   margin: 0;
   color: var(--ink-soft);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
@@ -1814,7 +1814,7 @@ blockquote footer {
 .library-meaning {
   margin: 8px 0 17px;
   color: var(--brick);
-  font: 600 15px/1.3 var(--serif);
+  font: 600 17px/1.3 var(--serif);
 }
 
 .library-grammar {
@@ -1822,14 +1822,14 @@ blockquote footer {
   padding-top: 12px;
   border-top: 1px solid var(--line);
   color: var(--ink-soft);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.45;
 }
 
 .library-grammar span {
   margin-right: 8px;
   color: var(--brick);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1843,7 +1843,7 @@ blockquote footer {
   border: 0;
   border-bottom: 1px solid var(--ink);
   background: transparent;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -1878,7 +1878,7 @@ blockquote footer {
 .library-empty p:last-child {
   margin: 0;
   color: var(--ink-soft);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .library-empty > button {
@@ -1886,7 +1886,7 @@ blockquote footer {
   border: 1px solid var(--ink);
   background: transparent;
   color: var(--ink);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
 }
 
@@ -1902,7 +1902,7 @@ blockquote footer {
 
 .progress-stat-grid article > span {
   color: var(--ink-soft);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .progress-stat-grid strong {
@@ -1912,13 +1912,13 @@ blockquote footer {
 }
 
 .progress-stat-grid strong small {
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .progress-stat-grid p {
   margin: 0;
   color: #837b6c;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .progress-detail-grid {
@@ -1973,7 +1973,7 @@ blockquote footer {
   justify-content: space-between;
   margin-top: 11px;
   color: #7c7466;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .mastery-card {
@@ -1991,7 +1991,7 @@ blockquote footer {
   gap: 9px 16px;
   margin-top: 27px;
   color: #c4d0c9;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .mastery-row > div:first-child {
@@ -2047,7 +2047,7 @@ blockquote footer {
   border: 0;
   border-bottom: 1px solid var(--ink);
   background: transparent;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .story-date {
@@ -2058,14 +2058,14 @@ blockquote footer {
 }
 
 .story-date span {
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.16em;
 }
 
 .story-date strong {
   color: var(--ink);
-  font: 600 14px/1 var(--serif);
+  font: 600 16px/1 var(--serif);
 }
 
 .generated-story {
@@ -2094,7 +2094,7 @@ blockquote footer {
 .story-title-block > p:last-child {
   margin: 0;
   color: var(--brick);
-  font: 600 15px/1.4 var(--serif);
+  font: 600 17px/1.4 var(--serif);
 }
 
 .story-columns {
@@ -2106,7 +2106,7 @@ blockquote footer {
 
 .german-story {
   color: #263e37;
-  font: 19px/1.88 var(--serif);
+  font: 21px/1.88 var(--serif);
 }
 
 .drop-cap {
@@ -2121,7 +2121,7 @@ blockquote footer {
   border-left: 1px solid var(--line);
   background: rgb(231 223 205 / 0.45);
   color: #6f6b60;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.75;
 }
 
@@ -2144,7 +2144,7 @@ blockquote footer {
 
 .story-vocabulary h2 {
   margin: 7px 0 0;
-  font: 600 18px/1.35 var(--serif);
+  font: 600 20px/1.35 var(--serif);
 }
 
 .story-chips {
@@ -2159,7 +2159,7 @@ blockquote footer {
   border-radius: 999px;
   background: transparent;
   color: var(--ink-soft);
-  font: 11px/1 var(--serif);
+  font: 13px/1 var(--serif);
 }
 
 .story-chips button:hover {
@@ -2200,7 +2200,7 @@ blockquote footer {
   max-width: 560px;
   margin: 0 auto;
   color: var(--ink-soft);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.7;
 }
 
@@ -2258,7 +2258,7 @@ blockquote footer {
   padding: 10px 14px;
   border: 1px solid var(--line);
   color: var(--ink-soft);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .settings-save-note span {
@@ -2298,7 +2298,7 @@ blockquote footer {
 
 .settings-plan-summary span {
   color: #b9c8c0;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -2313,7 +2313,7 @@ blockquote footer {
 
 .settings-plan-summary small {
   color: #d2dacf;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .settings-plan-summary .daily-goal-seal {
@@ -2367,7 +2367,7 @@ fieldset.settings-card {
 .settings-card legend small,
 .data-heading small {
   color: var(--brick);
-  font: 800 8px/1 var(--sans);
+  font: 800 10px/1 var(--sans);
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
@@ -2378,14 +2378,14 @@ fieldset.settings-card {
 
 .settings-index {
   color: var(--line-dark);
-  font: italic 13px/1 var(--serif);
+  font: italic 15px/1 var(--serif);
 }
 
 .settings-help,
 .data-settings > p {
   margin: 3px 0 21px;
   color: var(--ink-soft);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.65;
 }
 
@@ -2485,13 +2485,13 @@ fieldset.settings-card {
 }
 
 .theme-option strong {
-  font: 600 14px/1.2 var(--serif);
+  font: 600 16px/1.2 var(--serif);
 }
 
 .theme-option small {
   margin-top: 3px;
   color: var(--ink-soft);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .theme-option em {
@@ -2499,7 +2499,7 @@ fieldset.settings-card {
   right: 9px;
   bottom: 8px;
   color: var(--brick);
-  font: normal 8px/1 var(--sans);
+  font: normal 10px/1 var(--sans);
 }
 
 .skin-heading {
@@ -2513,12 +2513,12 @@ fieldset.settings-card {
 }
 
 .skin-heading strong {
-  font: 600 15px/1.2 var(--serif);
+  font: 600 17px/1.2 var(--serif);
 }
 
 .skin-heading small {
   color: var(--ink-soft);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.4;
   text-align: right;
 }
@@ -2550,20 +2550,20 @@ fieldset.settings-card {
 }
 
 .skin-option strong {
-  font: 600 12px/1.25 var(--serif);
+  font: 600 14px/1.25 var(--serif);
 }
 
 .skin-option small {
   margin-top: 4px;
   color: var(--ink-soft);
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .skin-option em {
   align-self: start;
   min-width: 8px;
   color: var(--brick);
-  font: normal 10px/1 var(--sans);
+  font: normal 12px/1 var(--sans);
 }
 
 .skin-swatch {
@@ -2629,7 +2629,7 @@ fieldset.settings-card {
 
 .setting-row strong,
 .speech-setting strong {
-  font: 600 14px/1.3 var(--serif);
+  font: 600 16px/1.3 var(--serif);
 }
 
 .setting-row p,
@@ -2637,7 +2637,7 @@ fieldset.settings-card {
   display: block;
   margin: 4px 0 0;
   color: var(--ink-soft);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -2658,7 +2658,7 @@ fieldset.settings-card {
   border: 1px solid var(--line);
   background: transparent;
   color: var(--ink-soft);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .number-options label.selected span,
@@ -2675,13 +2675,13 @@ fieldset.settings-card {
   border-left: 3px solid var(--brick);
   background: rgb(217 226 210 / 0.48);
   color: var(--ink-soft);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .goal-note span {
   margin-right: 9px;
   color: var(--brick);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -2694,7 +2694,7 @@ fieldset.settings-card {
 .active-goal-note {
   margin: 10px 0 0;
   color: var(--ochre);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -2730,24 +2730,24 @@ fieldset.settings-card {
 }
 
 .level-option strong {
-  font: 600 14px/1.2 var(--serif);
+  font: 600 16px/1.2 var(--serif);
 }
 
 .level-option small {
   color: var(--ink-soft);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
 .level-option em {
   color: var(--line-dark);
-  font: normal 9px/1 var(--sans);
+  font: normal 11px/1 var(--sans);
 }
 
 .cefr-note {
   margin: 15px 0 0;
   color: var(--line-dark);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.55;
 }
 
@@ -2768,7 +2768,7 @@ fieldset.settings-card {
 
 .order-symbol {
   color: var(--brick);
-  font: 600 16px/1 var(--serif);
+  font: 600 18px/1 var(--serif);
   letter-spacing: 0.08em;
 }
 
@@ -2778,12 +2778,12 @@ fieldset.settings-card {
 }
 
 .order-option strong {
-  font: 600 14px/1.2 var(--serif);
+  font: 600 16px/1.2 var(--serif);
 }
 
 .order-option small {
   color: var(--ink-soft);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -2810,12 +2810,12 @@ fieldset.settings-card {
 }
 
 .toggle-row strong {
-  font: 600 14px/1.2 var(--serif);
+  font: 600 16px/1.2 var(--serif);
 }
 
 .toggle-row small {
   color: var(--ink-soft);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .toggle-control {
@@ -2904,12 +2904,12 @@ fieldset.settings-card {
 }
 
 .cloud-status-copy strong {
-  font: 600 16px/1.15 var(--serif);
+  font: 600 18px/1.15 var(--serif);
 }
 
 .cloud-status-copy small {
   color: var(--ink-soft);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.45;
 }
 
@@ -2922,7 +2922,7 @@ fieldset.settings-card {
   border: 2px solid var(--known);
   background: var(--sage);
   color: var(--known);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 900;
   box-shadow: 3px 3px 0 rgb(46 106 84 / 0.2);
 }
@@ -2957,7 +2957,7 @@ fieldset.settings-card {
   justify-content: flex-end;
   gap: 8px;
   color: var(--ink-soft);
-  font: 700 9px/1 var(--sans);
+  font: 700 11px/1 var(--sans);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -2978,7 +2978,7 @@ fieldset.settings-card {
   grid-column: 1 / 3;
   margin: 0;
   color: var(--ink-soft);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.65;
 }
 
@@ -2994,13 +2994,13 @@ fieldset.settings-card {
   justify-items: end;
   gap: 3px;
   color: var(--ink);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
 }
 
 .cloud-account-row small {
   color: var(--ink-soft);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
 }
 
@@ -3039,7 +3039,7 @@ fieldset.settings-card {
   padding: 10px 15px;
   border: 1px solid var(--ink);
   background: transparent;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -3055,7 +3055,7 @@ fieldset.settings-card {
   border-bottom: 1px solid var(--unknown);
   background: transparent;
   color: var(--unknown);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -3073,7 +3073,7 @@ fieldset.settings-card {
 .reset-confirm span {
   width: 100%;
   color: var(--unknown);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -3082,7 +3082,7 @@ fieldset.settings-card {
   padding: 7px 10px;
   border: 1px solid var(--line-dark);
   background: transparent;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .reset-confirm button:first-of-type {
@@ -3167,7 +3167,7 @@ fieldset.settings-card {
 .warning-dialog > p:not(.kicker) {
   margin: 0;
   color: var(--ink-soft);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.8;
 }
 
@@ -3181,7 +3181,7 @@ fieldset.settings-card {
   border: 1px solid var(--line);
   background: rgb(217 226 210 / 0.38);
   color: var(--ink-soft);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .warning-note span {
@@ -3204,7 +3204,7 @@ fieldset.settings-card {
   border: 1px solid var(--brick-dark);
   background: var(--unknown);
   color: var(--on-solid);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   box-shadow: 3px 3px 0 rgb(127 47 37 / 0.22);
 }
@@ -3715,7 +3715,7 @@ html[data-theme="dark"] .warning-note {
   }
 
   .streak {
-    font-size: 11px;
+    font-size: 13px;
   }
 
   .streak-flame {
@@ -3828,7 +3828,7 @@ html[data-theme="dark"] .warning-note {
 
   .due-row > span:nth-child(3),
   .due-row > span:nth-child(4) {
-    font-size: 9px;
+    font-size: 11px;
   }
 
   .filter-tabs {
@@ -3861,7 +3861,7 @@ html[data-theme="dark"] .warning-note {
   }
 
   .german-story {
-    font-size: 17px;
+    font-size: 19px;
   }
 
   .story-locked {

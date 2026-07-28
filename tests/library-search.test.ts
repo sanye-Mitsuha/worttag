@@ -5,6 +5,10 @@ import {
   matchesLibrarySearch,
   tokenizeLibraryQuery,
 } from "../app/library-search.ts";
+import {
+  expandedMeaning,
+  expandedMeaningCount,
+} from "../app/meaning-overrides.ts";
 
 const word = {
   term: "die Straße",
@@ -40,4 +44,13 @@ test("requires every token while allowing mixed Chinese and German queries", () 
   assert.equal(matchesLibrarySearch(searchText, tokenizeLibraryQuery("strasse 街道")), true);
   assert.equal(matchesLibrarySearch(searchText, tokenizeLibraryQuery("strasse 火车站")), false);
   assert.equal(matchesLibrarySearch(searchText, tokenizeLibraryQuery("   ")), true);
+});
+
+test("expands common polysemous words without changing unlisted entries", () => {
+  assert.ok(expandedMeaningCount >= 150);
+  assert.equal(expandedMeaning("das Schloss", "锁"), "锁；城堡；宫殿");
+  assert.equal(expandedMeaning("gehen", "走"), "走；去；运转；可行");
+  assert.equal(expandedMeaning("die Karte", "卡片"), "卡片；地图；票；菜单");
+  assert.equal(expandedMeaning("einstellen", "设置"), "设置；雇用；停止；调节");
+  assert.equal(expandedMeaning("unverändert", "不变的"), "不变的");
 });
