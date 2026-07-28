@@ -8,6 +8,7 @@ import { B1_ADDITIONS, B2_WORDS, C1_WORDS } from "./wordbooks-advanced";
 type RecallStatus = "unknown" | "fuzzy" | "known";
 type View = "learn" | "review" | "library" | "progress" | "story" | "settings";
 type ThemeMode = "light" | "dark" | "system";
+type SkinMode = "parchment" | "mist" | "forest" | "wine" | "graphite";
 type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1";
 type WordOrder = "sequential" | "random";
 type SpeechSpeed = "slow" | "standard" | "natural";
@@ -94,6 +95,7 @@ type LearningState = {
 
 type AppSettings = {
   theme: ThemeMode;
+  skin: SkinMode;
   wordsPerQueue: number;
   queuesPerDay: number;
   level: CEFRLevel;
@@ -179,6 +181,7 @@ const REVIEW_PAGE_SIZE = 100;
 
 const DEFAULT_SETTINGS: AppSettings = {
   theme: "system",
+  skin: "parchment",
   wordsPerQueue: 10,
   queuesPerDay: 2,
   level: "A1",
@@ -931,6 +934,7 @@ function prepareSavedSettings(value: unknown): AppSettings {
   if (!value || typeof value !== "object") return DEFAULT_SETTINGS;
   const saved = value as Partial<AppSettings>;
   const themes: ThemeMode[] = ["light", "dark", "system"];
+  const skins: SkinMode[] = ["parchment", "mist", "forest", "wine", "graphite"];
   const levels: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
   const orders: WordOrder[] = ["sequential", "random"];
   const speeds: SpeechSpeed[] = ["slow", "standard", "natural"];
@@ -938,6 +942,7 @@ function prepareSavedSettings(value: unknown): AppSettings {
   const dailyQueues = [1, 2, 3, 4, 5];
   return {
     theme: themes.includes(saved.theme as ThemeMode) ? saved.theme! : DEFAULT_SETTINGS.theme,
+    skin: skins.includes(saved.skin as SkinMode) ? saved.skin! : DEFAULT_SETTINGS.skin,
     wordsPerQueue: queueSizes.includes(saved.wordsPerQueue ?? -1)
       ? saved.wordsPerQueue!
       : DEFAULT_SETTINGS.wordsPerQueue,
@@ -1109,6 +1114,7 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [sessionPhase, setSessionPhase] = useState<"study" | "spell-prompt" | "spelling">("study");
+  const [sessionCompletionCommitted, setSessionCompletionCommitted] = useState(false);
   const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
   const [spellingIndex, setSpellingIndex] = useState(0);
   const [spellingInput, setSpellingInput] = useState("");
@@ -1174,6 +1180,7 @@ export default function Home() {
     setSessionQueue(ids);
     setSessionRatings(ids.map(() => null));
     setSessionPhase("study");
+    setSessionCompletionCommitted(false);
     setSelectedChoiceId(null);
     setSpellingIndex(0);
     setSpellingInput("");
@@ -1356,6 +1363,7 @@ export default function Home() {
     let ownerSettings: AppSettings = {
       ...DEFAULT_SETTINGS,
       theme: settingsRef.current.theme,
+      skin: settingsRef.current.skin,
       autoPronounce: settingsRef.current.autoPronounce,
       showTranslation: settingsRef.current.showTranslation,
       speechSpeed: settingsRef.current.speechSpeed,
@@ -1369,6 +1377,7 @@ export default function Home() {
         ownerSettings = prepareSavedSettings({
           ...JSON.parse(rawSettings),
           theme: settingsRef.current.theme,
+          skin: settingsRef.current.skin,
         });
       }
       const rawUpdatedAt = Number(
@@ -1382,6 +1391,7 @@ export default function Home() {
       ownerSettings = {
         ...DEFAULT_SETTINGS,
         theme: settingsRef.current.theme,
+        skin: settingsRef.current.skin,
         autoPronounce: settingsRef.current.autoPronounce,
         showTranslation: settingsRef.current.showTranslation,
         speechSpeed: settingsRef.current.speechSpeed,
@@ -1415,6 +1425,7 @@ export default function Home() {
       ...settingsRef.current,
       ...payload.settings,
       theme: settingsRef.current.theme,
+      skin: settingsRef.current.skin,
     });
     learningRef.current = nextLearning;
     settingsRef.current = nextSettings;
@@ -1763,14 +1774,16 @@ export default function Home() {
     const applyTheme = () => {
       const resolved = settings.theme === "system" ? (media.matches ? "dark" : "light") : settings.theme;
       document.documentElement.dataset.theme = resolved;
+      document.documentElement.dataset.skin = settings.skin;
       document.documentElement.style.colorScheme = resolved;
     };
     applyTheme();
     if (settings.theme === "system") media.addEventListener("change", applyTheme);
     return () => media.removeEventListener("change", applyTheme);
-  }, [ready, settings.theme]);
+  }, [ready, settings.skin, settings.theme]);
 
-  const currentWord = WORD_BY_ID.get(sessionQueue[currentIndex]);
+  const currentWordId = sessionQueue[currentIndex];
+  const currentWord = WORD_BY_ID.get(currentWordId);
   const currentRecord = currentWord ? learning.records[currentWord.id] : undefined;
   const bookWords = useMemo(
     () => {
@@ -1809,7 +1822,6 @@ export default function Home() {
   );
 
   const reviewTotal = bookWords.filter((word) => learning.records[word.id]?.lastReviewedAt !== null && learning.records[word.id]).length;
-  const newTotal = bookWords.length - reviewTotal;
   const reviewWords = useMemo(
     () => reviewTotal
       ? bookWords.filter((word) => learning.records[word.id])
@@ -1884,6 +1896,15 @@ export default function Home() {
   });
   const masteredInSession = sessionUniqueIds.filter((id) => (masteryPointsById.get(id) ?? 0) >= 3).length;
   const sessionUniqueTotal = sessionUniqueIds.length;
+  const todayWordGoal = settings.wordsPerQueue * activeQueueGoal;
+  const activeDailyMastery = queueSource === "daily" && !sessionCompletionCommitted
+    ? masteredInSession
+    : 0;
+  const todayWordsCompleted = Math.min(
+    todayWordGoal,
+    learning.todayQueuesCompleted * settings.wordsPerQueue + activeDailyMastery,
+  );
+  const todayWordsRemaining = Math.max(0, todayWordGoal - todayWordsCompleted);
   const currentMasteryPoints = currentWord ? masteryPointsById.get(currentWord.id) ?? 0 : 0;
   const currentAttemptNumber = currentWord
     ? sessionQueue.slice(0, currentIndex).filter((id) => id === currentWord.id).length + 1
@@ -1892,8 +1913,11 @@ export default function Home() {
     ? sessionQueue.slice(0, currentIndex).includes(currentWord.id)
     : false;
   const currentMeaningChoices = useMemo(
-    () => currentWord ? buildMeaningChoices(currentWord, bookWords) : [],
-    [bookWords, currentWord],
+    () => {
+      const word = WORD_BY_ID.get(currentWordId);
+      return word ? buildMeaningChoices(word, bookWords) : [];
+    },
+    [bookWords, currentWordId],
   );
   const spellingWord = WORD_BY_ID.get(sessionUniqueIds[spellingIndex]);
   const sessionProgress = sessionQueue.length
@@ -1914,6 +1938,8 @@ export default function Home() {
 
   function finishSession(nextState: LearningState) {
     setGrading(true);
+    setSessionCompletionCommitted(true);
+    pendingCompletionStateRef.current = null;
     const completionIds = [...nextState.todayQueueCompletionIds];
     if (queueSource === "daily") {
       completionIds.push(
@@ -2166,6 +2192,8 @@ export default function Home() {
       } else {
         setSettingsNotice(`已自动保存 · 新的每日队列数明天生效，今天仍为 ${activeQueueGoal} 个`);
       }
+    } else if (key === "theme" || key === "skin") {
+      setSettingsNotice("已自动保存 · 外观已在本设备更新");
     } else {
       setSettingsNotice("已自动保存 · 新的学习计划从下一队列开始生效");
     }
@@ -2255,6 +2283,11 @@ export default function Home() {
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (target?.closest("button, input, select, textarea, a")) return;
+      if (event.key.toLowerCase() === "f") {
+        event.preventDefault();
+        speak(currentWord);
+        return;
+      }
       if (event.code === "Space" && !revealed) {
         event.preventDefault();
         revealAnswer();
@@ -2484,7 +2517,7 @@ export default function Home() {
                       );
                     })}
                   </div>
-                  <div className="keyboard-note"><kbd>空格</kbd> 揭晓 · <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd> 判断</div>
+                  <div className="keyboard-note"><kbd>F</kbd> 发音 · <kbd>空格</kbd> 揭晓 · <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd> 判断</div>
                 </aside>
 
                 <section className={revealed ? "word-card revealed" : "word-card"}>
@@ -2619,7 +2652,7 @@ export default function Home() {
                     </div>
                     <div className="plan-stats">
                       <div><strong>{queueSource === "daily" ? dueWords.length : sessionUniqueTotal}</strong><span>{queueSource === "daily" ? "到期复习" : "本队词数"}</span></div>
-                      <div><strong>{queueSource === "daily" ? newTotal : dueWords.length}</strong><span>{queueSource === "daily" ? "新词" : "到期总数"}</span></div>
+                      <div><strong>{queueSource === "daily" ? todayWordsRemaining : dueWords.length}</strong><span>{queueSource === "daily" ? "今日剩余" : "到期总数"}</span></div>
                       <div><strong>{Math.max(2, Math.round((queueSource === "daily" ? settings.wordsPerQueue : sessionUniqueTotal) * 1.1))}</strong><span>约分钟</span></div>
                     </div>
                   </section>
@@ -2794,6 +2827,26 @@ export default function Home() {
                       <span className={`theme-swatch ${value}`} aria-hidden="true"><i /><i /></span>
                       <strong>{label}</strong><small>{description}</small>
                       <em>{settings.theme === value ? "已选择" : ""}</em>
+                    </label>
+                  ))}
+                </div>
+                <div className="skin-heading">
+                  <strong>风格皮肤</strong>
+                  <small>只改变配色与纸张气质，可与深浅模式自由组合。</small>
+                </div>
+                <div className="skin-options" role="radiogroup" aria-label="风格皮肤">
+                  {([
+                    ["parchment", "原典羊皮纸", "米金 · 墨绿"],
+                    ["mist", "雾蓝晨曦", "灰蓝 · 海松"],
+                    ["forest", "苔绿书房", "苔绿 · 木棕"],
+                    ["wine", "酒红典藏", "勃艮第 · 旧玫瑰"],
+                    ["graphite", "石墨报刊", "灰白 · 炭黑"],
+                  ] as const).map(([value, label, description]) => (
+                    <label className={settings.skin === value ? "skin-option selected" : "skin-option"} key={value}>
+                      <input type="radio" name="skin" value={value} checked={settings.skin === value} onChange={() => updateSetting("skin", value)} />
+                      <span className={`skin-swatch ${value}`} aria-hidden="true"><i /><i /><i /></span>
+                      <span><strong>{label}</strong><small>{description}</small></span>
+                      <em>{settings.skin === value ? "✓" : ""}</em>
                     </label>
                   ))}
                 </div>
