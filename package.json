@@ -1,7 +1,13 @@
 {
-  "name": "site-creator-vinext-starter",
-  "version": "0.1.0",
+  "name": "worttag",
+  "version": "1.0.0",
+  "description": "A parchment-style German vocabulary learning app with mastery loops, spaced review and daily stories.",
   "private": true,
+  "homepage": "https://worttag-deutsch-lernen.mitsuhaalpha.chatgpt.site/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mitsuhaalpha-web/worttag.git"
+  },
   "engines": {
     "node": ">=22.13.0"
   },
