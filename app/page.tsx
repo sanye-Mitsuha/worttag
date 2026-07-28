@@ -2038,7 +2038,7 @@ export default function Home() {
     const nextRatings = [...sessionRatings];
     nextRatings[currentIndex] = rating;
     if (shouldRepeat) {
-      const distance = rating === "unknown" ? 2 : rating === "fuzzy" ? 3 : 4;
+      const distance = nextMasteryPoints === 0 ? 5 : nextMasteryPoints === 1 ? 4 : 3;
       const insertionIndex = Math.min(nextQueue.length, currentIndex + distance);
       nextQueue.splice(insertionIndex, 0, currentWord.id);
       nextRatings.splice(insertionIndex, 0, null);
