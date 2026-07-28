@@ -1954,7 +1954,7 @@ export default function Home() {
     }, 680);
   }
 
-  function offerSpelling(nextState: LearningState) {
+  function offerSpelling(nextState: LearningState, transitionDelay = 620) {
     pendingCompletionStateRef.current = nextState;
     clearTransitionTimer();
     transitionTimerRef.current = window.setTimeout(() => {
@@ -1963,7 +1963,7 @@ export default function Home() {
       setRevealed(false);
       setSelectedChoiceId(null);
       setSessionPhase("spell-prompt");
-    }, 620);
+    }, transitionDelay);
   }
 
   function beginSpelling() {
@@ -2002,8 +2002,15 @@ export default function Home() {
     setSpellingChecked(true);
   }
 
-  function rateCurrent(rating: RecallStatus) {
-    if (!currentWord || !revealed || grading) return;
+  function rateCurrent(
+    rating: RecallStatus,
+    options: {
+      allowUnrevealed?: boolean;
+      transitionDelay?: number;
+      feedbackText?: string;
+    } = {},
+  ) {
+    if (!currentWord || (!revealed && !options.allowUnrevealed) || grading) return;
     hasLocalInteractionRef.current = true;
     const now = currentTimestamp();
     const latest = learningRef.current;
@@ -2038,17 +2045,17 @@ export default function Home() {
     }
     setSessionQueue(nextQueue);
     setSessionRatings(nextRatings);
-    setFeedback(
+    setFeedback(options.feedbackText ?? (
       nextMasteryPoints >= 3
         ? `已知 · 三个光点已集齐，下次 ${dueLabel}`
         : rating === "unknown"
           ? `未知 · 光点已清空，本组稍后重现`
-          : `${STATUS_META[rating].label} · 光点 ${nextMasteryPoints} / 3，本组稍后重现`,
-    );
+          : `${STATUS_META[rating].label} · 光点 ${nextMasteryPoints} / 3，本组稍后重现`
+    ));
     setGrading(true);
 
     if (currentIndex + 1 >= nextQueue.length) {
-      offerSpelling(nextState);
+      offerSpelling(nextState, options.transitionDelay);
       return;
     }
 
@@ -2060,7 +2067,18 @@ export default function Home() {
       setSelectedChoiceId(null);
       setFeedback(null);
       setGrading(false);
-    }, 620);
+    }, options.transitionDelay ?? 620);
+  }
+
+  function selectMeaningChoice(optionId: string) {
+    if (!currentWord || currentAttemptNumber !== 1 || grading) return;
+    const correct = optionId === currentWord.id;
+    setSelectedChoiceId(optionId);
+    rateCurrent(correct ? "known" : "unknown", {
+      allowUnrevealed: true,
+      transitionDelay: correct ? 760 : 2000,
+      feedbackText: correct ? "选择正确 · 获得一个光点" : "选择错误 · 已按未知记录，光点清零",
+    });
   }
 
   function startQueue(
@@ -2495,23 +2513,41 @@ export default function Home() {
                       <div className="choice-recall">
                         <div className="ink-divider"><span>第一次 · 选择词义</span></div>
                         <div className="meaning-options" role="radiogroup" aria-label={`${currentWord.term} 的词义选项`}>
-                          {currentMeaningChoices.map((option) => (
-                            <button
-                              className={selectedChoiceId === option.id ? "meaning-option selected" : "meaning-option"}
-                              type="button"
-                              role="radio"
-                              aria-checked={selectedChoiceId === option.id}
-                              onClick={() => setSelectedChoiceId(option.id)}
-                              key={option.id}
-                            >
-                              <small>{option.type}</small>
-                              <strong>{option.meaning}</strong>
-                            </button>
-                          ))}
+                          {currentMeaningChoices.map((option) => {
+                            const optionClass = grading && selectedChoiceId
+                              ? option.id === currentWord.id
+                                ? "meaning-option correct-answer"
+                                : option.id === selectedChoiceId
+                                  ? "meaning-option incorrect-answer"
+                                  : "meaning-option muted"
+                              : selectedChoiceId === option.id
+                                ? "meaning-option selected"
+                                : "meaning-option";
+                            return (
+                              <button
+                                className={optionClass}
+                                type="button"
+                                role="radio"
+                                aria-checked={selectedChoiceId === option.id}
+                                onClick={() => selectMeaningChoice(option.id)}
+                                disabled={grading}
+                                key={option.id}
+                              >
+                                <small>{option.type}</small>
+                                <strong>{option.meaning}</strong>
+                              </button>
+                            );
+                          })}
                         </div>
-                        <button className="reveal-button" onClick={revealAnswer} disabled={!selectedChoiceId}>
-                          看答案 <span aria-hidden="true">→</span>
-                        </button>
+                        {grading && selectedChoiceId ? (
+                          <div className={selectedChoiceId === currentWord.id ? "choice-auto-result correct" : "choice-auto-result incorrect"} role="status">
+                            <strong>{selectedChoiceId === currentWord.id ? "选择正确 · 光点 +1" : "正确词义"}</strong>
+                            <span>{currentWord.meaning}</span>
+                            {selectedChoiceId !== currentWord.id && <small>2 秒后自动进入下一个单词</small>}
+                          </div>
+                        ) : (
+                          <p className="choice-instruction">点选后立即判定，无需再次确认</p>
+                        )}
                       </div>
                     ) : currentAttemptNumber === 2 ? (
                       <div className="recall-prompt second-exposure">
@@ -2532,11 +2568,6 @@ export default function Home() {
                     )
                   ) : (
                     <div className="answer-sheet" aria-live="polite">
-                      {currentAttemptNumber === 1 && selectedChoiceId && (
-                        <div className={selectedChoiceId === currentWord.id ? "choice-result correct" : "choice-result incorrect"}>
-                          {selectedChoiceId === currentWord.id ? "选择正确" : "已经为你标出正确词义"}
-                        </div>
-                      )}
                       <div className="meaning-line">
                         <span className="answer-label">释义</span>
                         <strong>{currentWord.meaning}</strong>

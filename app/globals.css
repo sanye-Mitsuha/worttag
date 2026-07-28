@@ -716,7 +716,7 @@ kbd {
   transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
 }
 
-.meaning-option:hover,
+.meaning-option:hover:not(:disabled),
 .meaning-option.selected {
   border-color: var(--ink);
   background: rgb(220 227 212 / 0.72);
@@ -727,6 +727,24 @@ kbd {
   box-shadow: inset 4px 0 0 var(--known), 3px 4px 0 rgb(46 106 84 / 0.1);
 }
 
+.meaning-option.correct-answer {
+  border-color: var(--known);
+  background: rgb(46 106 84 / 0.12);
+  color: var(--known);
+  box-shadow: inset 4px 0 0 var(--known);
+}
+
+.meaning-option.incorrect-answer {
+  border-color: var(--unknown);
+  background: rgb(164 73 62 / 0.1);
+  color: var(--unknown);
+  box-shadow: inset 4px 0 0 var(--unknown);
+}
+
+.meaning-option.muted {
+  opacity: 0.46;
+}
+
 .meaning-option small {
   color: var(--brick);
   font: italic 10px/1 var(--serif);
@@ -734,6 +752,54 @@ kbd {
 
 .meaning-option strong {
   font: 600 14px/1.4 var(--serif);
+}
+
+.choice-instruction {
+  margin: 15px 0 0;
+  color: var(--ink-soft);
+  font-size: 10px;
+}
+
+.choice-auto-result {
+  display: grid;
+  gap: 5px;
+  margin-top: 15px;
+  padding: 12px 15px;
+  border-left: 4px solid;
+  text-align: left;
+  animation: reveal-sheet 180ms ease both;
+}
+
+.choice-auto-result strong,
+.choice-auto-result span,
+.choice-auto-result small {
+  display: block;
+}
+
+.choice-auto-result strong {
+  font-size: 10px;
+}
+
+.choice-auto-result span {
+  color: var(--ink);
+  font: 600 17px/1.35 var(--serif);
+}
+
+.choice-auto-result small {
+  font-size: 9px;
+  opacity: 0.7;
+}
+
+.choice-auto-result.correct {
+  border-color: var(--known);
+  background: rgb(46 106 84 / 0.08);
+  color: var(--known);
+}
+
+.choice-auto-result.incorrect {
+  border-color: var(--unknown);
+  background: rgb(164 73 62 / 0.08);
+  color: var(--unknown);
 }
 
 .recall-example {
@@ -2957,10 +3023,18 @@ html[data-theme="dark"] .spelling-form input {
   background: rgb(42 53 47 / 0.72);
 }
 
-html[data-theme="dark"] .meaning-option:hover,
+html[data-theme="dark"] .meaning-option:hover:not(:disabled),
 html[data-theme="dark"] .meaning-option.selected,
 html[data-theme="dark"] .spelling-form input:focus {
   background: rgb(46 72 58 / 0.72);
+}
+
+html[data-theme="dark"] .meaning-option.correct-answer {
+  background: rgb(46 106 84 / 0.22);
+}
+
+html[data-theme="dark"] .meaning-option.incorrect-answer {
+  background: rgb(164 73 62 / 0.2);
 }
 
 html[data-theme="dark"] .memory-note {
