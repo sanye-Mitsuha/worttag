@@ -1072,6 +1072,7 @@ export default function Home() {
   const [settingsUpdatedAt, setSettingsUpdatedAtValue] = useState(0);
   const [learning, setLearningValue] = useState<LearningState>(() => createInitialState());
   const [sessionQueue, setSessionQueue] = useState<string[]>([]);
+  const [sessionRatings, setSessionRatings] = useState<(RecallStatus | null)[]>([]);
   const [queueSource, setQueueSource] = useState<"daily" | "review" | "manual">("daily");
   const [returnView, setReturnView] = useState<View>("learn");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -1129,6 +1130,11 @@ export default function Home() {
       settingsRef.current = resolved;
       return resolved;
     });
+  }
+
+  function resetSessionQueue(ids: string[]) {
+    setSessionQueue(ids);
+    setSessionRatings(ids.map(() => null));
   }
 
   function setSettingsUpdatedAt(
@@ -1233,7 +1239,7 @@ export default function Home() {
         setSettings(nextSettings);
         setSettingsUpdatedAt(nextSettingsUpdatedAt);
         setLearning(next);
-        setSessionQueue(initialQueue);
+        resetSessionQueue(initialQueue);
         setQueueUnavailable(!initialQueue.length && !initialComplete);
         setClock(currentTimestamp());
         setWordbookRevision((revision) => revision + 1);
@@ -1264,7 +1270,7 @@ export default function Home() {
     const nextQueue = buildDailyQueue(nextDay, settings, clock);
     const updateTimer = window.setTimeout(() => {
       setLearning(nextDay);
-      setSessionQueue(nextQueue);
+      resetSessionQueue(nextQueue);
       setQueueSource("daily");
       setCurrentIndex(0);
       setRevealed(false);
@@ -1389,7 +1395,7 @@ export default function Home() {
       const complete = nextLearning.todayQueueLevel === nextSettings.level &&
         (nextLearning.sessionComplete || nextLearning.todayQueuesCompleted >= queueGoal);
       const nextQueue = complete ? [] : buildDailyQueue(nextLearning, nextSettings);
-      setSessionQueue(nextQueue);
+      resetSessionQueue(nextQueue);
       setQueueSource("daily");
       setCurrentIndex(0);
       setRevealed(false);
@@ -1819,8 +1825,19 @@ export default function Home() {
   const dailyComplete = learning.todayQueueLevel === settings.level &&
     (learning.sessionComplete || learning.todayQueuesCompleted >= activeQueueGoal);
   const dailyTarget = settings.wordsPerQueue * settings.queuesPerDay;
+  const sessionUniqueIds = Array.from(new Set(sessionQueue));
+  const latestSessionRatings = new Map<string, RecallStatus>();
+  sessionQueue.forEach((id, index) => {
+    const rating = sessionRatings[index];
+    if (rating) latestSessionRatings.set(id, rating);
+  });
+  const masteredInSession = sessionUniqueIds.filter((id) => latestSessionRatings.get(id) === "known").length;
+  const sessionUniqueTotal = sessionUniqueIds.length;
+  const currentIsRepeat = currentWord
+    ? sessionQueue.slice(0, currentIndex).includes(currentWord.id)
+    : false;
   const sessionProgress = sessionQueue.length
-    ? Math.round(((currentIndex + (grading ? 1 : 0)) / sessionQueue.length) * 100)
+    ? Math.round((masteredInSession / Math.max(1, sessionUniqueTotal)) * 100)
     : dailyComplete ? 100 : Math.round((learning.todayQueuesCompleted / activeQueueGoal) * 100);
 
   function speak(word: WordCard) {
@@ -1864,11 +1881,11 @@ export default function Home() {
       setCurrentIndex(0);
       setRevealed(false);
       if (queueSource === "daily") {
-        setSessionQueue([]);
+        resetSessionQueue([]);
         if (finishedDay) setView("story");
       } else {
         const dailyQueue = dailyComplete ? [] : buildDailyQueue(finalState, settings);
-        setSessionQueue(dailyQueue);
+        resetSessionQueue(dailyQueue);
         setQueueUnavailable(!dailyQueue.length && !dailyComplete);
         setQueueSource("daily");
         setView(returnView);
@@ -1894,10 +1911,26 @@ export default function Home() {
       todayReviewEventIds: reviewEvents,
     });
     setLearning(nextState);
-    setFeedback(`${STATUS_META[rating].label} · 已安排 ${dueLabel}复习`);
+    const shouldRepeat = rating !== "known";
+    const nextQueue = [...sessionQueue];
+    const nextRatings = [...sessionRatings];
+    nextRatings[currentIndex] = rating;
+    if (shouldRepeat) {
+      const distance = rating === "unknown" ? 2 : 4;
+      const insertionIndex = Math.min(nextQueue.length, currentIndex + distance);
+      nextQueue.splice(insertionIndex, 0, currentWord.id);
+      nextRatings.splice(insertionIndex, 0, null);
+    }
+    setSessionQueue(nextQueue);
+    setSessionRatings(nextRatings);
+    setFeedback(
+      rating === "known"
+        ? `已知 · 本轮完成，下次 ${dueLabel}`
+        : `${STATUS_META[rating].label} · 本组稍后重现，长期复习 ${dueLabel}`,
+    );
     setGrading(true);
 
-    if (currentIndex + 1 >= sessionQueue.length) {
+    if (currentIndex + 1 >= nextQueue.length) {
       finishSession(nextState);
       return;
     }
@@ -1922,7 +1955,7 @@ export default function Home() {
     if (source === "daily") setPlanDirty(false);
     setQueueUnavailable(false);
     setQueueSource(source);
-    setSessionQueue(ids);
+    resetSessionQueue(ids);
     setCurrentIndex(0);
     setRevealed(false);
     setFeedback(null);
@@ -2040,7 +2073,7 @@ export default function Home() {
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     clearTransitionTimer();
     setLearning(fresh);
-    setSessionQueue(buildDailyQueue(fresh, settings));
+    resetSessionQueue(buildDailyQueue(fresh, settings));
     setQueueSource("daily");
     setReturnView("learn");
     setPlanDirty(false);
@@ -2068,7 +2101,7 @@ export default function Home() {
     );
     if (shouldRestoreDaily) {
       const dailyQueue = dailyComplete ? [] : buildDailyQueue(learning, settings);
-      setSessionQueue(dailyQueue);
+      resetSessionQueue(dailyQueue);
       setQueueUnavailable(!dailyQueue.length && !dailyComplete);
       setQueueSource("daily");
       setPlanDirty(false);
@@ -2088,6 +2121,19 @@ export default function Home() {
       if (event.code === "Space" && !revealed) {
         event.preventDefault();
         revealAnswer();
+        return;
+      }
+      if (revealed) {
+        const ratingByKey: Record<string, RecallStatus> = {
+          q: "known",
+          w: "fuzzy",
+          e: "unknown",
+        };
+        const rating = ratingByKey[event.key.toLowerCase()];
+        if (rating) {
+          event.preventDefault();
+          rateCurrent(rating);
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -2207,7 +2253,7 @@ export default function Home() {
               <div className="heading-progress" aria-label={`今日计划进度 ${sessionProgress}%`}>
                 <div className="progress-copy">
                   <span>{queueSource === "daily" ? `今日计划 · 第 ${Math.min(learning.todayQueuesCompleted + 1, activeQueueGoal)} / ${activeQueueGoal} 队列` : queueSource === "review" ? "本次复习" : "本次单独学习"}</span>
-                  <strong>{queueSource === "daily" && !sessionQueue.length ? `${learning.todayQueuesCompleted} / ${activeQueueGoal}` : `${currentIndex} / ${sessionQueue.length}`}</strong>
+                  <strong>{queueSource === "daily" && !sessionQueue.length ? `${learning.todayQueuesCompleted} / ${activeQueueGoal}` : `${masteredInSession} / ${sessionUniqueTotal}`}</strong>
                 </div>
                 <div className="progress-track"><span style={{ width: `${sessionProgress}%` }} /></div>
               </div>
@@ -2224,7 +2270,7 @@ export default function Home() {
                     {sessionQueue.map((id, index) => {
                       const word = WORD_BY_ID.get(id);
                       if (!word) return null;
-                      const recallStatus = index < currentIndex ? learning.records[id]?.status : undefined;
+                      const recallStatus = index < currentIndex ? sessionRatings[index] ?? undefined : undefined;
                       const itemStatus =
                         index < currentIndex ? "done" : index === currentIndex ? "current" : "upcoming";
                       const statusIcon =
@@ -2237,12 +2283,12 @@ export default function Home() {
                       );
                     })}
                   </div>
-                  <div className="keyboard-note"><kbd>空格</kbd> 揭晓答案</div>
+                  <div className="keyboard-note"><kbd>空格</kbd> 揭晓 · <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd> 判断</div>
                 </aside>
 
                 <section className={revealed ? "word-card revealed" : "word-card"}>
                   <div className="card-topline">
-                    <span className="card-mode">{queueSource === "manual" ? "单独学习" : currentRecord ? "复习" : "新词"} · {String(currentIndex + 1).padStart(2, "0")}</span>
+                    <span className="card-mode">{currentIsRepeat ? "组内重现" : queueSource === "manual" ? "单独学习" : currentRecord ? "复习" : "新词"} · {String(currentIndex + 1).padStart(2, "0")}</span>
                     <button className="speak-button" onClick={() => speak(currentWord)} aria-label={`朗读 ${currentWord.term}`}>
                       <span className="sound-rings" aria-hidden="true">◖))</span> 听发音
                     </button>
@@ -2261,6 +2307,9 @@ export default function Home() {
                       <button className="reveal-button" onClick={revealAnswer}>
                         查看释义 <span aria-hidden="true">→</span>
                       </button>
+                      <div className="recall-flow" aria-label="学习步骤：回忆、揭晓、判断">
+                        <span className="active">1 回忆</span><i>→</i><span>2 揭晓</span><i>→</i><span>3 判断</span>
+                      </div>
                     </div>
                   ) : (
                     <div className="answer-sheet" aria-live="polite">
@@ -2286,7 +2335,7 @@ export default function Home() {
                       <div className="rating-area">
                         <p>现在，你对这个词的感觉是？</p>
                         <div className="rating-buttons">
-                          {(["unknown", "fuzzy", "known"] as const).map((status) => (
+                          {(["known", "fuzzy", "unknown"] as const).map((status) => (
                             <button
                               className={`rating-button ${status}`}
                               key={status}
@@ -2297,6 +2346,7 @@ export default function Home() {
                                 {status === "unknown" ? "×" : status === "fuzzy" ? "~" : "✓"}
                               </span>
                               <span><strong>{STATUS_META[status].label}</strong><small>{previewDue(currentRecord, status, clock)}</small></span>
+                              <span className="rating-key" aria-hidden="true">{status === "known" ? "Q" : status === "fuzzy" ? "W" : "E"}</span>
                             </button>
                           ))}
                         </div>
@@ -2313,9 +2363,9 @@ export default function Home() {
                       <div><p className="kicker">Heute</p><h2>{queueSource === "daily" ? "今日计划" : queueSource === "review" ? "到期复习" : "单独学习"}</h2></div>
                     </div>
                     <div className="plan-stats">
-                      <div><strong>{queueSource === "daily" ? dueWords.length : sessionQueue.length}</strong><span>{queueSource === "daily" ? "到期复习" : "本队词数"}</span></div>
+                      <div><strong>{queueSource === "daily" ? dueWords.length : sessionUniqueTotal}</strong><span>{queueSource === "daily" ? "到期复习" : "本队词数"}</span></div>
                       <div><strong>{queueSource === "daily" ? newTotal : dueWords.length}</strong><span>{queueSource === "daily" ? "新词" : "到期总数"}</span></div>
-                      <div><strong>{Math.max(2, Math.round((queueSource === "daily" ? settings.wordsPerQueue : sessionQueue.length) * 1.1))}</strong><span>约分钟</span></div>
+                      <div><strong>{Math.max(2, Math.round((queueSource === "daily" ? settings.wordsPerQueue : sessionUniqueTotal) * 1.1))}</strong><span>约分钟</span></div>
                     </div>
                   </section>
                   <button className="story-preview" onClick={() => switchView("story")} disabled={grading}>

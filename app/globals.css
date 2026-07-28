@@ -608,6 +608,33 @@ kbd {
   font: 18px/1.55 var(--serif);
 }
 
+.recall-flow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+  margin-top: 22px;
+  color: #8d8575;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.recall-flow span {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.recall-flow span.active {
+  border-color: var(--brick);
+  color: var(--brick);
+}
+
+.recall-flow i {
+  color: var(--line-dark);
+  font: normal 10px/1 var(--serif);
+}
+
 .reveal-button,
 .primary-action {
   min-height: 48px;
@@ -789,6 +816,19 @@ blockquote footer {
   margin-top: 2px;
   font-size: 8px;
   opacity: 0.77;
+}
+
+.rating-key {
+  min-width: 20px;
+  margin-left: auto;
+  padding: 4px 5px 3px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  opacity: 0.58;
 }
 
 .feedback-toast {
