@@ -2,6 +2,11 @@
 
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { packCloudPayload, unpackCloudPayload } from "./cloud-payload";
+import {
+  buildLibrarySearchText,
+  matchesLibrarySearch,
+  tokenizeLibraryQuery,
+} from "./library-search";
 import { A1_WORDS, A2_WORDS } from "./wordbooks-a1-a2";
 import { B1_ADDITIONS, B2_WORDS, C1_WORDS } from "./wordbooks-advanced";
 
@@ -1128,6 +1133,7 @@ export default function Home() {
   const [queueUnavailable, setQueueUnavailable] = useState(false);
   const [clock, setClock] = useState(0);
   const [libraryFilter, setLibraryFilter] = useState<"all" | RecallStatus>("all");
+  const [libraryQuery, setLibraryQuery] = useState("");
   const [libraryVisibleCount, setLibraryVisibleCount] = useState(LIBRARY_PAGE_SIZE);
   const [reviewVisibleCount, setReviewVisibleCount] = useState(REVIEW_PAGE_SIZE);
   const [cloudStatus, setCloudStatus] = useState<CloudSyncStatus>("connecting");
@@ -1828,12 +1834,36 @@ export default function Home() {
       : bookWords.slice(0, 3),
     [bookWords, learning.records, reviewTotal],
   );
+  const librarySearchIndex = useMemo(
+    () => bookWords.map((word) => ({
+      word,
+      searchText: buildLibrarySearchText(word),
+    })),
+    [bookWords],
+  );
+  const libraryQueryTokens = useMemo(
+    () => tokenizeLibraryQuery(libraryQuery),
+    [libraryQuery],
+  );
+  const librarySearchMatches = useMemo(
+    () => librarySearchIndex
+      .filter(({ searchText }) => matchesLibrarySearch(searchText, libraryQueryTokens))
+      .map(({ word }) => word),
+    [libraryQueryTokens, librarySearchIndex],
+  );
+  const librarySearchCounts = useMemo(() => {
+    const next = { unknown: 0, fuzzy: 0, known: 0 };
+    librarySearchMatches.forEach((word) => {
+      next[learning.records[word.id]?.status ?? "unknown"] += 1;
+    });
+    return next;
+  }, [learning.records, librarySearchMatches]);
   const libraryWords = useMemo(
-    () => bookWords.filter(
+    () => librarySearchMatches.filter(
       (word) => libraryFilter === "all" ||
         (learning.records[word.id]?.status ?? "unknown") === libraryFilter,
     ),
-    [bookWords, learning.records, libraryFilter],
+    [learning.records, libraryFilter, librarySearchMatches],
   );
 
   useEffect(() => {
@@ -2737,26 +2767,88 @@ export default function Home() {
                     aria-pressed={libraryFilter === filter}
                   >
                     {filter === "all" ? "全部" : STATUS_META[filter].label}
-                    <span>{filter === "all" ? bookWords.length : counts[filter]}</span>
+                    <span>{filter === "all" ? librarySearchMatches.length : librarySearchCounts[filter]}</span>
                   </button>
                 ))}
               </div>
             </div>
-            <div className="word-library-grid">
-              {libraryWords.slice(0, libraryVisibleCount).map((word, index) => {
-                const status = learning.records[word.id]?.status ?? "unknown";
-                return (
-                  <article className="library-card" key={word.id}>
-                    <div className="library-card-top"><span className="folio">{String(index + 1).padStart(2, "0")}</span><span className={`status-pill ${status}`}>{STATUS_META[status].label}</span></div>
-                    <p className="word-type">{word.type}</p>
-                    <h2><ArticleTerm term={word.term} /></h2>
-                    <p className="library-meaning">{word.meaning}</p>
-                    <div className="library-grammar"><span>搭配</span>{word.grammarTitle}</div>
-                    <button onClick={() => startQueue([word.id], "manual")}>单独学习 <span aria-hidden="true">→</span></button>
-                  </article>
-                );
-              })}
+            <div className="library-search-tools">
+              <div className="library-search" role="search">
+                <span className="library-search-mark" aria-hidden="true">⌕</span>
+                <input
+                  type="search"
+                  value={libraryQuery}
+                  onChange={(event) => {
+                    setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
+                    setLibraryQuery(event.target.value);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape" && libraryQuery) {
+                      event.preventDefault();
+                      setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
+                      setLibraryQuery("");
+                    }
+                  }}
+                  placeholder="输入德语单词、变位或中文释义"
+                  aria-label={`在 ${settings.level} 词书中进行中德双语检索`}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                {libraryQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
+                      setLibraryQuery("");
+                    }}
+                    aria-label="清空检索"
+                  >
+                    清空
+                  </button>
+                )}
+              </div>
+              <p className="library-search-meta" aria-live="polite">
+                {libraryQueryTokens.length
+                  ? `在 ${settings.level} 词书中找到 ${libraryWords.length} 个结果`
+                  : `支持中文与德语检索 · 当前 ${bookWords.length} 词`}
+              </p>
             </div>
+            {libraryWords.length ? (
+              <div className="word-library-grid">
+                {libraryWords.slice(0, libraryVisibleCount).map((word, index) => {
+                  const status = learning.records[word.id]?.status ?? "unknown";
+                  return (
+                    <article className="library-card" key={word.id}>
+                      <div className="library-card-top"><span className="folio">{String(index + 1).padStart(2, "0")}</span><span className={`status-pill ${status}`}>{STATUS_META[status].label}</span></div>
+                      <p className="word-type">{word.type}</p>
+                      <h2><ArticleTerm term={word.term} /></h2>
+                      <p className="library-meaning">{word.meaning}</p>
+                      <div className="library-grammar"><span>搭配</span>{word.grammarTitle}</div>
+                      <button onClick={() => startQueue([word.id], "manual")}>单独学习 <span aria-hidden="true">→</span></button>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="library-empty" role="status">
+                <span aria-hidden="true">0</span>
+                <div>
+                  <p className="kicker">Keine Treffer · 暂无结果</p>
+                  <h2>{libraryQueryTokens.length ? `没有找到“${libraryQuery.trim()}”` : "当前筛选下没有单词"}</h2>
+                  <p>试试中文释义、德语原形、名词复数或动词变位，也可以清空掌握状态筛选。</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
+                    if (libraryQueryTokens.length) setLibraryQuery("");
+                    else setLibraryFilter("all");
+                  }}
+                >
+                  {libraryQueryTokens.length ? "清空检索" : "查看全部单词"}
+                </button>
+              </div>
+            )}
             {libraryVisibleCount < libraryWords.length && (
               <div className="incremental-list-sentinel" ref={libraryLoadMoreRef} aria-hidden="true" />
             )}
