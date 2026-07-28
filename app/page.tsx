@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { packCloudPayload, unpackCloudPayload } from "./cloud-payload";
 import { A1_WORDS, A2_WORDS } from "./wordbooks-a1-a2";
 import { B1_ADDITIONS, B2_WORDS, C1_WORDS } from "./wordbooks-advanced";
@@ -854,6 +854,37 @@ function seededShuffle<T>(items: T[], seedText: string) {
   return next;
 }
 
+function buildMeaningChoices(word: WordCard, bookWords: WordCard[]) {
+  const sameType = bookWords.filter(
+    (candidate) => candidate.id !== word.id && candidate.type === word.type,
+  );
+  const sameLevel = bookWords.filter(
+    (candidate) => candidate.id !== word.id && candidate.type !== word.type,
+  );
+  const candidates = [
+    ...seededShuffle(sameType, `${word.id}-same-type-distractors`),
+    ...seededShuffle(sameLevel, `${word.id}-fallback-distractors`),
+  ];
+  const meanings = new Set([word.meaning]);
+  const distractors: WordCard[] = [];
+  for (const candidate of candidates) {
+    if (meanings.has(candidate.meaning)) continue;
+    meanings.add(candidate.meaning);
+    distractors.push(candidate);
+    if (distractors.length === 3) break;
+  }
+  return seededShuffle([word, ...distractors], `${word.id}-meaning-options`);
+}
+
+function normalizeSpelling(value: string) {
+  return value
+    .normalize("NFKC")
+    .trim()
+    .toLocaleLowerCase("de-DE")
+    .replace(/ß/g, "ss")
+    .replace(/\s+/g, " ");
+}
+
 function buildDailyQueue(state: LearningState, settings: AppSettings, now = Date.now()) {
   const book = WORDS.filter((word) => isWordInBook(word, settings.level));
   const bookIds = new Set(book.map((word) => word.id));
@@ -1077,6 +1108,12 @@ export default function Home() {
   const [returnView, setReturnView] = useState<View>("learn");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  const [sessionPhase, setSessionPhase] = useState<"study" | "spell-prompt" | "spelling">("study");
+  const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
+  const [spellingIndex, setSpellingIndex] = useState(0);
+  const [spellingInput, setSpellingInput] = useState("");
+  const [spellingChecked, setSpellingChecked] = useState(false);
+  const [spellingResults, setSpellingResults] = useState<boolean[]>([]);
   const [grading, setGrading] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [settingsNotice, setSettingsNotice] = useState("正在准备安全的云端同步");
@@ -1109,6 +1146,7 @@ export default function Home() {
   const resetCancelRef = useRef<HTMLButtonElement>(null);
   const resetDialogRef = useRef<HTMLElement>(null);
   const transitionTimerRef = useRef<number | null>(null);
+  const pendingCompletionStateRef = useRef<LearningState | null>(null);
   const libraryLoadMoreRef = useRef<HTMLDivElement>(null);
   const reviewLoadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -1135,6 +1173,13 @@ export default function Home() {
   function resetSessionQueue(ids: string[]) {
     setSessionQueue(ids);
     setSessionRatings(ids.map(() => null));
+    setSessionPhase("study");
+    setSelectedChoiceId(null);
+    setSpellingIndex(0);
+    setSpellingInput("");
+    setSpellingChecked(false);
+    setSpellingResults([]);
+    pendingCompletionStateRef.current = null;
   }
 
   function setSettingsUpdatedAt(
@@ -1826,16 +1871,31 @@ export default function Home() {
     (learning.sessionComplete || learning.todayQueuesCompleted >= activeQueueGoal);
   const dailyTarget = settings.wordsPerQueue * settings.queuesPerDay;
   const sessionUniqueIds = Array.from(new Set(sessionQueue));
+  const masteryPointsById = new Map<string, number>();
   const latestSessionRatings = new Map<string, RecallStatus>();
   sessionQueue.forEach((id, index) => {
     const rating = sessionRatings[index];
-    if (rating) latestSessionRatings.set(id, rating);
+    if (!rating) return;
+    latestSessionRatings.set(id, rating);
+    const currentPoints = masteryPointsById.get(id) ?? 0;
+    if (rating === "known") masteryPointsById.set(id, Math.min(3, currentPoints + 1));
+    if (rating === "fuzzy") masteryPointsById.set(id, Math.max(0, currentPoints - 1));
+    if (rating === "unknown") masteryPointsById.set(id, 0);
   });
-  const masteredInSession = sessionUniqueIds.filter((id) => latestSessionRatings.get(id) === "known").length;
+  const masteredInSession = sessionUniqueIds.filter((id) => (masteryPointsById.get(id) ?? 0) >= 3).length;
   const sessionUniqueTotal = sessionUniqueIds.length;
+  const currentMasteryPoints = currentWord ? masteryPointsById.get(currentWord.id) ?? 0 : 0;
+  const currentAttemptNumber = currentWord
+    ? sessionQueue.slice(0, currentIndex).filter((id) => id === currentWord.id).length + 1
+    : 0;
   const currentIsRepeat = currentWord
     ? sessionQueue.slice(0, currentIndex).includes(currentWord.id)
     : false;
+  const currentMeaningChoices = useMemo(
+    () => currentWord ? buildMeaningChoices(currentWord, bookWords) : [],
+    [bookWords, currentWord],
+  );
+  const spellingWord = WORD_BY_ID.get(sessionUniqueIds[spellingIndex]);
   const sessionProgress = sessionQueue.length
     ? Math.round((masteredInSession / Math.max(1, sessionUniqueTotal)) * 100)
     : dailyComplete ? 100 : Math.round((learning.todayQueuesCompleted / activeQueueGoal) * 100);
@@ -1853,6 +1913,7 @@ export default function Home() {
   }
 
   function finishSession(nextState: LearningState) {
+    setGrading(true);
     const completionIds = [...nextState.todayQueueCompletionIds];
     if (queueSource === "daily") {
       completionIds.push(
@@ -1893,6 +1954,54 @@ export default function Home() {
     }, 680);
   }
 
+  function offerSpelling(nextState: LearningState) {
+    pendingCompletionStateRef.current = nextState;
+    clearTransitionTimer();
+    transitionTimerRef.current = window.setTimeout(() => {
+      transitionTimerRef.current = null;
+      setFeedback(null);
+      setRevealed(false);
+      setSelectedChoiceId(null);
+      setSessionPhase("spell-prompt");
+    }, 620);
+  }
+
+  function beginSpelling() {
+    setSpellingIndex(0);
+    setSpellingInput("");
+    setSpellingChecked(false);
+    setSpellingResults([]);
+    setSessionPhase("spelling");
+  }
+
+  function skipSpelling() {
+    finishSession(pendingCompletionStateRef.current ?? learningRef.current);
+  }
+
+  function submitSpelling(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!spellingWord) return;
+    if (spellingChecked) {
+      if (spellingIndex + 1 >= sessionUniqueIds.length) {
+        finishSession(pendingCompletionStateRef.current ?? learningRef.current);
+        return;
+      }
+      setSpellingIndex((index) => index + 1);
+      setSpellingInput("");
+      setSpellingChecked(false);
+      return;
+    }
+    if (!spellingInput.trim()) return;
+    const answer = normalizeSpelling(spellingInput);
+    const acceptedAnswers = [
+      normalizeSpelling(spellingWord.term),
+      normalizeSpelling(spellingWord.term.replace(/^etwas\s+/i, "")),
+    ];
+    const correct = acceptedAnswers.includes(answer);
+    setSpellingResults((results) => [...results, correct]);
+    setSpellingChecked(true);
+  }
+
   function rateCurrent(rating: RecallStatus) {
     if (!currentWord || !revealed || grading) return;
     hasLocalInteractionRef.current = true;
@@ -1911,12 +2020,18 @@ export default function Home() {
       todayReviewEventIds: reviewEvents,
     });
     setLearning(nextState);
-    const shouldRepeat = rating !== "known";
+    const nextMasteryPoints =
+      rating === "known"
+        ? Math.min(3, currentMasteryPoints + 1)
+        : rating === "fuzzy"
+          ? Math.max(0, currentMasteryPoints - 1)
+          : 0;
+    const shouldRepeat = nextMasteryPoints < 3;
     const nextQueue = [...sessionQueue];
     const nextRatings = [...sessionRatings];
     nextRatings[currentIndex] = rating;
     if (shouldRepeat) {
-      const distance = rating === "unknown" ? 2 : 4;
+      const distance = rating === "unknown" ? 2 : rating === "fuzzy" ? 3 : 4;
       const insertionIndex = Math.min(nextQueue.length, currentIndex + distance);
       nextQueue.splice(insertionIndex, 0, currentWord.id);
       nextRatings.splice(insertionIndex, 0, null);
@@ -1924,14 +2039,16 @@ export default function Home() {
     setSessionQueue(nextQueue);
     setSessionRatings(nextRatings);
     setFeedback(
-      rating === "known"
-        ? `已知 · 本轮完成，下次 ${dueLabel}`
-        : `${STATUS_META[rating].label} · 本组稍后重现，长期复习 ${dueLabel}`,
+      nextMasteryPoints >= 3
+        ? `已知 · 三个光点已集齐，下次 ${dueLabel}`
+        : rating === "unknown"
+          ? `未知 · 光点已清空，本组稍后重现`
+          : `${STATUS_META[rating].label} · 光点 ${nextMasteryPoints} / 3，本组稍后重现`,
     );
     setGrading(true);
 
     if (currentIndex + 1 >= nextQueue.length) {
-      finishSession(nextState);
+      offerSpelling(nextState);
       return;
     }
 
@@ -1940,6 +2057,7 @@ export default function Home() {
       transitionTimerRef.current = null;
       setCurrentIndex((index) => index + 1);
       setRevealed(false);
+      setSelectedChoiceId(null);
       setFeedback(null);
       setGrading(false);
     }, 620);
@@ -1996,6 +2114,7 @@ export default function Home() {
 
   function revealAnswer() {
     if (!currentWord) return;
+    if (currentAttemptNumber === 1 && !selectedChoiceId) return;
     hasLocalInteractionRef.current = true;
     setRevealed(true);
     if (settings.autoPronounce) speak(currentWord);
@@ -2259,7 +2378,65 @@ export default function Home() {
               </div>
             </section>
 
-            {currentWord ? (
+            {sessionPhase === "spell-prompt" ? (
+              <section className="spelling-gate word-card">
+                <div className="spelling-seal" aria-hidden="true">✓</div>
+                <p className="kicker">Runde geschafft · 本轮完成</p>
+                <h2>所有单词都已点亮三次。</h2>
+                <p>现在要进行一次拼写测试吗？它不会改变已经获得的光点，可以放心挑战。</p>
+                <div className="spelling-gate-summary">
+                  <span><strong>{sessionUniqueTotal}</strong> 个单词</span>
+                  <span><strong>{sessionUniqueTotal * 3}</strong> 个光点</span>
+                </div>
+                <div className="spelling-gate-actions">
+                  <button className="reveal-button" onClick={beginSpelling}>开始拼写 →</button>
+                  <button className="secondary-action" onClick={skipSpelling}>这轮暂不拼写</button>
+                </div>
+              </section>
+            ) : sessionPhase === "spelling" && spellingWord ? (
+              <section className="spelling-test word-card">
+                <div className="spelling-test-topline">
+                  <div>
+                    <p className="kicker">Buchstabieren · 拼写测试</p>
+                    <span>{spellingIndex + 1} / {sessionUniqueTotal}</span>
+                  </div>
+                  <div className="spelling-score">
+                    <strong>{spellingResults.filter(Boolean).length}</strong>
+                    <small>已拼对</small>
+                  </div>
+                </div>
+                <div className="spelling-cue">
+                  <span>{spellingWord.type}</span>
+                  <h2>{spellingWord.meaning}</h2>
+                  <button className="speak-button" type="button" onClick={() => speak(spellingWord)}>
+                    <span className="sound-rings" aria-hidden="true">◖))</span> 听发音
+                  </button>
+                </div>
+                <form className="spelling-form" onSubmit={submitSpelling}>
+                  <label htmlFor="spelling-answer">写出完整德语单词，名词请包含冠词</label>
+                  <input
+                    id="spelling-answer"
+                    value={spellingInput}
+                    onChange={(event) => setSpellingInput(event.target.value)}
+                    disabled={spellingChecked}
+                    autoComplete="off"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    autoFocus
+                    placeholder="在这里输入…"
+                  />
+                  {spellingChecked && (
+                    <div className={spellingResults[spellingResults.length - 1] ? "spelling-result correct" : "spelling-result incorrect"} role="status">
+                      <strong>{spellingResults[spellingResults.length - 1] ? "拼写正确" : "再留意一次正确写法"}</strong>
+                      <span lang="de"><ArticleTerm term={spellingWord.term} /></span>
+                    </div>
+                  )}
+                  <button className="reveal-button" type="submit" disabled={!spellingChecked && !spellingInput.trim()}>
+                    {spellingChecked ? (spellingIndex + 1 >= sessionUniqueTotal ? "完成本轮 →" : "下一个 →") : "检查拼写"}
+                  </button>
+                </form>
+              </section>
+            ) : currentWord ? (
               <div className="study-layout">
                 <aside className="session-panel paper-panel" aria-label="今日学习队列">
                   <div className="panel-heading">
@@ -2267,16 +2444,22 @@ export default function Home() {
                     <div><p className="kicker">Sitzung</p><h2>{queueSource === "daily" ? "今日队列" : queueSource === "review" ? "复习队列" : "单独学习"}</h2></div>
                   </div>
                   <div className="queue-list">
-                    {sessionQueue.map((id, index) => {
+                    {sessionUniqueIds.map((id, index) => {
                       const word = WORD_BY_ID.get(id);
                       if (!word) return null;
-                      const recallStatus = index < currentIndex ? sessionRatings[index] ?? undefined : undefined;
-                      const itemStatus =
-                        index < currentIndex ? "done" : index === currentIndex ? "current" : "upcoming";
+                      const recallStatus = latestSessionRatings.get(id);
+                      const masteryPoints = masteryPointsById.get(id) ?? 0;
+                      const itemStatus = masteryPoints >= 3
+                        ? "done"
+                        : currentWord?.id === id
+                          ? "current"
+                          : recallStatus
+                            ? "attempted"
+                            : "upcoming";
                       const statusIcon =
                         recallStatus === "known" ? "✓" : recallStatus === "fuzzy" ? "~" : recallStatus === "unknown" ? "×" : index + 1;
                       return (
-                        <div className={`queue-item ${itemStatus}${recallStatus ? ` recall-${recallStatus}` : ""}`} key={`${id}-${index}`}>
+                        <div className={`queue-item ${itemStatus}${recallStatus ? ` recall-${recallStatus}` : ""}`} key={id}>
                           <span className="queue-dot" title={recallStatus ? STATUS_META[recallStatus].label : undefined}>{statusIcon}</span>
                           <span className="queue-name"><ArticleTerm term={word.term.replace(/^etwas\s+/, "")} /></span>
                         </div>
@@ -2294,25 +2477,66 @@ export default function Home() {
                     </button>
                   </div>
 
-                  <div className="word-front">
-                    <p className="word-type">{currentWord.type}</p>
-                    <h2><ArticleTerm term={currentWord.term} /></h2>
-                    <p className="word-forms">{currentWord.forms}</p>
+                  <div className={`word-front exposure-${Math.min(3, currentAttemptNumber)}`}>
+                    {currentAttemptNumber === 1 && <p className="word-type">{currentWord.type}</p>}
+                    <div className="word-title-row">
+                      <h2><ArticleTerm term={currentWord.term} /></h2>
+                      <span className="mastery-lights" aria-label={`当前获得 ${currentMasteryPoints} / 3 个光点`}>
+                        {[0, 1, 2].map((index) => (
+                          <i className={index >= 3 - currentMasteryPoints ? "lit" : ""} key={index} />
+                        ))}
+                      </span>
+                    </div>
+                    {currentAttemptNumber === 1 && <p className="word-forms">{currentWord.forms}</p>}
                   </div>
 
                   {!revealed ? (
-                    <div className="recall-prompt">
-                      <div className="ink-divider"><span>想一想</span></div>
-                      <p>它是什么意思？试着在脑中说出一个搭配。</p>
-                      <button className="reveal-button" onClick={revealAnswer}>
-                        查看释义 <span aria-hidden="true">→</span>
-                      </button>
-                      <div className="recall-flow" aria-label="学习步骤：回忆、揭晓、判断">
-                        <span className="active">1 回忆</span><i>→</i><span>2 揭晓</span><i>→</i><span>3 判断</span>
+                    currentAttemptNumber === 1 ? (
+                      <div className="choice-recall">
+                        <div className="ink-divider"><span>第一次 · 选择词义</span></div>
+                        <div className="meaning-options" role="radiogroup" aria-label={`${currentWord.term} 的词义选项`}>
+                          {currentMeaningChoices.map((option) => (
+                            <button
+                              className={selectedChoiceId === option.id ? "meaning-option selected" : "meaning-option"}
+                              type="button"
+                              role="radio"
+                              aria-checked={selectedChoiceId === option.id}
+                              onClick={() => setSelectedChoiceId(option.id)}
+                              key={option.id}
+                            >
+                              <small>{option.type}</small>
+                              <strong>{option.meaning}</strong>
+                            </button>
+                          ))}
+                        </div>
+                        <button className="reveal-button" onClick={revealAnswer} disabled={!selectedChoiceId}>
+                          看答案 <span aria-hidden="true">→</span>
+                        </button>
                       </div>
-                    </div>
+                    ) : currentAttemptNumber === 2 ? (
+                      <div className="recall-prompt second-exposure">
+                        <div className="ink-divider"><span>第二次 · 只看语境</span></div>
+                        <blockquote className="recall-example">
+                          <p lang="de">{currentWord.example}</p>
+                        </blockquote>
+                        <button className="reveal-button" onClick={revealAnswer}>
+                          看答案 <span aria-hidden="true">→</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="recall-prompt third-exposure">
+                        <button className="reveal-button" onClick={revealAnswer}>
+                          看答案 <span aria-hidden="true">→</span>
+                        </button>
+                      </div>
+                    )
                   ) : (
                     <div className="answer-sheet" aria-live="polite">
+                      {currentAttemptNumber === 1 && selectedChoiceId && (
+                        <div className={selectedChoiceId === currentWord.id ? "choice-result correct" : "choice-result incorrect"}>
+                          {selectedChoiceId === currentWord.id ? "选择正确" : "已经为你标出正确词义"}
+                        </div>
+                      )}
                       <div className="meaning-line">
                         <span className="answer-label">释义</span>
                         <strong>{currentWord.meaning}</strong>
@@ -2333,7 +2557,7 @@ export default function Home() {
                         </article>
                       </div>
                       <div className="rating-area">
-                        <p>现在，你对这个词的感觉是？</p>
+                        <p>光点规则：已知 +1 · 模糊 −1 · 未知清零</p>
                         <div className="rating-buttons">
                           {(["known", "fuzzy", "unknown"] as const).map((status) => (
                             <button
