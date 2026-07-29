@@ -2697,7 +2697,6 @@ export default function Home() {
                       );
                     })}
                   </div>
-                  <div className="keyboard-note"><kbd>F</kbd> 发音 · <kbd>空格</kbd> 揭晓 · <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd> 判断</div>
                 </aside>
 
                 <section className={revealed ? "word-card revealed" : "word-card"}>
@@ -2836,6 +2835,14 @@ export default function Home() {
                 </section>
 
                 <aside className="insight-column">
+                  <section className="shortcut-card paper-panel" aria-label="学习快捷键">
+                    <p className="kicker">Tastatur · 快捷键</p>
+                    <div className="shortcut-keys">
+                      <span><kbd>F</kbd> 发音</span>
+                      <span><kbd>空格</kbd> 揭晓</span>
+                      <span><kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd> 判断</span>
+                    </div>
+                  </section>
                   <section className="plan-card paper-panel">
                     <div className="panel-heading compact">
                       <span className="folio">02</span>

@@ -605,16 +605,6 @@ a:focus-visible {
   color: var(--unknown);
 }
 
-.keyboard-note {
-  position: relative;
-  z-index: 1;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-  color: #817a6d;
-  font-size: 12px;
-  text-align: center;
-}
-
 kbd {
   padding: 2px 6px;
   border: 1px solid #c3b596;
@@ -1401,6 +1391,41 @@ blockquote footer {
 .insight-column > * {
   min-height: 0;
   flex: 1 1 0;
+}
+
+.shortcut-card {
+  flex: 0 0 auto;
+  padding: 20px 22px;
+}
+
+.shortcut-card .kicker,
+.shortcut-keys {
+  position: relative;
+  z-index: 1;
+}
+
+.shortcut-keys {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 12px 16px;
+  margin-top: 16px;
+  color: #817a6d;
+  font-size: 13px;
+}
+
+.shortcut-keys span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.shortcut-keys span:last-child {
+  grid-column: 1 / -1;
+}
+
+.shortcut-keys span:last-child kbd + kbd {
+  margin-left: -5px;
 }
 
 .plan-card {
@@ -4045,7 +4070,7 @@ html[data-theme="dark"] .nav-item,
 html[data-theme="dark"] .word-forms,
 html[data-theme="dark"] .card-mode,
 html[data-theme="dark"] .queue-item,
-html[data-theme="dark"] .keyboard-note,
+html[data-theme="dark"] .shortcut-keys,
 html[data-theme="dark"] .plan-stats span,
 html[data-theme="dark"] .site-footer,
 html[data-theme="dark"] .summary-card small,
@@ -4278,7 +4303,11 @@ html[data-theme="dark"] .warning-note {
     grid-column: 1 / -1;
     height: auto;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: minmax(230px, 0.8fr) minmax(360px, 1.2fr);
+  }
+
+  .story-preview {
+    grid-column: 1 / -1;
   }
 
   .word-card {
@@ -4338,7 +4367,7 @@ html[data-theme="dark"] .warning-note {
   }
 
   .story-preview {
-    grid-column: auto;
+    grid-column: 1 / -1;
   }
 
   .progress-stat-grid {
