@@ -27,8 +27,9 @@ test("declares Worttag metadata and a production-ready application shell", async
   assert.match(page, /\["learn", "今日学习"\]/);
   assert.match(page, /\["review", "复习"\]/);
   assert.match(page, /\["library", "词库"\]/);
-  assert.match(page, /\["progress", "进度"\]/);
   assert.match(page, /\["settings", "设置"\]/);
+  assert.doesNotMatch(page, /\["progress", "进度"\]/);
+  assert.doesNotMatch(page, /view === "progress"/);
   assert.match(css, /--paper:/);
   assert.match(css, /\[data-theme="dark"\]/);
 });
@@ -39,6 +40,8 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /光点规则：已知 \+1 · 模糊 −1 · 未知清零/);
   assert.match(page, /所有单词都已点亮三次/);
   assert.match(page, /现在要进行一次拼写测试吗/);
+  assert.match(page, /重新拼写/);
+  assert.match(page, /预计完成 \{settings\.level\} 词书/);
   assert.match(page, /<kbd>F<\/kbd> 发音/);
   assert.match(page, /<kbd>空格<\/kbd> 揭晓/);
   assert.match(page, /<kbd>Q<\/kbd><kbd>W<\/kbd><kbd>E<\/kbd> 判断/);

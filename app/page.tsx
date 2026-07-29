@@ -17,7 +17,7 @@ import { A1_WORDS, A2_WORDS } from "./wordbooks-a1-a2";
 import { B1_ADDITIONS, B2_WORDS, C1_WORDS } from "./wordbooks-advanced";
 
 type RecallStatus = "unknown" | "fuzzy" | "known";
-type View = "learn" | "review" | "library" | "progress" | "story" | "settings";
+type View = "learn" | "review" | "library" | "story" | "settings";
 type ThemeMode = "light" | "dark" | "system";
 type SkinMode = "parchment" | "mist" | "forest" | "wine" | "graphite";
 type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1";
@@ -1174,6 +1174,7 @@ export default function Home() {
   const resetTriggerRef = useRef<HTMLButtonElement>(null);
   const resetCancelRef = useRef<HTMLButtonElement>(null);
   const resetDialogRef = useRef<HTMLElement>(null);
+  const spellingInputRef = useRef<HTMLInputElement>(null);
   const dictionaryDialogRef = useRef<HTMLElement>(null);
   const dictionaryCloseRef = useRef<HTMLButtonElement>(null);
   const dictionaryTriggerRef = useRef<HTMLElement | null>(null);
@@ -1827,14 +1828,6 @@ export default function Home() {
     [learning.todayWordIds, settings.level, wordbookRevision],
   );
 
-  const counts = useMemo(() => {
-    const result = { unknown: 0, fuzzy: 0, known: 0 };
-    bookWords.forEach((word) => {
-      result[learning.records[word.id]?.status ?? "unknown"] += 1;
-    });
-    return result;
-  }, [bookWords, learning.records]);
-
   const dueWords = useMemo(
     () =>
       bookWords.filter((word) => {
@@ -1942,6 +1935,14 @@ export default function Home() {
   const dailyComplete = learning.todayQueueLevel === settings.level &&
     (learning.sessionComplete || learning.todayQueuesCompleted >= activeQueueGoal);
   const dailyTarget = settings.wordsPerQueue * settings.queuesPerDay;
+  const targetLearnedWords = bookWords.filter((word) => Boolean(learning.records[word.id])).length;
+  const targetRemainingWords = Math.max(0, bookWords.length - targetLearnedWords);
+  const estimatedDaysRemaining = targetRemainingWords
+    ? Math.ceil(targetRemainingWords / Math.max(1, dailyTarget))
+    : 0;
+  const targetCompletionPercent = Math.round(
+    (targetLearnedWords / Math.max(1, bookWords.length)) * 100,
+  );
   const sessionUniqueIds = Array.from(new Set(sessionQueue));
   const masteryPointsById = new Map<string, number>();
   const latestSessionRatings = new Map<string, RecallStatus>();
@@ -2086,6 +2087,14 @@ export default function Home() {
     const correct = acceptedAnswers.includes(answer);
     setSpellingResults((results) => [...results, correct]);
     setSpellingChecked(true);
+  }
+
+  function retrySpelling() {
+    if (!spellingChecked) return;
+    setSpellingResults((results) => results.slice(0, -1));
+    setSpellingInput("");
+    setSpellingChecked(false);
+    window.requestAnimationFrame(() => spellingInputRef.current?.focus());
   }
 
   function rateCurrent(
@@ -2572,7 +2581,6 @@ export default function Home() {
             ["learn", "今日学习"],
             ["review", "复习"],
             ["library", "词库"],
-            ["progress", "进度"],
             ["settings", "设置"],
           ] as const).map(([id, label]) => (
             <button
@@ -2646,6 +2654,7 @@ export default function Home() {
                 <form className="spelling-form" onSubmit={submitSpelling}>
                   <label htmlFor="spelling-answer">写出完整德语单词，名词请包含冠词</label>
                   <input
+                    ref={spellingInputRef}
                     id="spelling-answer"
                     value={spellingInput}
                     onChange={(event) => setSpellingInput(event.target.value)}
@@ -2662,9 +2671,16 @@ export default function Home() {
                       <span lang="de"><ArticleTerm term={spellingWord.term} /></span>
                     </div>
                   )}
-                  <button className="reveal-button" type="submit" disabled={!spellingChecked && !spellingInput.trim()}>
-                    {spellingChecked ? (spellingIndex + 1 >= sessionUniqueTotal ? "完成本轮 →" : "下一个 →") : "检查拼写"}
-                  </button>
+                  <div className="spelling-form-actions">
+                    {spellingChecked && (
+                      <button className="secondary-action" type="button" onClick={retrySpelling}>
+                        重新拼写
+                      </button>
+                    )}
+                    <button className="reveal-button" type="submit" disabled={!spellingChecked && !spellingInput.trim()}>
+                      {spellingChecked ? (spellingIndex + 1 >= sessionUniqueTotal ? "完成本轮 →" : "下一个 →") : "检查拼写"}
+                    </button>
+                  </div>
                 </form>
               </section>
             ) : currentWord ? (
@@ -3034,36 +3050,6 @@ export default function Home() {
           </section>
         )}
 
-        {view === "progress" && (
-          <section className="secondary-page">
-            <div className="page-heading"><div><p className="kicker">Fortschritt</p><h1>进步，是记忆留下的痕迹。</h1></div><div className="date-stamp">{settings.level} · {LEVEL_META[settings.level].title}词书</div></div>
-            <div className="progress-stat-grid">
-              <article><span>连续学习</span><strong>{learning.streakDays}<small> 天</small></strong><p>比上周多 2 天</p></article>
-              <article><span>已知词汇</span><strong>{counts.known}<small> / {bookWords.length}</small></strong><p>稳定进入长期记忆</p></article>
-              <article><span>今日判断</span><strong>{learning.todayReviewed}<small> 次</small></strong><p>未知、模糊、已知</p></article>
-              <article><span>预计保持率</span><strong>{Math.round(((counts.known * 0.88 + counts.fuzzy * 0.58 + counts.unknown * 0.28) / Math.max(1, bookWords.length)) * 100)}<small>%</small></strong><p>根据当前掌握状态估算</p></article>
-            </div>
-            <div className="progress-detail-grid">
-              <section className="curve-card paper-panel">
-                <div><p className="kicker">Vergessenskurve</p><h2>复习把遗忘拉回来</h2></div>
-                <div className="curve-visual" role="img" aria-label="记忆保持率在复习间隔之间下降，并在每次复习后回升">
-                  {[100, 72, 91, 58, 88, 52, 84, 47, 80].map((height, index) => <span key={index} style={{ height: `${height}%` }} className={index % 2 === 0 ? "review-point" : ""} />)}
-                </div>
-                <div className="curve-labels"><span>今天</span><span>1 天</span><span>3 天</span><span>7 天</span><span>14 天</span></div>
-              </section>
-              <section className="mastery-card">
-                <p className="kicker">掌握分布</p><h2>三种状态</h2>
-                {(["known", "fuzzy", "unknown"] as const).map((status) => (
-                  <div className="mastery-row" key={status}>
-                    <div><span className={`legend-dot ${status}`} /><strong>{STATUS_META[status].label}</strong></div><span>{counts[status]} 词</span>
-                    <div className="mastery-bar"><span className={status} style={{ width: `${(counts[status] / Math.max(1, bookWords.length)) * 100}%` }} /></div>
-                  </div>
-                ))}
-              </section>
-            </div>
-          </section>
-        )}
-
         {view === "settings" && (
           <section className="secondary-page settings-page">
             <div className="page-heading settings-heading">
@@ -3123,35 +3109,60 @@ export default function Home() {
                 </div>
               </fieldset>
 
-              <fieldset className="settings-card plan-settings">
-                <legend><span className="settings-index">02</span><span><small>Study plan</small>每日学习计划</span></legend>
-                <div className="setting-row">
-                  <div><strong>每个队列的单词数</strong><p>一次专注完成一小组，包含新词与到期复习。</p></div>
-                  <div className="number-options" role="radiogroup" aria-label="每个队列的单词数">
-                    {[5, 10, 15, 20].map((value) => (
-                      <label className={settings.wordsPerQueue === value ? "selected" : ""} key={value}>
-                        <input type="radio" name="wordsPerQueue" checked={settings.wordsPerQueue === value} onChange={() => updateSetting("wordsPerQueue", value)} />
-                        <span>{value}</span>
-                      </label>
-                    ))}
+              <div className="settings-plan-column">
+                <fieldset className="settings-card plan-settings">
+                  <legend><span className="settings-index">02</span><span><small>Study plan</small>每日学习计划</span></legend>
+                  <div className="setting-row">
+                    <div><strong>每个队列的单词数</strong><p>一次专注完成一小组，包含新词与到期复习。</p></div>
+                    <div className="number-options" role="radiogroup" aria-label="每个队列的单词数">
+                      {[5, 10, 15, 20].map((value) => (
+                        <label className={settings.wordsPerQueue === value ? "selected" : ""} key={value}>
+                          <input type="radio" name="wordsPerQueue" checked={settings.wordsPerQueue === value} onChange={() => updateSetting("wordsPerQueue", value)} />
+                          <span>{value}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div className="setting-row">
-                  <div><strong>每天完成几个队列</strong><p>完成最后一个队列后，生成当天的德语短文。</p></div>
-                  <div className="number-options" role="radiogroup" aria-label="每天的队列数">
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <label className={settings.queuesPerDay === value ? "selected" : ""} key={value}>
-                        <input type="radio" name="queuesPerDay" checked={settings.queuesPerDay === value} onChange={() => updateSetting("queuesPerDay", value)} />
-                        <span>{value}</span>
-                      </label>
-                    ))}
+                  <div className="setting-row">
+                    <div><strong>每天完成几个队列</strong><p>完成最后一个队列后，生成当天的德语短文。</p></div>
+                    <div className="number-options" role="radiogroup" aria-label="每天的队列数">
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <label className={settings.queuesPerDay === value ? "selected" : ""} key={value}>
+                          <input type="radio" name="queuesPerDay" checked={settings.queuesPerDay === value} onChange={() => updateSetting("queuesPerDay", value)} />
+                          <span>{value}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div className="goal-note"><span>你的计划</span>每天最多学习 <strong>{dailyTarget}</strong> 张词卡，约 <strong>{Math.max(5, Math.round(dailyTarget * 1.1))}</strong> 分钟。</div>
-                {activeQueueGoal !== settings.queuesPerDay && (
-                  <p className="active-goal-note">今天已经开始学习，因此仍按 {activeQueueGoal} 个队列完成；新的数量从明天生效。</p>
-                )}
-              </fieldset>
+                  <div className="goal-note"><span>你的计划</span>每天最多学习 <strong>{dailyTarget}</strong> 张词卡，约 <strong>{Math.max(5, Math.round(dailyTarget * 1.1))}</strong> 分钟。</div>
+                  {activeQueueGoal !== settings.queuesPerDay && (
+                    <p className="active-goal-note">今天已经开始学习，因此仍按 {activeQueueGoal} 个队列完成；新的数量从明天生效。</p>
+                  )}
+                </fieldset>
+
+                <section className="settings-card forecast-settings" aria-live="polite">
+                  <div className="forecast-heading">
+                    <span aria-hidden="true">⌛</span>
+                    <div><p className="kicker">Zielprognose</p><h2>预计完成 {settings.level} 词书</h2></div>
+                  </div>
+                  <div className="forecast-result">
+                    {estimatedDaysRemaining ? (
+                      <strong>{estimatedDaysRemaining}<small> 天</small></strong>
+                    ) : (
+                      <strong className="forecast-complete">已完成</strong>
+                    )}
+                    <span>{estimatedDaysRemaining ? `按每天 ${dailyTarget} 个词估算` : "当前词书的所有单词均已学习"}</span>
+                  </div>
+                  <div className="forecast-progress" aria-label={`当前目标已完成 ${targetCompletionPercent}%`}>
+                    <span style={{ width: `${targetCompletionPercent}%` }} />
+                  </div>
+                  <div className="forecast-meta">
+                    <span>已学习 <strong>{targetLearnedWords}</strong> / {bookWords.length}</span>
+                    <span>剩余 <strong>{targetRemainingWords}</strong> 词</span>
+                  </div>
+                  <p>这是按当前每日目标连续学习的估算；到期复习较多时，实际完成时间可能稍有延后。</p>
+                </section>
+              </div>
 
               <fieldset className="settings-card wordbook-settings">
                 <legend><span className="settings-index">03</span><span><small>CEFR wordbooks</small>选择单词书</span></legend>
