@@ -37,7 +37,10 @@ test("expanded wordbooks have exact counts, schema, and unique stable IDs", asyn
       assert.equal(row.length, fields.length);
       assert.ok(row.every((value) => typeof value === "string" && value.trim().length > 0));
       const [id, term, , typeCode, meaning, example, exampleZh] = row;
-      assert.match(id, new RegExp(`^wb-${level.toLowerCase()}-[a-z0-9-]+-[a-f0-9]{7}$`));
+      assert.match(
+        id,
+        new RegExp(`^wb-${level.toLowerCase()}-[a-z0-9-]+-[a-f0-9]{7,8}$`),
+      );
       assert.ok(!ids.has(id), `duplicate ID: ${id}`);
       ids.add(id);
       const lexicalKey = `${term.toLocaleLowerCase("de-DE")}\0${typeCode}`;

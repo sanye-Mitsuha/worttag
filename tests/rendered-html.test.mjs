@@ -17,7 +17,7 @@ test("declares Worttag metadata and a production-ready application shell", async
   const [page, layout, css, packageJson] = await readAppSources();
 
   assert.match(packageJson, /"name": "worttag"/);
-  assert.match(packageJson, /"version": "1\.2\.0"/);
+  assert.match(packageJson, /"version": "1\.3\.0"/);
   assert.match(layout, /const title = "Worttag · 德语词汇记忆"/);
   assert.match(layout, /间隔复习、语法例句和每日短文/);
   assert.match(layout, /openGraph:/);
@@ -45,4 +45,9 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /确定重置所有学习进度/);
   assert.match(page, /取消，保留进度/);
   assert.match(page, /云存档已同步 · Mac · iPad · iPhone/);
+  assert.doesNotMatch(
+    page,
+    /meaning:\s*expandedMeaning\(term,\s*meaning,\s*typeCode\)/u,
+    "reviewed packed meanings must not be replaced by global homograph hints",
+  );
 });

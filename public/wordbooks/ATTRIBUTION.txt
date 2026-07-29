@@ -23,6 +23,16 @@ https://creativecommons.org/licenses/by-sa/4.0/
 https://creativecommons.org/licenses/by/2.0/fr/
 https://www.wiktionary.org/
 https://tatoeba.org/
+https://opus.nlpl.eu/legacy/Tatoeba-v2026-07-08.php
+
+Open bilingual validation
+--------------------------
+HanDeDict edition 2026-07-28, licensed under CC BY-SA 3.0.
+The reverse evidence cache preserves entry IDs, revision timestamps and
+verification states; it is used as corroboration and never treats a surface
+match as automatic proof of the intended sense.
+https://handedict.zydeo.net/
+https://creativecommons.org/licenses/by-sa/3.0/
 
 Lexical validation and sense alignment
 --------------------------------------

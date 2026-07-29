@@ -1,0 +1,305 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-29T05:45:38.122Z",
+  "corpus": {
+    "expectedTotal": 6000,
+    "levels": [
+      "A1",
+      "A2",
+      "B1",
+      "B2",
+      "C1"
+    ],
+    "inputs": [
+      {
+        "path": "public/wordbooks/a1-v1.json",
+        "bytes": 88763,
+        "sha256": "5da2af09798e6a50e591b305e071b91ed75abe50ef66988ba1540a0441568a81"
+      },
+      {
+        "path": "public/wordbooks/a2-v1.json",
+        "bytes": 116492,
+        "sha256": "f9824d0d927eb7f6e0ff02112a9ea513f73f2813f09f66922dbd7c49aec7702b"
+      },
+      {
+        "path": "public/wordbooks/b1-v1.json",
+        "bytes": 190212,
+        "sha256": "044b8a1c362c54cb8473ef244df66be39f410ed610a4793110df25f63b10b031"
+      },
+      {
+        "path": "public/wordbooks/b2-v1.json",
+        "bytes": 284467,
+        "sha256": "95d5559cbe515358e262e225d9cea4bde79f5bf0854752eaf79eb8f3733cda05"
+      },
+      {
+        "path": "public/wordbooks/c1-v1.json",
+        "bytes": 356496,
+        "sha256": "595ce7b2ba9c98145437bfd662dfec3f959573bc3966e749dc98fe5bd1302db9"
+      },
+      {
+        "path": "app/wordbooks-a1-a2.ts",
+        "bytes": 28148,
+        "sha256": "31e59073f9de12986505cc3287eca897f224f800bf5dc1061df2c8b1d516ff73"
+      },
+      {
+        "path": "app/wordbooks-advanced.ts",
+        "bytes": 40509,
+        "sha256": "e9b4d135ad3af32aeb2d16ec89d8a6928aa6c593c7882bf8ced8fee19bb54494"
+      },
+      {
+        "path": "app/page.tsx",
+        "bytes": 154898,
+        "sha256": "0265bb758dcfa089c2cfc72a34dedf8bb5918b399ba4abb8096472267fe8c84b"
+      },
+      {
+        "path": "/Users/mitsuha/Documents/Codex/2026-07-22/ni/.cache/wordbooks/wiktapi-de-2026-07-28.json",
+        "bytes": 22135371,
+        "sha256": "0607f5ddcde17f284b5377b1b59463f1292ce7e7214a7af903d74e123fc57590",
+        "role": "wiktapi-cache"
+      }
+    ]
+  },
+  "dictionaryCache": {
+    "provided": true,
+    "path": "/Users/mitsuha/Documents/Codex/2026-07-22/ni/.cache/wordbooks/wiktapi-de-2026-07-28.json",
+    "records": 5610,
+    "format": {
+      "schemaVersion": 1,
+      "provider": "WiktAPI",
+      "edition": "de",
+      "language": "de"
+    }
+  },
+  "flagDefinitions": {
+    "meaning_placeholder": {
+      "severity": "error",
+      "description": "Chinese meaning is a placeholder rather than a definition."
+    },
+    "meaning_machine_prompt_residue": {
+      "severity": "error",
+      "description": "Chinese meaning contains text leaked from a machine-translation prompt."
+    },
+    "meaning_latin_residue": {
+      "severity": "review",
+      "description": "Chinese meaning contains Latin-script material and needs editorial review."
+    },
+    "chinese_traditional_residue": {
+      "severity": "error",
+      "description": "The learner-facing Chinese contains Traditional-Chinese residue."
+    },
+    "verb_perfect_auxiliary_unconjugated": {
+      "severity": "error",
+      "description": "A verb form gives haben/sein instead of the third-person hat/ist auxiliary."
+    },
+    "example_synthetic_placeholder": {
+      "severity": "error",
+      "description": "German example only states that the item is a learning word or part of speech."
+    },
+    "example_known_unrelated": {
+      "severity": "error",
+      "description": "German example is a known generator fallback unrelated to the headword."
+    },
+    "example_translation_known_unrelated": {
+      "severity": "error",
+      "description": "Chinese example translation belongs to a known unrelated fallback sentence."
+    },
+    "example_target_not_detected": {
+      "severity": "review",
+      "description": "Neither the lemma nor a known local/dictionary form was detected in the example."
+    },
+    "example_reused_three_plus": {
+      "severity": "review",
+      "description": "The exact German example is reused by at least three lexical entries."
+    },
+    "noun_article_type_mismatch": {
+      "severity": "error",
+      "description": "The visible noun article disagrees with the local noun type code."
+    },
+    "dictionary_cache_miss": {
+      "severity": "coverage",
+      "description": "No cache record exists for any normalized lookup lemma."
+    },
+    "dictionary_not_found": {
+      "severity": "review",
+      "description": "Cached WiktAPI lookups did not find a German Wiktionary entry."
+    },
+    "dictionary_no_senses": {
+      "severity": "review",
+      "description": "The cached dictionary entry contains no usable senses."
+    },
+    "dictionary_pos_mismatch": {
+      "severity": "error",
+      "description": "The local part of speech is absent from the cached German Wiktionary entry."
+    },
+    "dictionary_noun_article_mismatch": {
+      "severity": "error",
+      "description": "The local noun article disagrees with nominative singular forms in Wiktionary."
+    },
+    "phrase_headword_only": {
+      "severity": "review",
+      "description": "A multiword learning item falls back to a component headword for dictionary lookup."
+    },
+    "exact_surface_homograph": {
+      "severity": "review",
+      "description": "The same visible term occurs in more than one lexical entry or part of speech."
+    },
+    "normalized_homograph": {
+      "severity": "review",
+      "description": "Multiple entries share the same article-free, case-folded surface form."
+    },
+    "provenance_missing": {
+      "severity": "coverage",
+      "description": "The row has no per-sense source identifier or source revision."
+    },
+    "cefr_evidence_missing": {
+      "severity": "coverage",
+      "description": "The row has no item-level evidence for its assigned CEFR band."
+    }
+  },
+  "summary": {
+    "total": 6000,
+    "packed": 5900,
+    "curated": 100,
+    "dictionary": {
+      "cache_miss": 249,
+      "found": 5051,
+      "not_found": 700
+    },
+    "flags": {
+      "dictionary_cache_miss": 249,
+      "provenance_missing": 6000,
+      "cefr_evidence_missing": 6000,
+      "meaning_latin_residue": 3,
+      "exact_surface_homograph": 1217,
+      "normalized_homograph": 1494,
+      "dictionary_pos_mismatch": 161,
+      "example_reused_three_plus": 15,
+      "dictionary_not_found": 700,
+      "phrase_headword_only": 83,
+      "example_target_not_detected": 6,
+      "chinese_traditional_residue": 87,
+      "example_synthetic_placeholder": 1433,
+      "verb_perfect_auxiliary_unconjugated": 712
+    },
+    "severity": {
+      "coverage": 12249,
+      "review": 3518,
+      "error": 2393
+    },
+    "byLevel": {
+      "A1": {
+        "total": 650,
+        "packed": 630,
+        "curated": 20,
+        "flags": {
+          "dictionary_cache_miss": 59,
+          "provenance_missing": 650,
+          "cefr_evidence_missing": 650,
+          "meaning_latin_residue": 2,
+          "exact_surface_homograph": 124,
+          "normalized_homograph": 133,
+          "dictionary_pos_mismatch": 33,
+          "example_reused_three_plus": 9,
+          "dictionary_not_found": 60,
+          "phrase_headword_only": 19
+        },
+        "dictionary": {
+          "cache_miss": 59,
+          "found": 531,
+          "not_found": 60
+        }
+      },
+      "A2": {
+        "total": 650,
+        "packed": 630,
+        "curated": 20,
+        "flags": {
+          "provenance_missing": 650,
+          "cefr_evidence_missing": 650,
+          "dictionary_cache_miss": 13,
+          "dictionary_not_found": 29,
+          "normalized_homograph": 468,
+          "exact_surface_homograph": 465,
+          "phrase_headword_only": 10,
+          "dictionary_pos_mismatch": 4,
+          "example_target_not_detected": 4
+        },
+        "dictionary": {
+          "found": 608,
+          "cache_miss": 13,
+          "not_found": 29
+        }
+      },
+      "B1": {
+        "total": 1100,
+        "packed": 1080,
+        "curated": 20,
+        "flags": {
+          "exact_surface_homograph": 530,
+          "normalized_homograph": 593,
+          "provenance_missing": 1100,
+          "cefr_evidence_missing": 1100,
+          "chinese_traditional_residue": 31,
+          "phrase_headword_only": 47,
+          "dictionary_cache_miss": 56,
+          "dictionary_not_found": 114,
+          "meaning_latin_residue": 1,
+          "example_target_not_detected": 2
+        },
+        "dictionary": {
+          "found": 930,
+          "cache_miss": 56,
+          "not_found": 114
+        }
+      },
+      "B2": {
+        "total": 1600,
+        "packed": 1580,
+        "curated": 20,
+        "flags": {
+          "provenance_missing": 1600,
+          "cefr_evidence_missing": 1600,
+          "dictionary_not_found": 215,
+          "example_synthetic_placeholder": 743,
+          "verb_perfect_auxiliary_unconjugated": 354,
+          "normalized_homograph": 152,
+          "dictionary_cache_miss": 59,
+          "exact_surface_homograph": 39,
+          "phrase_headword_only": 4,
+          "chinese_traditional_residue": 30,
+          "dictionary_pos_mismatch": 67,
+          "example_reused_three_plus": 3
+        },
+        "dictionary": {
+          "found": 1326,
+          "not_found": 215,
+          "cache_miss": 59
+        }
+      },
+      "C1": {
+        "total": 2000,
+        "packed": 1980,
+        "curated": 20,
+        "flags": {
+          "example_synthetic_placeholder": 690,
+          "dictionary_pos_mismatch": 57,
+          "provenance_missing": 2000,
+          "cefr_evidence_missing": 2000,
+          "dictionary_not_found": 282,
+          "verb_perfect_auxiliary_unconjugated": 358,
+          "chinese_traditional_residue": 26,
+          "exact_surface_homograph": 59,
+          "normalized_homograph": 148,
+          "dictionary_cache_miss": 62,
+          "example_reused_three_plus": 3,
+          "phrase_headword_only": 3
+        },
+        "dictionary": {
+          "found": 1656,
+          "not_found": 282,
+          "cache_miss": 62
+        }
+      }
+    }
+  }
+}

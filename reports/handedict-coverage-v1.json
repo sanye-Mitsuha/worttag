@@ -1,0 +1,645 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-28T02:30:01Z",
+  "source": {
+    "name": "HanDeDict",
+    "editionDate": "2026-07-28T02:30:01Z",
+    "downloadUrl": "https://handedict.zydeo.net/api/export/download",
+    "homepage": "https://handedict.zydeo.net/",
+    "repository": "https://github.com/gugray/HanDeDict",
+    "license": "CC-BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/deed.de",
+    "compressedSha256": "3eb3b82764ab950db0fd61a3a116d8dcafe889902fede2ab32fea904fe001b93",
+    "compressedBytes": 11171852,
+    "parseStats": {
+      "currentLines": 160620,
+      "parsedEntries": 160620,
+      "malformedCurrentLines": 0,
+      "usableChineseEntries": 159430,
+      "definitionCount": 193624,
+      "candidateCount": 237204
+    }
+  },
+  "policy": {
+    "matching": "exact normalized German gloss segment",
+    "posHandling": "explicit POS match preferred; untyped and conflicting evidence separated",
+    "chineseFilter": "Simplified headword must contain only 1-12 Han characters",
+    "automaticReplacement": false,
+    "note": "HanDeDict candidates require sense-level editorial review before publication."
+  },
+  "coverage": {
+    "total": {
+      "total": 6000,
+      "anyExactMatch": 5367,
+      "explicitPosMatch": 4947,
+      "verifiedExplicitPosMatch": 1727,
+      "highConfidenceReviewCandidate": 1484,
+      "mediumConfidenceReviewCandidate": 3463,
+      "untypedOnly": 161,
+      "posConflictOnly": 258,
+      "phraseReview": 1,
+      "samePosHomographReview": 2,
+      "notFound": 633,
+      "rates": {
+        "anyExactMatch": 0.8945,
+        "explicitPosMatch": 0.8245,
+        "verifiedExplicitPosMatch": 0.2878,
+        "highConfidenceReviewCandidate": 0.2473,
+        "mediumConfidenceReviewCandidate": 0.5772,
+        "untypedOnly": 0.0268,
+        "posConflictOnly": 0.043,
+        "phraseReview": 0.0002,
+        "samePosHomographReview": 0.0003,
+        "notFound": 0.1055
+      }
+    },
+    "levels": {
+      "A1": {
+        "total": 650,
+        "anyExactMatch": 607,
+        "explicitPosMatch": 444,
+        "verifiedExplicitPosMatch": 223,
+        "highConfidenceReviewCandidate": 163,
+        "mediumConfidenceReviewCandidate": 281,
+        "untypedOnly": 84,
+        "posConflictOnly": 79,
+        "phraseReview": 0,
+        "samePosHomographReview": 0,
+        "notFound": 43,
+        "rates": {
+          "anyExactMatch": 0.9338,
+          "explicitPosMatch": 0.6831,
+          "verifiedExplicitPosMatch": 0.3431,
+          "highConfidenceReviewCandidate": 0.2508,
+          "mediumConfidenceReviewCandidate": 0.4323,
+          "untypedOnly": 0.1292,
+          "posConflictOnly": 0.1215,
+          "phraseReview": 0,
+          "samePosHomographReview": 0,
+          "notFound": 0.0662
+        }
+      },
+      "A2": {
+        "total": 650,
+        "anyExactMatch": 588,
+        "explicitPosMatch": 533,
+        "verifiedExplicitPosMatch": 241,
+        "highConfidenceReviewCandidate": 211,
+        "mediumConfidenceReviewCandidate": 322,
+        "untypedOnly": 19,
+        "posConflictOnly": 36,
+        "phraseReview": 0,
+        "samePosHomographReview": 1,
+        "notFound": 62,
+        "rates": {
+          "anyExactMatch": 0.9046,
+          "explicitPosMatch": 0.82,
+          "verifiedExplicitPosMatch": 0.3708,
+          "highConfidenceReviewCandidate": 0.3246,
+          "mediumConfidenceReviewCandidate": 0.4954,
+          "untypedOnly": 0.0292,
+          "posConflictOnly": 0.0554,
+          "phraseReview": 0,
+          "samePosHomographReview": 0.0015,
+          "notFound": 0.0954
+        }
+      },
+      "B1": {
+        "total": 1100,
+        "anyExactMatch": 977,
+        "explicitPosMatch": 914,
+        "verifiedExplicitPosMatch": 323,
+        "highConfidenceReviewCandidate": 282,
+        "mediumConfidenceReviewCandidate": 632,
+        "untypedOnly": 15,
+        "posConflictOnly": 47,
+        "phraseReview": 1,
+        "samePosHomographReview": 1,
+        "notFound": 123,
+        "rates": {
+          "anyExactMatch": 0.8882,
+          "explicitPosMatch": 0.8309,
+          "verifiedExplicitPosMatch": 0.2936,
+          "highConfidenceReviewCandidate": 0.2564,
+          "mediumConfidenceReviewCandidate": 0.5745,
+          "untypedOnly": 0.0136,
+          "posConflictOnly": 0.0427,
+          "phraseReview": 0.0009,
+          "samePosHomographReview": 0.0009,
+          "notFound": 0.1118
+        }
+      },
+      "B2": {
+        "total": 1600,
+        "anyExactMatch": 1438,
+        "explicitPosMatch": 1375,
+        "verifiedExplicitPosMatch": 454,
+        "highConfidenceReviewCandidate": 391,
+        "mediumConfidenceReviewCandidate": 984,
+        "untypedOnly": 13,
+        "posConflictOnly": 50,
+        "phraseReview": 0,
+        "samePosHomographReview": 0,
+        "notFound": 162,
+        "rates": {
+          "anyExactMatch": 0.8988,
+          "explicitPosMatch": 0.8594,
+          "verifiedExplicitPosMatch": 0.2838,
+          "highConfidenceReviewCandidate": 0.2444,
+          "mediumConfidenceReviewCandidate": 0.615,
+          "untypedOnly": 0.0081,
+          "posConflictOnly": 0.0313,
+          "phraseReview": 0,
+          "samePosHomographReview": 0,
+          "notFound": 0.1013
+        }
+      },
+      "C1": {
+        "total": 2000,
+        "anyExactMatch": 1757,
+        "explicitPosMatch": 1681,
+        "verifiedExplicitPosMatch": 486,
+        "highConfidenceReviewCandidate": 437,
+        "mediumConfidenceReviewCandidate": 1244,
+        "untypedOnly": 30,
+        "posConflictOnly": 46,
+        "phraseReview": 0,
+        "samePosHomographReview": 0,
+        "notFound": 243,
+        "rates": {
+          "anyExactMatch": 0.8785,
+          "explicitPosMatch": 0.8405,
+          "verifiedExplicitPosMatch": 0.243,
+          "highConfidenceReviewCandidate": 0.2185,
+          "mediumConfidenceReviewCandidate": 0.622,
+          "untypedOnly": 0.015,
+          "posConflictOnly": 0.023,
+          "phraseReview": 0,
+          "samePosHomographReview": 0,
+          "notFound": 0.1215
+        }
+      }
+    },
+    "statusExamples": {
+      "pos_conflict_only": [
+        {
+          "id": "wb-a1-ich-5c7f07c",
+          "term": "das Ich",
+          "expectedPos": "noun",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-du-36f4a8c",
+          "term": "das Du",
+          "expectedPos": "noun",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-es-b1b7bd9",
+          "term": "das Es",
+          "expectedPos": "noun",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-er-3ac84ea",
+          "term": "der Er",
+          "expectedPos": "noun",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-ja-125587f",
+          "term": "das Ja",
+          "expectedPos": "noun",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-ja-985fcc6",
+          "term": "ja",
+          "expectedPos": "interjection",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-hier-91933b7",
+          "term": "hier",
+          "expectedPos": "interjection",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-nein-94cc2b5",
+          "term": "das Nein",
+          "expectedPos": "noun",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-nein-910592c",
+          "term": "nein",
+          "expectedPos": "adjective",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-noch-ec1d5da",
+          "term": "noch",
+          "expectedPos": "conjunction",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-mal-4bf585b",
+          "term": "mal",
+          "expectedPos": "adjective",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-um-08f6925",
+          "term": "um",
+          "expectedPos": "adjective",
+          "chineseHeadwords": []
+        }
+      ],
+      "pos_matched": [
+        {
+          "id": "wb-a1-ich-3907837",
+          "term": "ich",
+          "expectedPos": "pronoun",
+          "chineseHeadwords": [
+            "吾",
+            "佘",
+            "我"
+          ]
+        },
+        {
+          "id": "wb-a1-sie-6ee781d",
+          "term": "sie",
+          "expectedPos": "pronoun",
+          "chineseHeadwords": [
+            "钧",
+            "它们",
+            "怹",
+            "伊",
+            "他们",
+            "她的",
+            "它",
+            "佢",
+            "氏",
+            "贵",
+            "其"
+          ]
+        },
+        {
+          "id": "wb-a1-das-59d93ee",
+          "term": "das",
+          "expectedPos": "pronoun",
+          "chineseHeadwords": [
+            "什",
+            "这",
+            "倽"
+          ]
+        },
+        {
+          "id": "wb-a1-du-dc4dfd7",
+          "term": "du",
+          "expectedPos": "pronoun",
+          "chineseHeadwords": [
+            "你",
+            "袮",
+            "尒",
+            "妳",
+            "伱",
+            "汝",
+            "卿"
+          ]
+        },
+        {
+          "id": "wb-a1-nicht-e34188d",
+          "term": "nicht",
+          "expectedPos": "adverb",
+          "chineseHeadwords": [
+            "靡",
+            "不加",
+            "弗",
+            "莫",
+            "罔",
+            "未曾",
+            "叵",
+            "毋",
+            "不要",
+            "并非",
+            "无",
+            "没有"
+          ]
+        },
+        {
+          "id": "wb-a1-die-69ece0e",
+          "term": "die",
+          "expectedPos": "pronoun",
+          "chineseHeadwords": [
+            "倽"
+          ]
+        },
+        {
+          "id": "wb-a1-und-4c5b9ef",
+          "term": "und",
+          "expectedPos": "conjunction",
+          "chineseHeadwords": [
+            "并",
+            "与",
+            "也及",
+            "且",
+            "并且",
+            "带",
+            "跟",
+            "和",
+            "而"
+          ]
+        },
+        {
+          "id": "wb-a1-der-287c04e",
+          "term": "der",
+          "expectedPos": "pronoun",
+          "chineseHeadwords": [
+            "哪个",
+            "倽"
+          ]
+        },
+        {
+          "id": "wb-a1-wir-41fb9d8",
+          "term": "wir",
+          "expectedPos": "pronoun",
+          "chineseHeadwords": [
+            "我们",
+            "我人"
+          ]
+        },
+        {
+          "id": "wb-a1-was-52409d5",
+          "term": "was",
+          "expectedPos": "adverb",
+          "chineseHeadwords": [
+            "什"
+          ]
+        },
+        {
+          "id": "wb-a1-was-fcf7e32",
+          "term": "was",
+          "expectedPos": "pronoun",
+          "chineseHeadwords": [
+            "什",
+            "只有单数形式",
+            "曷",
+            "可作名词",
+            "啊",
+            "也可做形容词",
+            "奈",
+            "倽",
+            "何",
+            "什么",
+            "无词形变化"
+          ]
+        },
+        {
+          "id": "wb-a1-er-417503a",
+          "term": "er",
+          "expectedPos": "pronoun",
+          "chineseHeadwords": [
+            "怹",
+            "他",
+            "伊",
+            "它",
+            "佢",
+            "氏",
+            "其"
+          ]
+        }
+      ],
+      "untyped_only": [
+        {
+          "id": "wb-a1-nicht-e10c253",
+          "term": "nicht",
+          "expectedPos": "interjection",
+          "chineseHeadwords": [
+            "反正",
+            "倒",
+            "未",
+            "啊",
+            "非",
+            "得"
+          ]
+        },
+        {
+          "id": "wb-a1-und-8187082",
+          "term": "und",
+          "expectedPos": "interjection",
+          "chineseHeadwords": [
+            "而"
+          ]
+        },
+        {
+          "id": "wb-a1-was-496a238",
+          "term": "was",
+          "expectedPos": "determiner",
+          "chineseHeadwords": [
+            "什",
+            "只有单数形式",
+            "啥",
+            "曷",
+            "可作名词",
+            "啊",
+            "也可做形容词",
+            "怎么",
+            "奈",
+            "倽",
+            "何",
+            "什么"
+          ]
+        },
+        {
+          "id": "wb-a1-zu-0e32c3d",
+          "term": "zu",
+          "expectedPos": "adjective",
+          "chineseHeadwords": [
+            "对"
+          ]
+        },
+        {
+          "id": "wb-a1-zu-1bd7954",
+          "term": "zu",
+          "expectedPos": "particle",
+          "chineseHeadwords": [
+            "对"
+          ]
+        },
+        {
+          "id": "wb-a1-zu-8b6ce69",
+          "term": "zu",
+          "expectedPos": "preposition",
+          "chineseHeadwords": [
+            "对"
+          ]
+        },
+        {
+          "id": "wb-a1-ein-3620e45",
+          "term": "ein",
+          "expectedPos": "adjective",
+          "chineseHeadwords": [
+            "一回两回",
+            "半夜一两点钟"
+          ]
+        },
+        {
+          "id": "wb-a1-in-f595bdf",
+          "term": "in",
+          "expectedPos": "preposition",
+          "chineseHeadwords": [
+            "于",
+            "上",
+            "在",
+            "乎"
+          ]
+        },
+        {
+          "id": "wb-a1-in-2bd5631",
+          "term": "in",
+          "expectedPos": "adjective",
+          "chineseHeadwords": [
+            "于",
+            "上",
+            "在",
+            "乎"
+          ]
+        },
+        {
+          "id": "wb-a1-mit-37982bf",
+          "term": "mit",
+          "expectedPos": "adverb",
+          "chineseHeadwords": [
+            "连同",
+            "带",
+            "和",
+            "工信部"
+          ]
+        },
+        {
+          "id": "wb-a1-mit-62c9943",
+          "term": "mit",
+          "expectedPos": "preposition",
+          "chineseHeadwords": [
+            "连同",
+            "带",
+            "和",
+            "工信部"
+          ]
+        },
+        {
+          "id": "wb-a1-auf-d1ec770",
+          "term": "auf",
+          "expectedPos": "adjective",
+          "chineseHeadwords": [
+            "上边",
+            "之上"
+          ]
+        }
+      ],
+      "not_found": [
+        {
+          "id": "wb-a1-kann-dcc85e8",
+          "term": "kann",
+          "expectedPos": "adjective",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-s-d0b95a7",
+          "term": "das S",
+          "expectedPos": "noun",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-vor-7a159d2",
+          "term": "vor",
+          "expectedPos": "preposition",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-vor-bc6d9de",
+          "term": "vor",
+          "expectedPos": "adjective",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-ab-d023a1d",
+          "term": "ab",
+          "expectedPos": "preposition",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-ab-5294fa2",
+          "term": "ab",
+          "expectedPos": "adjective",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-ab-0075c7f",
+          "term": "der AB",
+          "expectedPos": "noun",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-ohne-0aabd81",
+          "term": "ohne",
+          "expectedPos": "adverb",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-ohne-eef4ff8",
+          "term": "ohne",
+          "expectedPos": "conjunction",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-ohne-fe11680",
+          "term": "ohne",
+          "expectedPos": "preposition",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-seit-a2224ba",
+          "term": "seit",
+          "expectedPos": "conjunction",
+          "chineseHeadwords": []
+        },
+        {
+          "id": "wb-a1-seit-7fb4df2",
+          "term": "seit",
+          "expectedPos": "preposition",
+          "chineseHeadwords": []
+        }
+      ],
+      "same_pos_homograph_review": [
+        {
+          "id": "a2-sich-gewoehnen",
+          "term": "sich gewöhnen an",
+          "expectedPos": "verb",
+          "chineseHeadwords": [
+            "使习惯"
+          ]
+        },
+        {
+          "id": "gewoehnen",
+          "term": "sich an etwas gewöhnen",
+          "expectedPos": "verb",
+          "chineseHeadwords": [
+            "使习惯"
+          ]
+        }
+      ],
+      "phrase_review": [
+        {
+          "id": "ruecksicht",
+          "term": "Rücksicht nehmen",
+          "expectedPos": "phrase",
+          "chineseHeadwords": [
+            "慈想"
+          ]
+        }
+      ]
+    }
+  }
+}

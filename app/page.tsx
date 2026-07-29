@@ -7,6 +7,11 @@ import {
   matchesLibrarySearch,
   tokenizeLibraryQuery,
 } from "./library-search";
+import { buildDictionaryLinks } from "./dictionary-links";
+import {
+  parseDictionaryEvidencePayload,
+  type DictionaryEvidence,
+} from "./dictionary-evidence";
 import { expandedMeaning } from "./meaning-overrides";
 import { A1_WORDS, A2_WORDS } from "./wordbooks-a1-a2";
 import { B1_ADDITIONS, B2_WORDS, C1_WORDS } from "./wordbooks-advanced";
@@ -18,6 +23,7 @@ type SkinMode = "parchment" | "mist" | "forest" | "wine" | "graphite";
 type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1";
 type WordOrder = "sequential" | "random";
 type SpeechSpeed = "slow" | "standard" | "natural";
+type DictionaryEvidenceStatus = "idle" | "loading" | "success" | "error";
 
 type WordCard = {
   id: string;
@@ -301,7 +307,7 @@ const B1_BASE_WORDS: WordCard[] = [
     grammar: "auf 后面固定接第四格。Rücksicht 本身通常不加冠词。",
     memory: "先“回头看”一下别人再行动，就是 Rücksicht nehmen。",
     storyDe: "Unterwegs nimmt sie Rücksicht auf ihren älteren Nachbarn Herrn Wolf und trägt eine seiner Einkaufstaschen.",
-    storyZh: "途中，她照顾年长邻居沃尔夫先生的步行速度，并帮他提一个购物袋。",
+    storyZh: "途中，她体谅年长的邻居沃尔夫先生，还帮他提了一个购物袋。",
   },
   {
     id: "zuverlaessig",
@@ -371,7 +377,7 @@ const B1_BASE_WORDS: WordCard[] = [
     type: "及物动词",
     meaning: "约定；商定",
     example: "Wir haben für Freitag einen Termin bei der Bank vereinbart.",
-    exampleZh: "我们约好了周五去银行办理业务。",
+    exampleZh: "我们约好了周五去银行的时间。",
     grammarTitle: "einen Termin vereinbaren",
     grammar: "与某人商定用 mit + 第三格，例如 einen Termin mit der Ärztin vereinbaren。",
     memory: "把双方的安排“统一起来”，就是 vereinbaren。",
@@ -576,7 +582,9 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
       term,
       forms,
       type: details.type,
-      meaning: expandedMeaning(term, meaning),
+      // Packed meanings have passed the row-level editorial review. Keep that
+      // exact sense set instead of replacing it with a global homograph hint.
+      meaning,
       example,
       exampleZh,
       grammarTitle: details.grammarTitle,
@@ -680,10 +688,14 @@ function prepareSavedState(
 ): LearningState {
   const currentDay = dayKey(now);
   const savedRecords = saved.records && typeof saved.records === "object" && !Array.isArray(saved.records)
-    ? saved.records
+    ? Object.fromEntries(
+      Object.entries(saved.records).filter(([id]) => WORD_BY_ID.has(id)),
+    )
     : {};
   const savedTodayWordIds = Array.isArray(saved.todayWordIds)
-    ? saved.todayWordIds.filter((id): id is string => typeof id === "string")
+    ? saved.todayWordIds.filter(
+      (id): id is string => typeof id === "string" && WORD_BY_ID.has(id),
+    )
     : [];
   const savedQueueGoal: number | null =
     typeof saved.todayQueueGoal === "number" && [1, 2, 3, 4, 5].includes(saved.todayQueueGoal)
@@ -1137,6 +1149,10 @@ export default function Home() {
   const [libraryQuery, setLibraryQuery] = useState("");
   const [libraryVisibleCount, setLibraryVisibleCount] = useState(LIBRARY_PAGE_SIZE);
   const [reviewVisibleCount, setReviewVisibleCount] = useState(REVIEW_PAGE_SIZE);
+  const [dictionaryWord, setDictionaryWord] = useState<WordCard | null>(null);
+  const [dictionaryEvidence, setDictionaryEvidence] = useState<DictionaryEvidence | null>(null);
+  const [dictionaryEvidenceStatus, setDictionaryEvidenceStatus] = useState<DictionaryEvidenceStatus>("idle");
+  const [dictionaryEvidenceReload, setDictionaryEvidenceReload] = useState(0);
   const [cloudStatus, setCloudStatus] = useState<CloudSyncStatus>("connecting");
   const [cloudDisplayName, setCloudDisplayName] = useState<string | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
@@ -1158,6 +1174,9 @@ export default function Home() {
   const resetTriggerRef = useRef<HTMLButtonElement>(null);
   const resetCancelRef = useRef<HTMLButtonElement>(null);
   const resetDialogRef = useRef<HTMLElement>(null);
+  const dictionaryDialogRef = useRef<HTMLElement>(null);
+  const dictionaryCloseRef = useRef<HTMLButtonElement>(null);
+  const dictionaryTriggerRef = useRef<HTMLElement | null>(null);
   const transitionTimerRef = useRef<number | null>(null);
   const pendingCompletionStateRef = useRef<LearningState | null>(null);
   const libraryLoadMoreRef = useRef<HTMLDivElement>(null);
@@ -1866,14 +1885,21 @@ export default function Home() {
     ),
     [learning.records, libraryFilter, librarySearchMatches],
   );
+  const dictionaryLinks = useMemo(
+    () => dictionaryWord ? buildDictionaryLinks(dictionaryWord.term) : [],
+    [dictionaryWord],
+  );
 
   useEffect(() => {
     if (view !== "library" || libraryVisibleCount >= libraryWords.length) return;
     const target = libraryLoadMoreRef.current;
     if (!target) return;
-    if (!("IntersectionObserver" in window)) {
-      const timer = window.setTimeout(() => setLibraryVisibleCount(libraryWords.length), 0);
-      return () => window.clearTimeout(timer);
+    if (typeof IntersectionObserver === "undefined") {
+      const timer = globalThis.setTimeout(
+        () => setLibraryVisibleCount(libraryWords.length),
+        0,
+      );
+      return () => globalThis.clearTimeout(timer);
     }
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -1891,9 +1917,12 @@ export default function Home() {
     if (view !== "review" || reviewVisibleCount >= reviewWords.length) return;
     const target = reviewLoadMoreRef.current;
     if (!target) return;
-    if (!("IntersectionObserver" in window)) {
-      const timer = window.setTimeout(() => setReviewVisibleCount(reviewWords.length), 0);
-      return () => window.clearTimeout(timer);
+    if (typeof IntersectionObserver === "undefined") {
+      const timer = globalThis.setTimeout(
+        () => setReviewVisibleCount(reviewWords.length),
+        0,
+      );
+      return () => globalThis.clearTimeout(timer);
     }
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -2287,6 +2316,23 @@ export default function Home() {
     window.setTimeout(() => void synchronizeCloud(false), 0);
   }
 
+  function openDictionary(word: WordCard, trigger: HTMLElement) {
+    dictionaryTriggerRef.current = trigger;
+    setDictionaryEvidence(null);
+    setDictionaryEvidenceStatus("loading");
+    setDictionaryWord(word);
+  }
+
+  function closeDictionary() {
+    setDictionaryWord(null);
+  }
+
+  function retryDictionaryEvidence() {
+    setDictionaryEvidence(null);
+    setDictionaryEvidenceStatus("loading");
+    setDictionaryEvidenceReload((revision) => revision + 1);
+  }
+
   function switchView(nextView: View) {
     if (nextView === "library") setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
     if (nextView === "review") setReviewVisibleCount(REVIEW_PAGE_SIZE);
@@ -2310,7 +2356,13 @@ export default function Home() {
   }
 
   useEffect(() => {
-    if (view !== "learn" || !currentWord || grading) return;
+    if (
+      view !== "learn"
+      || !currentWord
+      || grading
+      || dictionaryWord
+      || confirmReset
+    ) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (target?.closest("button, input, select, textarea, a")) return;
@@ -2341,7 +2393,16 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleKeyDown);
     // revealAnswer deliberately reads the latest speech preferences listed below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentWord, grading, revealed, settings.autoPronounce, settings.speechSpeed, view]);
+  }, [
+    confirmReset,
+    currentWord,
+    dictionaryWord,
+    grading,
+    revealed,
+    settings.autoPronounce,
+    settings.speechSpeed,
+    view,
+  ]);
 
   useEffect(() => {
     if (!confirmReset) return;
@@ -2401,6 +2462,94 @@ export default function Home() {
       if (!resetConfirmedRef.current && resetTrigger?.isConnected) resetTrigger.focus();
     };
   }, [confirmReset]);
+
+  useEffect(() => {
+    if (!dictionaryWord) return;
+    const trigger = dictionaryTriggerRef.current;
+    const previousOverflow = document.body.style.overflow;
+    const backgroundElements = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        ".app-shell > .topbar, .app-shell > .main-content, .app-shell > .site-footer",
+      ),
+    );
+    const previousAccessibility = backgroundElements.map((element) => ({
+      element,
+      ariaHidden: element.getAttribute("aria-hidden"),
+      inert: element.hasAttribute("inert"),
+    }));
+    backgroundElements.forEach((element) => {
+      element.setAttribute("inert", "");
+      element.setAttribute("aria-hidden", "true");
+    });
+    document.body.style.overflow = "hidden";
+    window.setTimeout(() => dictionaryCloseRef.current?.focus(), 0);
+
+    const handleDialogKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeDictionary();
+        return;
+      }
+      if (event.key !== "Tab" || !dictionaryDialogRef.current) return;
+      const focusable = Array.from(
+        dictionaryDialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleDialogKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      previousAccessibility.forEach(({ element, ariaHidden, inert }) => {
+        if (!inert) element.removeAttribute("inert");
+        if (ariaHidden === null) element.removeAttribute("aria-hidden");
+        else element.setAttribute("aria-hidden", ariaHidden);
+      });
+      window.removeEventListener("keydown", handleDialogKeyDown);
+      if (trigger?.isConnected) trigger.focus();
+    };
+  }, [dictionaryWord]);
+
+  useEffect(() => {
+    if (!dictionaryWord) return;
+    const controller = new AbortController();
+    const term = dictionaryWord.term;
+
+    void (async () => {
+      try {
+        const response = await fetch(
+          `/api/dictionary?term=${encodeURIComponent(term)}`,
+          {
+            headers: { Accept: "application/json" },
+            signal: controller.signal,
+          },
+        );
+        if (!response.ok) throw new Error("Dictionary evidence unavailable.");
+        const evidence = parseDictionaryEvidencePayload(await response.json());
+        if (!evidence) throw new Error("Dictionary evidence was invalid.");
+        setDictionaryEvidence(evidence);
+        setDictionaryEvidenceStatus("success");
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error("Dictionary evidence could not be loaded.", error);
+        setDictionaryEvidence(null);
+        setDictionaryEvidenceStatus("error");
+      }
+    })();
+
+    return () => controller.abort();
+  }, [dictionaryEvidenceReload, dictionaryWord]);
 
   if (!ready) {
     return (
@@ -2562,7 +2711,18 @@ export default function Home() {
                   <div className={`word-front exposure-${Math.min(3, currentAttemptNumber)}`}>
                     {currentAttemptNumber === 1 && <p className="word-type">{currentWord.type}</p>}
                     <div className="word-title-row">
-                      <h2><ArticleTerm term={currentWord.term} /></h2>
+                      <h2>
+                        <button
+                          className="dictionary-term-button dictionary-term-main"
+                          type="button"
+                          onClick={(event) => openDictionary(currentWord, event.currentTarget)}
+                          aria-haspopup="dialog"
+                          aria-label={`查看 ${currentWord.term} 的词典释义`}
+                          title="查看权威词典释义"
+                        >
+                          <ArticleTerm term={currentWord.term} />
+                        </button>
+                      </h2>
                       <span className="mastery-lights" aria-label={`当前获得 ${currentMasteryPoints} / 3 个光点`}>
                         {[0, 1, 2].map((index) => (
                           <i className={index >= 3 - currentMasteryPoints ? "lit" : ""} key={index} />
@@ -2822,7 +2982,18 @@ export default function Home() {
                     <article className="library-card" key={word.id}>
                       <div className="library-card-top"><span className="folio">{String(index + 1).padStart(2, "0")}</span><span className={`status-pill ${status}`}>{STATUS_META[status].label}</span></div>
                       <p className="word-type">{word.type}</p>
-                      <h2><ArticleTerm term={word.term} /></h2>
+                      <h2>
+                        <button
+                          className="dictionary-term-button"
+                          type="button"
+                          onClick={(event) => openDictionary(word, event.currentTarget)}
+                          aria-haspopup="dialog"
+                          aria-label={`查看 ${word.term} 的词典释义`}
+                          title="查看权威词典释义"
+                        >
+                          <ArticleTerm term={word.term} />
+                        </button>
+                      </h2>
                       <p className="library-meaning">{word.meaning}</p>
                       <div className="library-grammar"><span>搭配</span>{word.grammarTitle}</div>
                       <button onClick={() => startQueue([word.id], "manual")}>单独学习 <span aria-hidden="true">→</span></button>
@@ -3132,6 +3303,203 @@ export default function Home() {
           </section>
         )}
       </main>
+
+      {dictionaryWord && (
+        <div
+          className="dictionary-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeDictionary();
+          }}
+        >
+          <section
+            ref={dictionaryDialogRef}
+            className="dictionary-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dictionary-word-title"
+            aria-describedby="dictionary-word-summary dictionary-source-note"
+          >
+            <button
+              ref={dictionaryCloseRef}
+              className="dictionary-close"
+              type="button"
+              onClick={closeDictionary}
+              aria-label="关闭词典释义"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+
+            <header className="dictionary-header">
+              <div className="dictionary-seal" aria-hidden="true">W</div>
+              <div>
+                <p className="kicker">Wörterbuch · {dictionaryWord.level} 词条核验</p>
+                <h2 id="dictionary-word-title" lang="de"><ArticleTerm term={dictionaryWord.term} /></h2>
+                <p className="dictionary-forms">{dictionaryWord.type} · {dictionaryWord.forms}</p>
+              </div>
+              <button
+                className="dictionary-speak"
+                type="button"
+                onClick={() => speak(dictionaryWord)}
+                aria-label={`朗读 ${dictionaryWord.term}`}
+              >
+                <span aria-hidden="true">◖))</span>
+                发音
+              </button>
+            </header>
+
+            <section className="dictionary-meaning" aria-labelledby="dictionary-meaning-title">
+              <p className="dictionary-section-label" id="dictionary-meaning-title">
+                中文释义 <span>Worttag 课程释义</span>
+              </p>
+              <p id="dictionary-word-summary">{dictionaryWord.meaning}</p>
+            </section>
+
+            <section
+              className={`dictionary-evidence evidence-${dictionaryEvidenceStatus}`}
+              aria-labelledby="dictionary-evidence-title"
+              aria-live="polite"
+              aria-busy={dictionaryEvidenceStatus === "loading"}
+            >
+              <div className="dictionary-evidence-heading">
+                <div>
+                  <p className="dictionary-section-label">德语原文证据</p>
+                  <h3 id="dictionary-evidence-title">开放词典释义与 DWDS 收录</h3>
+                </div>
+                {dictionaryEvidenceStatus === "success" && <span className="evidence-state">证据已载入</span>}
+              </div>
+
+              {dictionaryEvidenceStatus === "loading" && (
+                <div className="dictionary-evidence-loading" role="status">
+                  <span aria-hidden="true" />
+                  <span aria-hidden="true" />
+                  <p>正在查询开放德语词典与 DWDS 收录证据…</p>
+                </div>
+              )}
+
+              {dictionaryEvidenceStatus === "error" && (
+                <div className="dictionary-evidence-message evidence-error" role="status">
+                  <span aria-hidden="true">↻</span>
+                  <div>
+                    <strong>暂时无法载入外部词典证据</strong>
+                    <p>Worttag 的课程释义仍可正常使用，你也可以稍后重试。</p>
+                  </div>
+                  <button type="button" onClick={retryDictionaryEvidence}>重新查询</button>
+                </div>
+              )}
+
+              {dictionaryEvidenceStatus === "success" && dictionaryEvidence && (
+                <div className="dictionary-evidence-grid">
+                  <article className="open-dictionary-evidence">
+                    <div className="evidence-card-heading">
+                      <div>
+                        <strong>德语 Wiktionary</strong>
+                        <span>{dictionaryEvidence.openDictionary.partsOfSpeech.join(" · ") || "开放德语词典"}</span>
+                      </div>
+                      <span className={dictionaryEvidence.openDictionary.found ? "evidence-found" : "evidence-empty"}>
+                        {dictionaryEvidence.openDictionary.found ? "有释义" : "未找到"}
+                      </span>
+                    </div>
+                    {dictionaryEvidence.openDictionary.found ? (
+                      <ol className="open-sense-list" lang="de">
+                        {dictionaryEvidence.openDictionary.senses.map((sense, index) => (
+                          <li key={`${sense.gloss}-${index}`}>
+                            <p>{sense.gloss}</p>
+                            {sense.example && <blockquote>{sense.example}</blockquote>}
+                          </li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <p className="dictionary-evidence-empty">
+                        开放词典暂未返回“{dictionaryEvidence.headword}”的独立德语释义。
+                      </p>
+                    )}
+                    <p className="dictionary-license">
+                      开放内容 · 德语 Wiktionary · CC BY-SA 4.0，经 WiktApi 提供。
+                      {" "}
+                      <a href={dictionaryEvidence.openDictionary.sourceUrl} target="_blank" rel="noreferrer">查看原词条 ↗</a>
+                    </p>
+                  </article>
+
+                  <article className="dwds-evidence">
+                    <div className="evidence-card-heading">
+                      <div>
+                        <strong>DWDS</strong>
+                        <span>德语词汇信息系统</span>
+                      </div>
+                      <span className={dictionaryEvidence.dwds.found ? "evidence-found" : "evidence-empty"}>
+                        {dictionaryEvidence.dwds.found ? "已收录" : "无直接证据"}
+                      </span>
+                    </div>
+                    {dictionaryEvidence.dwds.found ? (
+                      <dl>
+                        <div><dt>词头</dt><dd lang="de">{dictionaryEvidence.dwds.lemma ?? dictionaryEvidence.headword}</dd></div>
+                        <div><dt>词类</dt><dd>{dictionaryEvidence.dwds.wordClass ?? "以原站词条为准"}</dd></div>
+                      </dl>
+                    ) : (
+                      <p className="dictionary-evidence-empty">
+                        DWDS 接口暂未返回直接收录证据，可前往原站继续查询。
+                      </p>
+                    )}
+                    <p className="dictionary-license">
+                      此处仅显示收录、词头与词类证据；完整内容请查阅
+                      {" "}
+                      <a href={dictionaryEvidence.dwds.sourceUrl} target="_blank" rel="noreferrer">DWDS 原站 ↗</a>
+                    </p>
+                  </article>
+                </div>
+              )}
+            </section>
+
+            <div className="dictionary-detail-grid">
+              <section aria-labelledby="dictionary-example-title">
+                <p className="dictionary-section-label" id="dictionary-example-title">例句 · Beispiel</p>
+                <blockquote>
+                  <p lang="de">{dictionaryWord.example}</p>
+                  <footer>{dictionaryWord.exampleZh}</footer>
+                </blockquote>
+              </section>
+              <section aria-labelledby="dictionary-grammar-title">
+                <p className="dictionary-section-label" id="dictionary-grammar-title">语法与搭配</p>
+                <h3>{dictionaryWord.grammarTitle}</h3>
+                <p>{dictionaryWord.grammar}</p>
+              </section>
+            </div>
+
+            <section className="dictionary-sources" aria-labelledby="dictionary-sources-title">
+              <div className="dictionary-sources-heading">
+                <div>
+                  <p className="dictionary-section-label">权威词典</p>
+                  <h3 id="dictionary-sources-title">打开原始词条进一步核验</h3>
+                </div>
+                <span>外部来源</span>
+              </div>
+              <div className="dictionary-source-list">
+                {dictionaryLinks.map((source) => (
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    key={source.id}
+                    aria-label={`在 ${source.name} 中查询 ${dictionaryWord.term}（新窗口）`}
+                  >
+                    <span className={`dictionary-source-mark source-${source.id}`} aria-hidden="true">
+                      {source.name.slice(0, 1)}
+                    </span>
+                    <span>
+                      <strong>{source.name}<small>{source.kind}</small></strong>
+                      <em>{source.description}</em>
+                    </span>
+                    <i aria-hidden="true">↗</i>
+                  </a>
+                ))}
+              </div>
+              <p className="dictionary-source-note" id="dictionary-source-note">
+                Worttag 课程义项经过开放词典交叉检查；开放德语释义保留来源与许可标记。Duden、DWDS、PONS 与 Langenscheidt 的完整权威内容不在本站复制，是否提供独立词条以原站实际收录为准。
+              </p>
+            </section>
+          </section>
+        </div>
+      )}
 
       {confirmReset && (
         <div
