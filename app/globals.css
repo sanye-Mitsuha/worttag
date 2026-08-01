@@ -876,11 +876,12 @@ kbd {
 }
 
 .meaning-option {
+  position: relative;
   min-height: 78px;
   display: grid;
   align-content: center;
   gap: 7px;
-  padding: 13px 16px;
+  padding: 13px 48px 13px 16px;
   border: 1px solid #d2c4a7;
   background: rgb(246 239 221 / 0.72);
   color: var(--ink);
@@ -925,6 +926,25 @@ kbd {
 
 .meaning-option strong {
   font: 600 16px/1.4 var(--serif);
+}
+
+.meaning-key {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #c3b596;
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: #f6efdd;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  transform: translateY(-50%);
 }
 
 .choice-instruction {
@@ -4200,6 +4220,7 @@ html[data-theme="dark"] .story-locked::after {
 
 html[data-theme="dark"] .queue-dot,
 html[data-theme="dark"] kbd,
+html[data-theme="dark"] .meaning-key,
 html[data-theme="dark"] .theme-swatch {
   border-color: #59665d;
 }
@@ -4214,7 +4235,8 @@ html[data-theme="dark"] .queue-item.done {
   color: #829087;
 }
 
-html[data-theme="dark"] kbd {
+html[data-theme="dark"] kbd,
+html[data-theme="dark"] .meaning-key {
   background: #26312b;
 }
 

@@ -2427,8 +2427,8 @@ export default function Home() {
     window.setTimeout(() => void synchronizeCloud(false), 0);
   }
 
-  function openDictionary(word: WordCard, trigger: HTMLElement) {
-    dictionaryTriggerRef.current = trigger;
+  function openDictionary(word: WordCard, trigger?: HTMLElement | null) {
+    dictionaryTriggerRef.current = trigger ?? null;
     setDictionaryEvidence(null);
     setDictionaryEvidenceStatus("loading");
     setDictionaryWord(word);
@@ -2471,16 +2471,30 @@ export default function Home() {
       view !== "learn"
       || !currentWord
       || grading
-      || dictionaryWord
       || confirmReset
     ) return;
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (dictionaryWord) return;
       const target = event.target as HTMLElement | null;
       if (target?.closest("button, input, select, textarea, a")) return;
       if (event.key.toLowerCase() === "f") {
         event.preventDefault();
         speak(currentWord);
         return;
+      }
+      if (event.code === "Space" || event.key === " ") {
+        event.preventDefault();
+        const termButton = document.querySelector<HTMLElement>(".dictionary-term-main");
+        openDictionary(currentWord, termButton);
+        return;
+      }
+      if (currentPromptMode === "choice" && !grading) {
+        const choiceIndex = Number.parseInt(event.key, 10) - 1;
+        if (choiceIndex >= 0 && choiceIndex < currentMeaningChoices.length) {
+          event.preventDefault();
+          selectMeaningChoice(currentMeaningChoices[choiceIndex].id);
+          return;
+        }
       }
       if (revealed) {
         const ratingByKey: Record<string, RecallStatus> = {
@@ -2502,6 +2516,8 @@ export default function Home() {
   }, [
     confirmReset,
     currentWord,
+    currentMeaningChoices,
+    currentPromptMode,
     dictionaryWord,
     grading,
     revealed,
@@ -2596,6 +2612,11 @@ export default function Home() {
         closeDictionary();
         return;
       }
+      if (event.code === "Space" || event.key === " ") {
+        event.preventDefault();
+        closeDictionary();
+        return;
+      }
       if (event.key !== "Tab" || !dictionaryDialogRef.current) return;
       const focusable = Array.from(
         dictionaryDialogRef.current.querySelectorAll<HTMLElement>(
@@ -2672,7 +2693,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta1.4</span>
+          <span className="brand-version">beta1.5</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -2822,7 +2843,7 @@ export default function Home() {
                   </div>
 
                   <div className={`word-front exposure-${Math.min(3, currentAttemptNumber)}`}>
-                    {currentPromptMode === "choice" && <p className="word-type">{currentWord.type}</p>}
+                    <p className="word-type">{currentWord.type}</p>
                     <div className="word-title-row">
                       <h2>
                         <button
@@ -2850,7 +2871,7 @@ export default function Home() {
                       <div className="choice-recall">
                         <div className="ink-divider"><span>第 {sessionRound} 轮 · 选择词义</span></div>
                         <div className="meaning-options" role="radiogroup" aria-label={`${currentWord.term} 的词义选项`}>
-                          {currentMeaningChoices.map((option) => {
+                          {currentMeaningChoices.map((option, index) => {
                             const optionClass = grading && selectedChoiceId
                               ? option.id === currentWord.id
                                 ? "meaning-option correct-answer"
@@ -2872,6 +2893,7 @@ export default function Home() {
                               >
                                 <small>{option.type}</small>
                                 <strong>{option.meaning}</strong>
+                                <span className="meaning-key" aria-hidden="true">{index + 1}</span>
                               </button>
                             );
                           })}
@@ -2913,6 +2935,7 @@ export default function Home() {
                                 {status === "unknown" ? "×" : status === "fuzzy" ? "~" : "✓"}
                               </span>
                               <strong>{STATUS_META[status].label}</strong>
+                              <span className="rating-key" aria-hidden="true">{status === "known" ? "Q" : status === "fuzzy" ? "W" : "E"}</span>
                             </button>
                           ))}
                         </div>
@@ -2937,6 +2960,7 @@ export default function Home() {
                                 {status === "unknown" ? "×" : status === "fuzzy" ? "~" : "✓"}
                               </span>
                               <strong>{STATUS_META[status].label}</strong>
+                              <span className="rating-key" aria-hidden="true">{status === "known" ? "Q" : status === "fuzzy" ? "W" : "E"}</span>
                             </button>
                           ))}
                         </div>
@@ -3002,8 +3026,8 @@ export default function Home() {
                   <section className="shortcut-card paper-panel" aria-label="学习快捷键">
                     <p className="kicker">Tastatur · 快捷键</p>
                     <div className="shortcut-keys">
-                      <span><kbd>F</kbd> 发音</span>
-                      <span><kbd>点击</kbd> 选择词义</span>
+                      <span><kbd>F</kbd> 按 F 发音</span>
+                      <span><kbd>空格</kbd> 按空格打开详情</span>
                     </div>
                   </section>
                   <section className="plan-card paper-panel">
