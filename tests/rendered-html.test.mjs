@@ -17,7 +17,7 @@ test("declares Worttag metadata and a production-ready application shell", async
   const [page, layout, css, packageJson] = await readAppSources();
 
   assert.match(packageJson, /"name": "worttag"/);
-  assert.match(packageJson, /"version": "1\.3\.8"/);
+  assert.match(packageJson, /"version": "1\.3\.9"/);
   assert.match(layout, /const title = "Worttag · 德语词汇记忆"/);
   assert.match(layout, /间隔复习、语法例句和每日短文/);
   assert.match(layout, /openGraph:/);
@@ -51,7 +51,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /"oft": "常常、时常、多次；经常、时常"/);
   assert.match(page, /"oft": ""/);
   assert.doesNotMatch(page, /className="library-grammar"/);
-  assert.match(page, /beta2\.4/);
+  assert.match(page, /beta2\.5/);
   assert.match(page, /from "ts-fsrs"/);
   assert.match(page, /const REVIEW_FSRS_SCHEDULER = fsrs\(/);
   assert.match(page, /function gradeReviewMemory\(/);
@@ -59,6 +59,14 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /if \(queueSource === "review"\)/);
   assert.match(page, /sessionRatings\.filter\(\(rating\) => rating !== null\)/);
   assert.doesNotMatch(page, /review-summary-grid/);
+  assert.match(page, /reviewCount\?: number/);
+  assert.match(page, /const MAX_REVIEW_COUNT = 3/);
+  assert.match(page, /function reviewCountForRecord\(/);
+  assert.match(page, /function isMasteredRecord\(/);
+  assert.match(page, /复习次数/);
+  assert.match(page, /已熟记词库/);
+  assert.match(page, /className="mastered-drawer"/);
+  assert.doesNotMatch(page, /按掌握状态筛选|filter-tabs|status-pill/);
   assert.match(page, /还剩 \$\{dueWords\.length\} 个复习/);
   assert.match(page, /function selectStoryWords\(words: WordCard\[\]\): WordCard\[\]/);
   assert.match(page, /Math\.ceil\(words\.length \/ 5\)/);

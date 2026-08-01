@@ -96,6 +96,7 @@ type MemoryRecord = {
   sameDayLapses: number;
   lapseDayKey: string | null;
   updatedAt: number;
+  reviewCount?: number;
   fsrs?: FsrsMemorySnapshot;
 };
 
@@ -164,6 +165,7 @@ const SYNCED_SETTING_KEYS: (keyof SyncedSettings)[] = [
 const MINUTE = 60_000;
 const DAY = 86_400_000;
 const INTERVAL_DAYS = [0, 1, 3, 7, 14, 30, 60, 120, 180] as const;
+const MAX_REVIEW_COUNT = 3;
 const FSRS_MAXIMUM_INTERVAL_DAYS = 36_500;
 const REVIEW_FSRS_SCHEDULER = fsrs({
   request_retention: 0.9,
@@ -683,6 +685,23 @@ function dayDifference(fromKey: string, toKey: string) {
   return Math.round((to.getTime() - from.getTime()) / DAY);
 }
 
+function reviewCountForRecord(record: MemoryRecord | undefined) {
+  if (!record) return 0;
+  if (typeof record.reviewCount === "number" && Number.isFinite(record.reviewCount)) {
+    return Math.min(MAX_REVIEW_COUNT, Math.max(0, Math.floor(record.reviewCount)));
+  }
+  // Migrate records created before reviewCount existed. FSRS repetitions are
+  // the closest exact signal; the older mastery stage is a safe fallback.
+  return Math.min(
+    MAX_REVIEW_COUNT,
+    Math.max(0, record.fsrs?.reps ?? 0, record.stage ?? 0, record.knownStreak ?? 0),
+  );
+}
+
+function isMasteredRecord(record: MemoryRecord | undefined) {
+  return reviewCountForRecord(record) >= MAX_REVIEW_COUNT;
+}
+
 function createInitialState(now = Date.now()): LearningState {
   return {
     records: {},
@@ -795,6 +814,7 @@ function freshMemory(): MemoryRecord {
     sameDayLapses: 0,
     lapseDayKey: null,
     updatedAt: 0,
+    reviewCount: 0,
   };
 }
 
@@ -889,6 +909,7 @@ function gradeReviewMemory(
     ? (state.lapseDayKey === today ? state.sameDayLapses : 0) + 1
     : 0;
   const scheduledDays = Math.max(0, Math.round(result.card.scheduled_days));
+  const reviewCount = Math.min(MAX_REVIEW_COUNT, reviewCountForRecord(state) + 1);
   const next = {
     ...state,
     status: rating,
@@ -901,6 +922,7 @@ function gradeReviewMemory(
     sameDayLapses,
     lapseDayKey: rating === "unknown" ? today : null,
     updatedAt: Math.max(now, (state.updatedAt ?? state.lastReviewedAt ?? 0) + 1),
+    reviewCount,
     fsrs: fsrsSnapshotFromCard(result.card),
   };
   return {
@@ -918,6 +940,7 @@ function gradeMemory(
   const today = dayKey(now);
   const sameDayLapses = state.lapseDayKey === today ? state.sameDayLapses : 0;
   const updatedAt = Math.max(now, (state.updatedAt ?? state.lastReviewedAt ?? 0) + 1);
+  const reviewCount = Math.min(MAX_REVIEW_COUNT, reviewCountForRecord(state) + 1);
 
   if (rating === "unknown") {
     const failures = sameDayLapses + 1;
@@ -940,6 +963,7 @@ function gradeMemory(
         sameDayLapses: failures,
         lapseDayKey: today,
         updatedAt,
+        reviewCount,
       },
       dueLabel: failures === 1 ? "10 分钟后" : failures === 2 ? "30 分钟后" : "明天",
     };
@@ -960,6 +984,7 @@ function gradeMemory(
         sameDayLapses,
         lapseDayKey: sameDayLapses > 0 ? today : null,
         updatedAt,
+        reviewCount,
       },
       dueLabel: days === 1 ? "明天" : `${days} 天后`,
     };
@@ -979,6 +1004,7 @@ function gradeMemory(
       sameDayLapses: 0,
       lapseDayKey: null,
       updatedAt,
+      reviewCount,
     },
     dueLabel: days === 1 ? "明天" : `${days} 天后`,
   };
@@ -1072,7 +1098,12 @@ function buildDailyQueue(state: LearningState, settings: AppSettings, now = Date
   const book = WORDS.filter((word) => isWordInBook(word, settings.level));
   const bookIds = new Set(book.map((word) => word.id));
   const due = Object.entries(state.records)
-    .filter(([id, record]) => bookIds.has(id) && record.lastReviewedAt !== null && record.dueAt <= now)
+    .filter(([id, record]) =>
+      bookIds.has(id) &&
+      record.lastReviewedAt !== null &&
+      record.dueAt <= now &&
+      !isMasteredRecord(record),
+    )
     .sort(([, a], [, b]) => {
       const bucketA = a.stage === 0 ? 0 : 1;
       const bucketB = b.stage === 0 ? 0 : 1;
@@ -1296,6 +1327,23 @@ function ArticleTerm({ term }: { term: string }) {
   );
 }
 
+function ReviewDots({ record }: { record: MemoryRecord | undefined }) {
+  const count = reviewCountForRecord(record);
+  const mastered = count >= MAX_REVIEW_COUNT;
+  return (
+    <span
+      className={`review-dots${mastered ? " mastered" : ""}`}
+      role="img"
+      aria-label={mastered ? "已熟记，复习 3 次" : `已复习 ${count} 次，共 3 次`}
+      title={mastered ? "已熟记，不再进入复习队列" : `已复习 ${count} 次，共 3 次`}
+    >
+      {Array.from({ length: MAX_REVIEW_COUNT }, (_, index) => (
+        <i className={index < count ? "is-filled" : ""} key={index} aria-hidden="true" />
+      ))}
+    </span>
+  );
+}
+
 export default function Home() {
   const [ready, setReady] = useState(false);
   const [wordbookRevision, setWordbookRevision] = useState(0);
@@ -1327,7 +1375,7 @@ export default function Home() {
   const [planDirty, setPlanDirty] = useState(false);
   const [queueUnavailable, setQueueUnavailable] = useState(false);
   const [clock, setClock] = useState(0);
-  const [libraryFilter, setLibraryFilter] = useState<"all" | RecallStatus>("all");
+  const [masteredDrawerOpen, setMasteredDrawerOpen] = useState(false);
   const [libraryQuery, setLibraryQuery] = useState("");
   const [libraryVisibleCount, setLibraryVisibleCount] = useState(LIBRARY_PAGE_SIZE);
   const [reviewVisibleCount, setReviewVisibleCount] = useState(REVIEW_PAGE_SIZE);
@@ -1390,7 +1438,9 @@ export default function Home() {
     setSessionQueue(uniqueIds);
     setSessionWordIds(uniqueIds);
     setSessionRatings(uniqueIds.map(() => null));
-    setSessionMasteryPoints(Object.fromEntries(uniqueIds.map((id) => [id, 0])));
+    setSessionMasteryPoints(Object.fromEntries(
+      uniqueIds.map((id) => [id, reviewCountForRecord(learningRef.current.records[id])]),
+    ));
     setSessionLastRatings({});
     setSessionRound(1);
     setSessionPhase("study");
@@ -2038,7 +2088,7 @@ export default function Home() {
     () =>
       bookWords.filter((word) => {
         const record = learning.records[word.id];
-        return record?.lastReviewedAt !== null && record?.dueAt <= clock;
+        return record?.lastReviewedAt !== null && record?.dueAt <= clock && !isMasteredRecord(record);
       }).sort(
         (a, b) =>
           (learning.records[a.id]?.dueAt ?? 0) - (learning.records[b.id]?.dueAt ?? 0),
@@ -2070,19 +2120,10 @@ export default function Home() {
       .map(({ word }) => word),
     [libraryQueryTokens, librarySearchIndex],
   );
-  const librarySearchCounts = useMemo(() => {
-    const next = { unknown: 0, fuzzy: 0, known: 0 };
-    librarySearchMatches.forEach((word) => {
-      next[learning.records[word.id]?.status ?? "unknown"] += 1;
-    });
-    return next;
-  }, [learning.records, librarySearchMatches]);
-  const libraryWords = useMemo(
-    () => librarySearchMatches.filter(
-      (word) => libraryFilter === "all" ||
-        (learning.records[word.id]?.status ?? "unknown") === libraryFilter,
-    ),
-    [learning.records, libraryFilter, librarySearchMatches],
+  const libraryWords = librarySearchMatches;
+  const masteredWords = useMemo(
+    () => bookWords.filter((word) => isMasteredRecord(learning.records[word.id])),
+    [bookWords, learning.records],
   );
   const dictionaryLinks = useMemo(
     () => dictionaryWord ? buildDictionaryLinks(dictionaryWord.term) : [],
@@ -2134,6 +2175,15 @@ export default function Home() {
     observer.observe(target);
     return () => observer.disconnect();
   }, [reviewVisibleCount, reviewWords.length, view]);
+
+  useEffect(() => {
+    if (!masteredDrawerOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMasteredDrawerOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [masteredDrawerOpen]);
 
   const activeQueueGoal = learning.todayQueueLevel === settings.level
     ? (learning.todayQueueGoal ?? settings.queuesPerDay)
@@ -2336,12 +2386,7 @@ export default function Home() {
       todayReviewEventIds: reviewEvents,
     });
     setLearning(nextState);
-    const nextMasteryPoints =
-      rating === "known"
-        ? Math.min(3, currentMasteryPoints + 1)
-        : rating === "fuzzy"
-          ? Math.max(0, currentMasteryPoints - 1)
-          : 0;
+    const nextMasteryPoints = reviewCountForRecord(next);
     const nextPoints = { ...sessionMasteryPoints, [currentWord.id]: nextMasteryPoints };
     setSessionLastRatings((ratings) => ({ ...ratings, [currentWord.id]: rating }));
 
@@ -2351,7 +2396,7 @@ export default function Home() {
       setSessionRatings(nextRatings);
       setSessionMasteryPoints((points) => ({
         ...points,
-        [currentWord.id]: rating === "known" ? 3 : 0,
+        [currentWord.id]: nextMasteryPoints,
       }));
       setFeedback(options.feedbackText ?? `${STATUS_META[rating].label} · 已记录，下次 ${dueLabel}`);
       setGrading(false);
@@ -2390,14 +2435,10 @@ export default function Home() {
       setSessionRatings(nextRatings);
       setFeedback(options.feedbackText ?? (
         nextMasteryPoints >= 3
-          ? options.mode === "choice" ? "选择正确 · 三个光点已集齐" : "已知 · 三个光点已集齐"
+          ? options.mode === "choice" ? "选择完成 · 三个复习点已集齐" : "已熟记 · 三个复习点已集齐"
           : options.mode === "choice"
-            ? rating === "unknown"
-              ? "选择错误 · 本轮结束后再来一次"
-              : `选择正确 · 光点 ${nextMasteryPoints} / 3`
-            : rating === "known"
-              ? `已知 · 光点 ${nextMasteryPoints} / 3`
-              : `${STATUS_META[rating].label} · 下一轮再来一次`
+            ? `选择完成 · 复习点 ${nextMasteryPoints} / 3`
+            : `已记录 · 复习点 ${nextMasteryPoints} / 3，本组稍后重现`
       ));
       setGrading(true);
 
@@ -2445,10 +2486,8 @@ export default function Home() {
     setSessionRatings(nextRatings);
     setFeedback(options.feedbackText ?? (
       nextMasteryPoints >= 3
-        ? `已知 · 三个光点已集齐，下次 ${dueLabel}`
-        : rating === "unknown"
-          ? `未知 · 光点已清空，本组稍后重现`
-          : `${STATUS_META[rating].label} · 光点 ${nextMasteryPoints} / 3，本组稍后重现`
+        ? `已熟记 · 三个复习点已集齐，下次 ${dueLabel}`
+        : `已记录 · 复习点 ${nextMasteryPoints} / 3，本组稍后重现`
     ));
     setGrading(true);
 
@@ -2478,7 +2517,7 @@ export default function Home() {
     hasLocalInteractionRef.current = true;
     const nextSpeedPoints = {
       ...sessionMasteryPoints,
-      [currentWord.id]: currentSessionRating === "known" ? 3 : 0,
+      [currentWord.id]: reviewCountForRecord(learningRef.current.records[currentWord.id]),
     };
     if (currentIndex + 1 >= sessionQueue.length) {
       const remainingIds = sessionUniqueIds.filter((id) => (nextSpeedPoints[id] ?? 0) < 3);
@@ -2504,7 +2543,7 @@ export default function Home() {
       allowUnrevealed: true,
       mode: "choice",
       transitionDelay: 1000,
-      feedbackText: correct ? "选择正确 · 获得一个光点" : "选择错误 · 已按未知记录，光点清零",
+      feedbackText: correct ? "选择正确 · 获得一个复习点" : "选择错误 · 已记录一个复习点",
     });
   }
 
@@ -2513,6 +2552,7 @@ export default function Home() {
     source: "daily" | "review" | "manual" = "manual",
   ) {
     clearTransitionTimer();
+    setMasteredDrawerOpen(false);
     hasLocalInteractionRef.current = true;
     if (source !== "daily") setReturnView(view);
     if (source === "daily") setPlanDirty(false);
@@ -2651,7 +2691,7 @@ export default function Home() {
     setRevealed(false);
     setGrading(false);
     setFeedback(null);
-    setLibraryFilter("all");
+    setMasteredDrawerOpen(false);
     setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
     setReviewVisibleCount(REVIEW_PAGE_SIZE);
     setSettingsNotice("学习进度已清空，正在同步到所有设备");
@@ -2680,6 +2720,7 @@ export default function Home() {
   function switchView(nextView: View) {
     if (nextView === "library") setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
     if (nextView === "review") setReviewVisibleCount(REVIEW_PAGE_SIZE);
+    if (nextView !== "library") setMasteredDrawerOpen(false);
     const shouldRestoreDaily = nextView === "learn" && (
       queueSource !== "daily" ||
       (view !== "learn" && !sessionQueue.length) ||
@@ -2939,7 +2980,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta2.4</span>
+          <span className="brand-version">beta2.5</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -3396,14 +3437,19 @@ export default function Home() {
               </button>
             </div>
             <div className="due-list paper-panel">
-              <div className="list-header"><span>单词</span><span>状态</span><span>上次结果</span><span>下次出现</span></div>
+              <div className="list-header"><span>单词</span><span>复习次数</span><span>上次结果</span><span>下次出现</span></div>
               {reviewWords.slice(0, reviewVisibleCount).map((word) => {
                 const record = learning.records[word.id];
-                const status = record?.status ?? "unknown";
+                const mastered = isMasteredRecord(record);
                 return (
-                  <button className="due-row" key={word.id} onClick={() => startQueue([word.id], "review")}>
+                  <button
+                    className={`due-row${mastered ? " mastered" : ""}`}
+                    key={word.id}
+                    disabled={mastered}
+                    onClick={() => startQueue([word.id], "review")}
+                  >
                     <span><strong><ArticleTerm term={word.term} /></strong><small>{word.meaning}</small></span>
-                    <span className={`status-pill ${status}`}>{STATUS_META[status].label}</span>
+                    <ReviewDots record={record} />
                     <span>{record ? `${record.intervalDays || "<1"} 天间隔` : "新词"}</span>
                     <span>{record ? formatDate(record.dueAt) : "尚未学习"}</span>
                   </button>
@@ -3420,22 +3466,16 @@ export default function Home() {
           <section className="secondary-page">
             <div className="page-heading library-heading">
               <div><p className="kicker">Wortschatz · {settings.level} {LEVEL_META[settings.level].title}</p><h1>你的词，分得清才记得住。</h1></div>
-              <div className="filter-tabs" aria-label="按掌握状态筛选">
-                {(["all", "unknown", "fuzzy", "known"] as const).map((filter) => (
-                  <button
-                    key={filter}
-                    className={libraryFilter === filter ? "active" : ""}
-                    onClick={() => {
-                      setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
-                      setLibraryFilter(filter);
-                    }}
-                    aria-pressed={libraryFilter === filter}
-                  >
-                    {filter === "all" ? "全部" : STATUS_META[filter].label}
-                    <span>{filter === "all" ? librarySearchMatches.length : librarySearchCounts[filter]}</span>
-                  </button>
-                ))}
-              </div>
+              <button
+                className={`mastered-library-trigger${masteredDrawerOpen ? " active" : ""}`}
+                type="button"
+                onClick={() => setMasteredDrawerOpen(true)}
+                aria-haspopup="dialog"
+                aria-expanded={masteredDrawerOpen}
+              >
+                <span>已熟记词库</span>
+                <strong>{masteredWords.length}</strong>
+              </button>
             </div>
             <div className="library-search-tools">
               <div className="library-search" role="search">
@@ -3481,10 +3521,10 @@ export default function Home() {
             {libraryWords.length ? (
               <div className="word-library-grid">
                 {libraryWords.slice(0, libraryVisibleCount).map((word, index) => {
-                  const status = learning.records[word.id]?.status ?? "unknown";
+                  const record = learning.records[word.id];
                   return (
                     <article className="library-card" key={word.id}>
-                      <div className="library-card-top"><span className="folio">{String(index + 1).padStart(2, "0")}</span><span className={`status-pill ${status}`}>{STATUS_META[status].label}</span></div>
+                      <div className="library-card-top"><span className="folio">{String(index + 1).padStart(2, "0")}</span><ReviewDots record={record} /></div>
                       <p className="word-type">{word.type}</p>
                       <h2>
                         <button
@@ -3509,23 +3549,67 @@ export default function Home() {
                 <span aria-hidden="true">0</span>
                 <div>
                   <p className="kicker">Keine Treffer · 暂无结果</p>
-                  <h2>{libraryQueryTokens.length ? `没有找到“${libraryQuery.trim()}”` : "当前筛选下没有单词"}</h2>
-                  <p>试试中文释义、德语原形、名词复数或动词变位，也可以清空掌握状态筛选。</p>
+                  <h2>{libraryQueryTokens.length ? `没有找到“${libraryQuery.trim()}”` : "当前词库没有单词"}</h2>
+                  <p>试试中文释义、德语原形、名词复数或动词变位，也可以清空检索。</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
                     setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
                     if (libraryQueryTokens.length) setLibraryQuery("");
-                    else setLibraryFilter("all");
                   }}
                 >
-                  {libraryQueryTokens.length ? "清空检索" : "查看全部单词"}
+                  清空检索
                 </button>
               </div>
             )}
             {libraryVisibleCount < libraryWords.length && (
               <div className="incremental-list-sentinel" ref={libraryLoadMoreRef} aria-hidden="true" />
+            )}
+            {masteredDrawerOpen && (
+              <>
+                <button
+                  className="mastered-drawer-backdrop"
+                  type="button"
+                  aria-label="关闭已熟记词库"
+                  onClick={() => setMasteredDrawerOpen(false)}
+                />
+                <aside className="mastered-drawer" role="dialog" aria-modal="true" aria-label="已熟记词库">
+                  <div className="mastered-drawer-header">
+                    <div>
+                      <p className="kicker">DAS ARCHIV · {settings.level}</p>
+                      <h2>已熟记词库</h2>
+                      <p>三颗金色光点代表已经熟记，不再进入自动复习队列。</p>
+                    </div>
+                    <button
+                      className="mastered-drawer-close"
+                      type="button"
+                      onClick={() => setMasteredDrawerOpen(false)}
+                      aria-label="关闭已熟记词库"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="mastered-drawer-list">
+                    {masteredWords.length ? masteredWords.map((word, index) => (
+                      <article className="mastered-drawer-row" key={word.id}>
+                        <span className="folio">{String(index + 1).padStart(2, "0")}</span>
+                        <div>
+                          <strong><ArticleTerm term={word.term} /></strong>
+                          <span>{word.meaning}</span>
+                        </div>
+                        <ReviewDots record={learning.records[word.id]} />
+                        <button type="button" onClick={() => startQueue([word.id], "manual")}>单独学习</button>
+                      </article>
+                    )) : (
+                      <div className="mastered-drawer-empty">
+                        <strong>还没有已熟记的词</strong>
+                        <span>完成三次复习后，单词会自动收进这里。</span>
+                      </div>
+                    )}
+                  </div>
+                </aside>
+              </>
             )}
           </section>
         )}

@@ -24,6 +24,7 @@ export type CloudMemoryRecord = {
   sameDayLapses: number;
   lapseDayKey: string | null;
   updatedAt: number;
+  reviewCount?: number;
   fsrs?: FsrsMemorySnapshot;
 };
 
@@ -117,6 +118,10 @@ function isFsrsMemorySnapshot(value: unknown): value is FsrsMemorySnapshot {
     (value.lastReviewAt === null || isFiniteNumber(value.lastReviewAt));
 }
 
+function isReviewCount(value: unknown): value is number {
+  return isFiniteNumber(value) && value >= 0;
+}
+
 export function packMemoryRecords(
   records: Record<string, CloudMemoryRecord>,
 ): PackedMemoryRecord[] {
@@ -132,7 +137,12 @@ export function packMemoryRecords(
     record.sameDayLapses,
     record.lapseDayKey ?? "",
     record.updatedAt,
-    record.fsrs ? JSON.stringify(record.fsrs) : "",
+    record.reviewCount === undefined && !record.fsrs
+      ? ""
+      : JSON.stringify({
+        ...(record.reviewCount === undefined ? {} : { reviewCount: record.reviewCount }),
+        ...(record.fsrs ? { fsrs: record.fsrs } : {}),
+      }),
   ]);
 }
 
@@ -154,13 +164,22 @@ export function unpackMemoryRecords(
       lapseDayKey,
       updatedAt,
     ] = packed;
+    let reviewCount: number | undefined;
     let fsrs: FsrsMemorySnapshot | undefined;
     const fsrsJson = packed[11];
     if (typeof fsrsJson === "string" && fsrsJson) {
       try {
         const parsed = JSON.parse(fsrsJson) as unknown;
-        if (isFsrsMemorySnapshot(parsed)) fsrs = parsed;
+        if (isFsrsMemorySnapshot(parsed)) {
+          // Schema v2 records written before reviewCount used this slot for
+          // the raw FSRS snapshot. Keep accepting that wire format.
+          fsrs = parsed;
+        } else if (isObject(parsed)) {
+          if (isReviewCount(parsed.reviewCount)) reviewCount = Math.floor(parsed.reviewCount);
+          if (isFsrsMemorySnapshot(parsed.fsrs)) fsrs = parsed.fsrs;
+        }
       } catch {
+        reviewCount = undefined;
         fsrs = undefined;
       }
     }
@@ -175,6 +194,7 @@ export function unpackMemoryRecords(
       sameDayLapses,
       lapseDayKey: lapseDayKey || null,
       updatedAt,
+      ...(reviewCount === undefined ? {} : { reviewCount }),
       ...(fsrs ? { fsrs } : {}),
     };
   });
