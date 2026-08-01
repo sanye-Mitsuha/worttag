@@ -2080,11 +2080,16 @@ export default function Home() {
     }, 680);
   }
 
-  function offerSpelling(nextState: LearningState, transitionDelay = 620) {
+  function offerSpelling(
+    nextState: LearningState,
+    transitionDelay = 620,
+    points?: Record<string, number>,
+  ) {
     pendingCompletionStateRef.current = nextState;
     clearTransitionTimer();
     transitionTimerRef.current = window.setTimeout(() => {
       transitionTimerRef.current = null;
+      if (points) setSessionMasteryPoints(points);
       setFeedback(null);
       setRevealed(false);
       setSelectedChoiceId(null);
@@ -2170,7 +2175,6 @@ export default function Home() {
           ? Math.max(0, currentMasteryPoints - 1)
           : 0;
     const nextPoints = { ...sessionMasteryPoints, [currentWord.id]: nextMasteryPoints };
-    setSessionMasteryPoints(nextPoints);
     setSessionLastRatings((ratings) => ({ ...ratings, [currentWord.id]: rating }));
 
     // Multiple-choice recall is round based: each word appears once in the
@@ -2199,7 +2203,7 @@ export default function Home() {
         const remainingIds = sessionUniqueIds.filter((id) => (nextPoints[id] ?? 0) < 3);
         clearTransitionTimer();
         if (!remainingIds.length) {
-          offerSpelling(nextState, options.transitionDelay);
+          offerSpelling(nextState, options.transitionDelay, nextPoints);
           return;
         }
         const nextRound = sessionRound + 1;
@@ -2213,6 +2217,7 @@ export default function Home() {
       clearTransitionTimer();
       transitionTimerRef.current = window.setTimeout(() => {
         transitionTimerRef.current = null;
+        setSessionMasteryPoints(nextPoints);
         setCurrentIndex((index) => index + 1);
         setRevealed(false);
         setSelectedChoiceId(null);
@@ -2222,6 +2227,7 @@ export default function Home() {
       return;
     }
 
+    setSessionMasteryPoints(nextPoints);
     const shouldRepeat = nextMasteryPoints < 3;
     const nextQueue = [...sessionQueue];
     const nextRatings = [...sessionRatings];
@@ -2244,7 +2250,7 @@ export default function Home() {
     setGrading(true);
 
     if (currentIndex + 1 >= nextQueue.length) {
-      offerSpelling(nextState, options.transitionDelay);
+      offerSpelling(nextState, options.transitionDelay, nextPoints);
       return;
     }
 
@@ -2266,7 +2272,7 @@ export default function Home() {
     rateCurrent(correct ? "known" : "unknown", {
       allowUnrevealed: true,
       mode: "choice",
-      transitionDelay: correct ? 760 : 2000,
+      transitionDelay: 1000,
       feedbackText: correct ? "选择正确 · 获得一个光点" : "选择错误 · 已按未知记录，光点清零",
     });
   }
@@ -2666,7 +2672,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta1.3</span>
+          <span className="brand-version">beta1.4</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -2874,7 +2880,7 @@ export default function Home() {
                           <div className={selectedChoiceId === currentWord.id ? "choice-auto-result correct" : "choice-auto-result incorrect"} role="status">
                             <strong>{selectedChoiceId === currentWord.id ? "选择正确 · 光点 +1" : "正确词义"}</strong>
                             <span>{currentWord.meaning}</span>
-                            {selectedChoiceId !== currentWord.id && <small>2 秒后自动进入下一个单词</small>}
+                            {selectedChoiceId !== currentWord.id && <small>1 秒后自动进入下一个单词</small>}
                           </div>
                         ) : (
                           <p className="choice-instruction">本轮按顺序每词一次；答错会在下一轮再出现</p>
