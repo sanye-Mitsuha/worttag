@@ -54,3 +54,15 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
     "reviewed packed meanings must not be replaced by global homograph hints",
   );
 });
+
+test("keeps the simplified learning and dictionary layouts", async () => {
+  const [page, , css] = await readAppSources();
+
+  assert.doesNotMatch(page, /className="explanation-grid"/);
+  assert.doesNotMatch(page, /className="memory-note"/);
+  assert.doesNotMatch(page, /className="dwds-evidence"/);
+  assert.doesNotMatch(page, /dictionary-grammar-title/);
+  assert.match(page, /中文释义 <span>Worttag 课程释义<\/span>/);
+  assert.match(css, /\.settings-plan-column > \*/);
+  assert.match(css, /\.order-settings,\s*\.experience-settings/);
+});

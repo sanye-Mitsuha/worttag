@@ -1068,35 +1068,6 @@ blockquote footer {
   font-size: 14px;
 }
 
-.explanation-grid {
-  display: grid;
-  grid-template-columns: 1.35fr 1fr;
-  gap: 12px;
-}
-
-.explanation-grid article {
-  padding: 14px 16px;
-  border: 1px solid #d4c7aa;
-  background: rgb(242 235 218 / 0.66);
-}
-
-.explanation-grid h3 {
-  margin: 7px 0 5px;
-  font: 700 17px/1.3 var(--serif);
-}
-
-.explanation-grid p {
-  margin: 0;
-  color: var(--ink-soft);
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-.memory-note {
-  border-color: #c6d0bf !important;
-  background: rgb(220 227 212 / 0.62) !important;
-}
-
 .rating-area {
   margin-top: 19px;
 }
@@ -2393,15 +2364,21 @@ blockquote footer {
 .settings-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  align-items: start;
+  align-items: stretch;
   gap: 18px;
 }
 
 .settings-plan-column {
+  width: 100%;
   min-width: 0;
   display: grid;
   align-content: start;
   gap: 18px;
+}
+
+.settings-plan-column > * {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .settings-card {
@@ -2774,6 +2751,11 @@ fieldset.settings-card {
   display: grid;
   gap: 16px;
   overflow: hidden;
+}
+
+.order-settings,
+.experience-settings {
+  height: 100%;
 }
 
 .forecast-heading {
@@ -3432,8 +3414,9 @@ fieldset.settings-card {
 }
 
 .dictionary-section-label > span {
-  display: inline-block;
-  margin-left: 5px;
+  width: max-content;
+  display: block;
+  margin: 4px 0 0;
   padding: 2px 5px;
   border: 1px solid color-mix(in srgb, var(--brick) 40%, transparent);
   border-radius: 999px;
@@ -3584,7 +3567,7 @@ fieldset.settings-card {
 
 .dictionary-evidence-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(255px, 0.75fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 
@@ -3661,35 +3644,6 @@ fieldset.settings-card {
   line-height: 1.65;
 }
 
-.dwds-evidence dl {
-  display: grid;
-  gap: 0;
-  margin: 13px 0 0;
-}
-
-.dwds-evidence dl > div {
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
-  gap: 9px;
-  padding: 8px 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--line) 65%, transparent);
-}
-
-.dwds-evidence dt {
-  color: var(--brick);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
-.dwds-evidence dd {
-  min-width: 0;
-  margin: 0;
-  overflow-wrap: anywhere;
-  font: 600 13px/1.4 var(--serif);
-}
-
 .dictionary-license {
   margin: 13px 0 0;
   color: var(--ink-soft);
@@ -3709,7 +3663,7 @@ fieldset.settings-card {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   padding: 22px 0;
 }
@@ -3738,18 +3692,6 @@ fieldset.settings-card {
   color: var(--ink-soft);
   font-size: 13px;
   line-height: 1.6;
-}
-
-.dictionary-detail-grid h3 {
-  margin: 13px 0 7px;
-  font: 600 19px/1.35 var(--serif);
-}
-
-.dictionary-detail-grid > section > p:last-child {
-  margin: 0;
-  color: var(--ink-soft);
-  font-size: 13px;
-  line-height: 1.7;
 }
 
 .dictionary-sources {
@@ -4251,11 +4193,6 @@ html[data-theme="dark"] .progress-stat-grid article > span {
   color: #aab3ab;
 }
 
-html[data-theme="dark"] .explanation-grid article {
-  border-color: #4b594f;
-  background: rgb(42 53 47 / 0.78);
-}
-
 html[data-theme="dark"] .meaning-option,
 html[data-theme="dark"] .recall-example,
 html[data-theme="dark"] .spelling-form input {
@@ -4275,11 +4212,6 @@ html[data-theme="dark"] .meaning-option.correct-answer {
 
 html[data-theme="dark"] .meaning-option.incorrect-answer {
   background: rgb(164 73 62 / 0.2);
-}
-
-html[data-theme="dark"] .memory-note {
-  border-color: #476555 !important;
-  background: rgb(39 61 49 / 0.72) !important;
 }
 
 html[data-theme="dark"] .rhythm-card,
@@ -4713,7 +4645,6 @@ html[data-theme="dark"] .warning-note {
     font-size: 42px;
   }
 
-  .explanation-grid,
   .rating-buttons,
   .meaning-options,
   .insight-column,

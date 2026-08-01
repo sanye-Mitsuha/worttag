@@ -2815,17 +2815,6 @@ export default function Home() {
                         <p>{currentWord.example}</p>
                         {settings.showTranslation && <footer>{currentWord.exampleZh}</footer>}
                       </blockquote>
-                      <div className="explanation-grid">
-                        <article>
-                          <span className="note-label">语法与搭配</span>
-                          <h3>{currentWord.grammarTitle}</h3>
-                          <p>{currentWord.grammar}</p>
-                        </article>
-                        <article className="memory-note">
-                          <span className="note-label">记忆提示</span>
-                          <p>{currentWord.memory}</p>
-                        </article>
-                      </div>
                       <div className="rating-area">
                         <p>光点规则：已知 +1 · 模糊 −1 · 未知清零</p>
                         <div className="rating-buttons">
@@ -3381,7 +3370,7 @@ export default function Home() {
               <div className="dictionary-evidence-heading">
                 <div>
                   <p className="dictionary-section-label">德语原文证据</p>
-                  <h3 id="dictionary-evidence-title">开放词典释义与 DWDS 收录</h3>
+                  <h3 id="dictionary-evidence-title">开放词典德语释义</h3>
                 </div>
                 {dictionaryEvidenceStatus === "success" && <span className="evidence-state">证据已载入</span>}
               </div>
@@ -3390,7 +3379,7 @@ export default function Home() {
                 <div className="dictionary-evidence-loading" role="status">
                   <span aria-hidden="true" />
                   <span aria-hidden="true" />
-                  <p>正在查询开放德语词典与 DWDS 收录证据…</p>
+                  <p>正在查询开放德语词典释义…</p>
                 </div>
               )}
 
@@ -3438,32 +3427,6 @@ export default function Home() {
                     </p>
                   </article>
 
-                  <article className="dwds-evidence">
-                    <div className="evidence-card-heading">
-                      <div>
-                        <strong>DWDS</strong>
-                        <span>德语词汇信息系统</span>
-                      </div>
-                      <span className={dictionaryEvidence.dwds.found ? "evidence-found" : "evidence-empty"}>
-                        {dictionaryEvidence.dwds.found ? "已收录" : "无直接证据"}
-                      </span>
-                    </div>
-                    {dictionaryEvidence.dwds.found ? (
-                      <dl>
-                        <div><dt>词头</dt><dd lang="de">{dictionaryEvidence.dwds.lemma ?? dictionaryEvidence.headword}</dd></div>
-                        <div><dt>词类</dt><dd>{dictionaryEvidence.dwds.wordClass ?? "以原站词条为准"}</dd></div>
-                      </dl>
-                    ) : (
-                      <p className="dictionary-evidence-empty">
-                        DWDS 接口暂未返回直接收录证据，可前往原站继续查询。
-                      </p>
-                    )}
-                    <p className="dictionary-license">
-                      此处仅显示收录、词头与词类证据；完整内容请查阅
-                      {" "}
-                      <a href={dictionaryEvidence.dwds.sourceUrl} target="_blank" rel="noreferrer">DWDS 原站 ↗</a>
-                    </p>
-                  </article>
                 </div>
               )}
             </section>
@@ -3475,11 +3438,6 @@ export default function Home() {
                   <p lang="de">{dictionaryWord.example}</p>
                   <footer>{dictionaryWord.exampleZh}</footer>
                 </blockquote>
-              </section>
-              <section aria-labelledby="dictionary-grammar-title">
-                <p className="dictionary-section-label" id="dictionary-grammar-title">语法与搭配</p>
-                <h3>{dictionaryWord.grammarTitle}</h3>
-                <p>{dictionaryWord.grammar}</p>
               </section>
             </div>
 
