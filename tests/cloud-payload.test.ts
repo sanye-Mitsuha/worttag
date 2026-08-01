@@ -22,6 +22,7 @@ function memoryRecord(index: number): CloudMemoryRecord {
     sameDayLapses: index % 4,
     lapseDayKey: index % 7 === 0 ? null : "2026-07-22",
     updatedAt: 1_760_000_000_000 + index,
+    studyPoints: index % 4,
     reviewCount: index % 4,
   };
   if (index === 0) {

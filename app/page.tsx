@@ -96,6 +96,7 @@ type MemoryRecord = {
   sameDayLapses: number;
   lapseDayKey: string | null;
   updatedAt: number;
+  studyPoints?: number;
   reviewCount?: number;
   fsrs?: FsrsMemorySnapshot;
 };
@@ -696,16 +697,32 @@ function reviewCountForRecord(record: MemoryRecord | undefined) {
   if (typeof record.reviewCount === "number" && Number.isFinite(record.reviewCount)) {
     return Math.min(MAX_REVIEW_COUNT, Math.max(0, Math.floor(record.reviewCount)));
   }
-  // Migrate records created before reviewCount existed. FSRS repetitions are
-  // the closest exact signal; the older mastery stage is a safe fallback.
+  // FSRS repetitions are the closest exact signal for review records.
   return Math.min(
     MAX_REVIEW_COUNT,
-    Math.max(0, record.fsrs?.reps ?? 0, record.stage ?? 0, record.knownStreak ?? 0),
+    Math.max(0, record.fsrs?.reps ?? 0),
   );
 }
 
+function studyPointsForRecord(record: MemoryRecord | undefined) {
+  if (!record) return 0;
+  if (typeof record.studyPoints === "number" && Number.isFinite(record.studyPoints)) {
+    return Math.min(MAX_REVIEW_COUNT, Math.max(0, Math.floor(record.studyPoints)));
+  }
+  // Records from before studyPoints existed used reviewCount for the study
+  // loop. Keep those points green, but never treat them as review mastery.
+  if (!record.fsrs && typeof record.reviewCount === "number" && Number.isFinite(record.reviewCount)) {
+    return Math.min(MAX_REVIEW_COUNT, Math.max(0, Math.floor(record.reviewCount)));
+  }
+  return 0;
+}
+
 function isMasteredRecord(record: MemoryRecord | undefined) {
-  return reviewCountForRecord(record) >= MAX_REVIEW_COUNT;
+  return Boolean(record?.fsrs) && reviewCountForRecord(record) >= MAX_REVIEW_COUNT;
+}
+
+function clampMasteryPoints(value: number) {
+  return Math.min(MAX_REVIEW_COUNT, Math.max(0, Math.floor(value)));
 }
 
 function createInitialState(now = Date.now()): LearningState {
@@ -820,6 +837,7 @@ function freshMemory(): MemoryRecord {
     sameDayLapses: 0,
     lapseDayKey: null,
     updatedAt: 0,
+    studyPoints: 0,
     reviewCount: 0,
   };
 }
@@ -946,7 +964,8 @@ function gradeMemory(
   const today = dayKey(now);
   const sameDayLapses = state.lapseDayKey === today ? state.sameDayLapses : 0;
   const updatedAt = Math.max(now, (state.updatedAt ?? state.lastReviewedAt ?? 0) + 1);
-  const reviewCount = Math.min(MAX_REVIEW_COUNT, reviewCountForRecord(state) + 1);
+  const studyPoints = Math.min(MAX_REVIEW_COUNT, studyPointsForRecord(state) + 1);
+  const reviewCount = state.fsrs ? reviewCountForRecord(state) : undefined;
 
   if (rating === "unknown") {
     const failures = sameDayLapses + 1;
@@ -969,6 +988,7 @@ function gradeMemory(
         sameDayLapses: failures,
         lapseDayKey: today,
         updatedAt,
+        studyPoints,
         reviewCount,
       },
       dueLabel: failures === 1 ? "10 分钟后" : failures === 2 ? "30 分钟后" : "明天",
@@ -990,6 +1010,7 @@ function gradeMemory(
         sameDayLapses,
         lapseDayKey: sameDayLapses > 0 ? today : null,
         updatedAt,
+        studyPoints,
         reviewCount,
       },
       dueLabel: days === 1 ? "明天" : `${days} 天后`,
@@ -1010,6 +1031,7 @@ function gradeMemory(
       sameDayLapses: 0,
       lapseDayKey: null,
       updatedAt,
+      studyPoints,
       reviewCount,
     },
     dueLabel: days === 1 ? "明天" : `${days} 天后`,
@@ -1333,18 +1355,28 @@ function ArticleTerm({ term }: { term: string }) {
   );
 }
 
-function ReviewDots({ record, className = "" }: { record: MemoryRecord | undefined; className?: string }) {
-  const count = reviewCountForRecord(record);
-  const mastered = count >= MAX_REVIEW_COUNT;
+function ReviewDots({
+  record,
+  count,
+  showMasteredGold = true,
+  className = "",
+}: {
+  record: MemoryRecord | undefined;
+  count?: number;
+  showMasteredGold?: boolean;
+  className?: string;
+}) {
+  const resolvedCount = clampMasteryPoints(count ?? reviewCountForRecord(record));
+  const mastered = showMasteredGold && resolvedCount >= MAX_REVIEW_COUNT;
   return (
     <span
       className={`review-dots${mastered ? " mastered" : ""}${className ? ` ${className}` : ""}`}
       role="img"
-      aria-label={mastered ? "已熟记，复习 3 次" : `已复习 ${count} 次，共 3 次`}
-      title={mastered ? "已熟记，不再进入复习队列" : `已复习 ${count} 次，共 3 次`}
+      aria-label={mastered ? "已熟记，复习 3 次" : `已获得 ${resolvedCount} 个绿色光点，共 3 个`}
+      title={mastered ? "已熟记，不再进入复习队列" : `已获得 ${resolvedCount} 个绿色光点，共 3 个`}
     >
       {Array.from({ length: MAX_REVIEW_COUNT }, (_, index) => (
-        <i className={index < count ? "is-filled" : ""} key={index} aria-hidden="true" />
+        <i className={index < resolvedCount ? "is-filled" : ""} key={index} aria-hidden="true" />
       ))}
     </span>
   );
@@ -1467,13 +1499,18 @@ export default function Home() {
     });
   }
 
-  function resetSessionQueue(ids: string[]) {
+  function resetSessionQueue(ids: string[], source: "daily" | "review" | "manual" = "daily") {
     const uniqueIds = Array.from(new Set(ids));
     setSessionQueue(uniqueIds);
     setSessionWordIds(uniqueIds);
     setSessionRatings(uniqueIds.map(() => null));
     setSessionMasteryPoints(Object.fromEntries(
-      uniqueIds.map((id) => [id, reviewCountForRecord(learningRef.current.records[id])]),
+      uniqueIds.map((id) => [
+        id,
+        source === "review"
+          ? reviewCountForRecord(learningRef.current.records[id])
+          : studyPointsForRecord(learningRef.current.records[id]),
+      ]),
     ));
     setSessionLastRatings({});
     setSessionRound(1);
@@ -2420,7 +2457,9 @@ export default function Home() {
       todayReviewEventIds: reviewEvents,
     });
     setLearning(nextState);
-    const nextMasteryPoints = reviewCountForRecord(next);
+    const nextMasteryPoints = queueSource === "review"
+      ? reviewCountForRecord(next)
+      : studyPointsForRecord(next);
     const nextPoints = { ...sessionMasteryPoints, [currentWord.id]: nextMasteryPoints };
     setSessionLastRatings((ratings) => ({ ...ratings, [currentWord.id]: rating }));
 
@@ -2551,7 +2590,9 @@ export default function Home() {
     hasLocalInteractionRef.current = true;
     const nextSpeedPoints = {
       ...sessionMasteryPoints,
-      [currentWord.id]: reviewCountForRecord(learningRef.current.records[currentWord.id]),
+      [currentWord.id]: queueSource === "review"
+        ? reviewCountForRecord(learningRef.current.records[currentWord.id])
+        : studyPointsForRecord(learningRef.current.records[currentWord.id]),
     };
     if (currentIndex + 1 >= sessionQueue.length) {
       const remainingIds = sessionUniqueIds.filter((id) => (nextSpeedPoints[id] ?? 0) < 3);
@@ -2592,7 +2633,7 @@ export default function Home() {
     if (source === "daily") setPlanDirty(false);
     setQueueUnavailable(false);
     setQueueSource(source);
-    resetSessionQueue(ids);
+    resetSessionQueue(ids, source);
     setCurrentIndex(0);
     setRevealed(false);
     setFeedback(null);
@@ -3135,7 +3176,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta2.7</span>
+          <span className="brand-version">beta2.8</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -3278,7 +3319,12 @@ export default function Home() {
                         <div className={`queue-item ${itemStatus}${recallStatus ? ` recall-${recallStatus}` : ""}`} key={id}>
                           <span className="queue-dot" title={recallStatus ? STATUS_META[recallStatus].label : undefined}>{statusIcon}</span>
                           <span className="queue-name"><ArticleTerm term={word.term.replace(/^etwas\s+/, "")} /></span>
-                          <ReviewDots record={learning.records[word.id]} className="queue-review-dots" />
+                          <ReviewDots
+                            record={learning.records[word.id]}
+                            count={masteryPoints}
+                            showMasteredGold={queueSource === "review"}
+                            className="queue-review-dots"
+                          />
                         </div>
                       );
                     })}

@@ -24,6 +24,7 @@ export type CloudMemoryRecord = {
   sameDayLapses: number;
   lapseDayKey: string | null;
   updatedAt: number;
+  studyPoints?: number;
   reviewCount?: number;
   fsrs?: FsrsMemorySnapshot;
 };
@@ -122,6 +123,10 @@ function isReviewCount(value: unknown): value is number {
   return isFiniteNumber(value) && value >= 0;
 }
 
+function isStudyPoints(value: unknown): value is number {
+  return isFiniteNumber(value) && value >= 0;
+}
+
 export function packMemoryRecords(
   records: Record<string, CloudMemoryRecord>,
 ): PackedMemoryRecord[] {
@@ -137,10 +142,11 @@ export function packMemoryRecords(
     record.sameDayLapses,
     record.lapseDayKey ?? "",
     record.updatedAt,
-    record.reviewCount === undefined && !record.fsrs
+    record.studyPoints === undefined && record.reviewCount === undefined && !record.fsrs
       ? ""
       : JSON.stringify({
         ...(record.reviewCount === undefined ? {} : { reviewCount: record.reviewCount }),
+        ...(record.studyPoints === undefined ? {} : { studyPoints: record.studyPoints }),
         ...(record.fsrs ? { fsrs: record.fsrs } : {}),
       }),
   ]);
@@ -165,6 +171,7 @@ export function unpackMemoryRecords(
       updatedAt,
     ] = packed;
     let reviewCount: number | undefined;
+    let studyPoints: number | undefined;
     let fsrs: FsrsMemorySnapshot | undefined;
     const fsrsJson = packed[11];
     if (typeof fsrsJson === "string" && fsrsJson) {
@@ -176,10 +183,12 @@ export function unpackMemoryRecords(
           fsrs = parsed;
         } else if (isObject(parsed)) {
           if (isReviewCount(parsed.reviewCount)) reviewCount = Math.floor(parsed.reviewCount);
+          if (isStudyPoints(parsed.studyPoints)) studyPoints = Math.floor(parsed.studyPoints);
           if (isFsrsMemorySnapshot(parsed.fsrs)) fsrs = parsed.fsrs;
         }
       } catch {
         reviewCount = undefined;
+        studyPoints = undefined;
         fsrs = undefined;
       }
     }
@@ -194,6 +203,7 @@ export function unpackMemoryRecords(
       sameDayLapses,
       lapseDayKey: lapseDayKey || null,
       updatedAt,
+      ...(studyPoints === undefined ? {} : { studyPoints }),
       ...(reviewCount === undefined ? {} : { reviewCount }),
       ...(fsrs ? { fsrs } : {}),
     };
