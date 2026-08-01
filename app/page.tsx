@@ -697,11 +697,9 @@ function reviewCountForRecord(record: MemoryRecord | undefined) {
   if (typeof record.reviewCount === "number" && Number.isFinite(record.reviewCount)) {
     return Math.min(MAX_REVIEW_COUNT, Math.max(0, Math.floor(record.reviewCount)));
   }
-  // FSRS repetitions are the closest exact signal for review records.
-  return Math.min(
-    MAX_REVIEW_COUNT,
-    Math.max(0, record.fsrs?.reps ?? 0),
-  );
+  // FSRS repetitions include fuzzy and unknown attempts, so they are not
+  // mastery points. New review records always carry the explicit counter.
+  return 0;
 }
 
 function studyPointsForRecord(record: MemoryRecord | undefined) {
@@ -718,11 +716,40 @@ function studyPointsForRecord(record: MemoryRecord | undefined) {
 }
 
 function isMasteredRecord(record: MemoryRecord | undefined) {
-  return Boolean(record?.fsrs) && reviewCountForRecord(record) >= MAX_REVIEW_COUNT;
+  return record?.status === "known" && Boolean(record.fsrs) && reviewCountForRecord(record) >= MAX_REVIEW_COUNT;
 }
 
 function clampMasteryPoints(value: number) {
   return Math.min(MAX_REVIEW_COUNT, Math.max(0, Math.floor(value)));
+}
+
+function nextMasteryPointsForRating(current: number, rating: RecallStatus) {
+  const points = clampMasteryPoints(current);
+  if (rating === "known") return Math.min(MAX_REVIEW_COUNT, points + 1);
+  if (rating === "fuzzy") return Math.max(0, points - 1);
+  return 0;
+}
+
+function nextLearningStageForRating(current: number, rating: RecallStatus) {
+  if (rating === "unknown") return 0;
+  if (rating === "fuzzy") return Math.max(0, current - 1);
+  return Math.min(INTERVAL_DAYS.length - 1, current + 1);
+}
+
+function masteryFeedback(
+  rating: RecallStatus,
+  points: number,
+  dueLabel: string,
+) {
+  if (rating === "known") {
+    return points >= MAX_REVIEW_COUNT
+      ? `答对 · 三个金色光点已集齐，下次 ${dueLabel}`
+      : `答对 · 光点 ${points} / ${MAX_REVIEW_COUNT}，下次 ${dueLabel}`;
+  }
+  if (rating === "fuzzy") {
+    return `模糊 · 光点 ${points} / ${MAX_REVIEW_COUNT}，回到上一阶段，下次 ${dueLabel}`;
+  }
+  return `未知 · 光点清零，回到第一阶段，下次 ${dueLabel}`;
 }
 
 function createInitialState(now = Date.now()): LearningState {
@@ -933,11 +960,12 @@ function gradeReviewMemory(
     ? (state.lapseDayKey === today ? state.sameDayLapses : 0) + 1
     : 0;
   const scheduledDays = Math.max(0, Math.round(result.card.scheduled_days));
-  const reviewCount = Math.min(MAX_REVIEW_COUNT, reviewCountForRecord(state) + 1);
+  const reviewCount = nextMasteryPointsForRating(reviewCountForRecord(state), rating);
+  const stage = nextLearningStageForRating(state.stage, rating);
   const next = {
     ...state,
     status: rating,
-    stage: result.card.state === FsrsState.Review ? Math.max(1, state.stage) : 0,
+    stage,
     dueAt: result.card.due.getTime(),
     intervalDays: scheduledDays,
     knownStreak: result.card.reps,
@@ -964,8 +992,10 @@ function gradeMemory(
   const today = dayKey(now);
   const sameDayLapses = state.lapseDayKey === today ? state.sameDayLapses : 0;
   const updatedAt = Math.max(now, (state.updatedAt ?? state.lastReviewedAt ?? 0) + 1);
-  const studyPoints = Math.min(MAX_REVIEW_COUNT, studyPointsForRecord(state) + 1);
-  const reviewCount = state.fsrs ? reviewCountForRecord(state) : undefined;
+  const studyPoints = nextMasteryPointsForRating(studyPointsForRecord(state), rating);
+  const reviewCount = state.fsrs
+    ? nextMasteryPointsForRating(reviewCountForRecord(state), rating)
+    : undefined;
 
   if (rating === "unknown") {
     const failures = sameDayLapses + 1;
@@ -996,7 +1026,7 @@ function gradeMemory(
   }
 
   if (rating === "fuzzy") {
-    const stage = Math.max(0, state.stage - 1);
+    const stage = nextLearningStageForRating(state.stage, rating);
     const days = INTERVAL_DAYS[Math.max(1, stage)];
     return {
       next: {
@@ -1017,7 +1047,7 @@ function gradeMemory(
     };
   }
 
-  const stage = Math.min(INTERVAL_DAYS.length - 1, state.stage + 1);
+  const stage = nextLearningStageForRating(state.stage, rating);
   const days = INTERVAL_DAYS[Math.max(1, stage)];
   return {
     next: {
@@ -1367,7 +1397,7 @@ function ReviewDots({
   className?: string;
 }) {
   const resolvedCount = clampMasteryPoints(count ?? reviewCountForRecord(record));
-  const mastered = showMasteredGold && resolvedCount >= MAX_REVIEW_COUNT;
+  const mastered = showMasteredGold && record?.status === "known" && resolvedCount >= MAX_REVIEW_COUNT;
   return (
     <span
       className={`review-dots${mastered ? " mastered" : ""}${className ? ` ${className}` : ""}`}
@@ -2471,7 +2501,7 @@ export default function Home() {
         ...points,
         [currentWord.id]: nextMasteryPoints,
       }));
-      setFeedback(options.feedbackText ?? `${STATUS_META[rating].label} · 已记录，下次 ${dueLabel}`);
+      setFeedback(options.feedbackText ?? masteryFeedback(rating, nextMasteryPoints, dueLabel));
       setGrading(false);
       return;
     }
@@ -2480,7 +2510,7 @@ export default function Home() {
       const nextRatings = [...sessionRatings];
       nextRatings[currentIndex] = rating;
       setSessionRatings(nextRatings);
-      setFeedback(`${STATUS_META[rating].label} · 已记录，${dueLabel}`);
+      setFeedback(masteryFeedback(rating, nextMasteryPoints, dueLabel));
       setGrading(true);
       if (currentIndex + 1 >= sessionQueue.length) {
         finishSession(nextState);
@@ -2500,19 +2530,14 @@ export default function Home() {
 
     // Multiple-choice recall is round based: each word appears once in the
     // current round. A wrong answer does not get inserted immediately; it
-    // waits for the next round. Correct answers add one light and are removed
-    // from subsequent rounds once they reach three lights.
+    // waits for the next round. Known answers add one light and are removed
+    // from subsequent rounds once they reach three lights; fuzzy answers lose
+    // one light and unknown answers return to zero.
     if (options.allowUnrevealed) {
       const nextRatings = [...sessionRatings];
       nextRatings[currentIndex] = rating;
       setSessionRatings(nextRatings);
-      setFeedback(options.feedbackText ?? (
-        nextMasteryPoints >= 3
-          ? options.mode === "choice" ? "选择完成 · 三个复习点已集齐" : "已熟记 · 三个复习点已集齐"
-          : options.mode === "choice"
-            ? `选择完成 · 复习点 ${nextMasteryPoints} / 3`
-            : `已记录 · 复习点 ${nextMasteryPoints} / 3，本组稍后重现`
-      ));
+      setFeedback(options.feedbackText ?? masteryFeedback(rating, nextMasteryPoints, dueLabel));
       setGrading(true);
 
       const roundComplete = currentIndex + 1 >= sessionQueue.length;
@@ -2557,11 +2582,7 @@ export default function Home() {
     }
     setSessionQueue(nextQueue);
     setSessionRatings(nextRatings);
-    setFeedback(options.feedbackText ?? (
-      nextMasteryPoints >= 3
-        ? `已熟记 · 三个复习点已集齐，下次 ${dueLabel}`
-        : `已记录 · 复习点 ${nextMasteryPoints} / 3，本组稍后重现`
-    ));
+    setFeedback(options.feedbackText ?? masteryFeedback(rating, nextMasteryPoints, dueLabel));
     setGrading(true);
 
     if (currentIndex + 1 >= nextQueue.length) {
@@ -2618,7 +2639,7 @@ export default function Home() {
       allowUnrevealed: true,
       mode: "choice",
       transitionDelay: 1000,
-      feedbackText: correct ? "选择正确 · 获得一个复习点" : "选择错误 · 已记录一个复习点",
+      feedbackText: correct ? "选择正确 · 光点 +1" : "选择错误 · 光点清零，回到第一阶段",
     });
   }
 
@@ -3176,7 +3197,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta2.8</span>
+          <span className="brand-version">beta2.9</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([

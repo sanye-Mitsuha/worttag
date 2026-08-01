@@ -17,7 +17,7 @@ test("declares Worttag metadata and a production-ready application shell", async
   const [page, layout, css, packageJson] = await readAppSources();
 
   assert.match(packageJson, /"name": "worttag"/);
-  assert.match(packageJson, /"version": "1\.6\.0"/);
+  assert.match(packageJson, /"version": "1\.7\.0"/);
   assert.match(layout, /const title = "Worttag · 德语词汇记忆"/);
   assert.match(layout, /间隔复习、语法例句和每日短文/);
   assert.match(layout, /openGraph:/);
@@ -51,7 +51,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /"oft": "常常、时常、多次；经常、时常"/);
   assert.match(page, /"oft": ""/);
   assert.doesNotMatch(page, /className="library-grammar"/);
-  assert.match(page, /beta2\.8/);
+  assert.match(page, /beta2\.9/);
   assert.match(page, /from "ts-fsrs"/);
   assert.match(page, /const REVIEW_FSRS_SCHEDULER = fsrs\(/);
   assert.match(page, /function gradeReviewMemory\(/);
@@ -62,7 +62,14 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /reviewCount\?: number/);
   assert.match(page, /const MAX_REVIEW_COUNT = 3/);
   assert.match(page, /function reviewCountForRecord\(/);
+  assert.match(page, /function nextMasteryPointsForRating\(/);
+  assert.match(page, /if \(rating === "fuzzy"\) return Math\.max\(0, points - 1\)/);
+  assert.match(page, /function nextLearningStageForRating\(/);
+  assert.match(page, /const reviewCount = nextMasteryPointsForRating\(reviewCountForRecord\(state\), rating\)/);
+  assert.match(page, /const studyPoints = nextMasteryPointsForRating\(studyPointsForRecord\(state\), rating\)/);
+  assert.doesNotMatch(page, /record\.fsrs\?\.reps/);
   assert.match(page, /function isMasteredRecord\(/);
+  assert.match(page, /record\?\.status === "known" && Boolean\(record\.fsrs\)/);
   assert.match(page, /复习次数/);
   assert.match(page, /已熟记词库/);
   assert.match(page, /className="mastered-drawer"/);
@@ -78,7 +85,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
  assert.match(css, /\.queue-item > \.queue-review-dots/);
   assert.match(page, /function studyPointsForRecord\(/);
   assert.match(page, /showMasteredGold=\{queueSource === "review"\}/);
-  assert.match(page, /return Boolean\(record\?\.fsrs\) &&/);
+  assert.match(page, /record\?\.status === "known" && Boolean\(record\.fsrs\)/);
   assert.match(page, /还剩 \$\{dueWords\.length\} 个复习/);
   assert.match(page, /function selectStoryWords\(words: WordCard\[\]\): WordCard\[\]/);
   assert.match(page, /Math\.ceil\(words\.length \/ 5\)/);
