@@ -806,6 +806,13 @@ kbd {
   content: "";
 }
 
+.speed-state-label {
+  margin: 0 0 14px;
+  color: var(--line-dark);
+  font: italic 13px/1 var(--serif);
+  text-align: center;
+}
+
 .recall-prompt > p {
   margin: 34px 0 29px;
   color: var(--ink-soft);

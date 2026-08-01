@@ -1868,6 +1868,7 @@ export default function Home() {
 
   const currentWordId = sessionQueue[currentIndex];
   const currentWord = WORD_BY_ID.get(currentWordId);
+  const activeStudyMode: StudyMode = queueSource === "manual" ? "speed" : settings.studyMode;
   const currentRecord = currentWord ? learning.records[currentWord.id] : undefined;
   const bookWords = useMemo(
     () => {
@@ -2007,7 +2008,7 @@ export default function Home() {
   const masteryPointsById = new Map<string, number>(Object.entries(sessionMasteryPoints));
   const latestSessionRatings = new Map<string, RecallStatus>(Object.entries(sessionLastRatings));
   const masteredInSession = sessionUniqueIds.filter((id) => (masteryPointsById.get(id) ?? 0) >= 3).length;
-  const sessionCompletedCount = settings.studyMode === "speed"
+  const sessionCompletedCount = activeStudyMode === "speed"
     ? sessionUniqueIds.filter((id) => (masteryPointsById.get(id) ?? 0) >= 3).length
     : masteredInSession;
   const sessionUniqueTotal = sessionUniqueIds.length;
@@ -2169,7 +2170,7 @@ export default function Home() {
     } = {},
   ) {
     if (!currentWord || (!revealed && !options.allowUnrevealed) || grading) return;
-    if (settings.studyMode === "speed" && sessionLastRatings[currentWord.id]) return;
+    if (activeStudyMode === "speed" && sessionLastRatings[currentWord.id]) return;
     hasLocalInteractionRef.current = true;
     const now = currentTimestamp();
     const latest = learningRef.current;
@@ -2195,7 +2196,7 @@ export default function Home() {
     const nextPoints = { ...sessionMasteryPoints, [currentWord.id]: nextMasteryPoints };
     setSessionLastRatings((ratings) => ({ ...ratings, [currentWord.id]: rating }));
 
-    if (settings.studyMode === "speed") {
+    if (activeStudyMode === "speed") {
       const nextRatings = [...sessionRatings];
       nextRatings[currentIndex] = rating;
       setSessionRatings(nextRatings);
@@ -2298,7 +2299,7 @@ export default function Home() {
 
   function advanceSpeedWord() {
     if (
-      settings.studyMode !== "speed"
+      activeStudyMode !== "speed"
       || !currentWord
       || !currentSessionRating
       || grading
@@ -2552,7 +2553,7 @@ export default function Home() {
         openDictionary(currentWord, termButton);
         return;
       }
-      if (settings.studyMode !== "speed" && currentPromptMode === "choice" && !grading) {
+      if (activeStudyMode !== "speed" && currentPromptMode === "choice" && !grading) {
         const choiceIndex = Number.parseInt(event.key, 10) - 1;
         if (choiceIndex >= 0 && choiceIndex < currentMeaningChoices.length) {
           event.preventDefault();
@@ -2566,12 +2567,12 @@ export default function Home() {
         e: "unknown",
       };
       const rating = ratingByKey[event.key.toLowerCase()];
-      const ratingStage = settings.studyMode === "speed" || revealed || currentPromptMode === "example" || currentPromptMode === "direct";
+      const ratingStage = activeStudyMode === "speed" || revealed || currentPromptMode === "example" || currentPromptMode === "direct";
       if (ratingStage && rating) {
         event.preventDefault();
         rateCurrent(rating, {
-          allowUnrevealed: settings.studyMode === "speed" || currentPromptMode !== "choice",
-          mode: settings.studyMode === "speed" ? "speed" : currentPromptMode === "choice" ? "choice" : "rating",
+          allowUnrevealed: activeStudyMode === "speed" || currentPromptMode !== "choice",
+          mode: activeStudyMode === "speed" ? "speed" : currentPromptMode === "choice" ? "choice" : "rating",
           transitionDelay: 620,
         });
       }
@@ -2589,7 +2590,7 @@ export default function Home() {
     grading,
     revealed,
     settings.autoPronounce,
-    settings.studyMode,
+    activeStudyMode,
     settings.speechSpeed,
     view,
   ]);
@@ -2761,7 +2762,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta1.9</span>
+          <span className="brand-version">beta2.0</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -2883,7 +2884,7 @@ export default function Home() {
                       if (!word) return null;
                       const recallStatus = latestSessionRatings.get(id);
                       const masteryPoints = masteryPointsById.get(id) ?? 0;
-                      const itemStatus = settings.studyMode === "speed"
+                      const itemStatus = activeStudyMode === "speed"
                         ? masteryPoints >= 3
                           ? "done"
                           : currentWord?.id === id
@@ -2910,9 +2911,9 @@ export default function Home() {
                   </div>
                 </aside>
 
-                  <section className={`${revealed ? "word-card revealed" : "word-card"}${settings.studyMode === "speed" ? " speed-mode" : ""}`}>
+                  <section className={`${revealed ? "word-card revealed" : "word-card"}${activeStudyMode === "speed" ? " speed-mode" : ""}`}>
                     <div className="card-topline">
-                    <span className="card-mode">{settings.studyMode === "speed" ? `速刷 · 第 ${sessionRound} 轮` : currentIsRepeat ? `第 ${sessionRound} 轮` : queueSource === "manual" ? "单独学习" : currentRecord ? "复习" : "新词"} · {String(currentIndex + 1).padStart(2, "0")} / {sessionQueue.length}</span>
+                    <span className="card-mode">{activeStudyMode === "speed" ? `速刷 · 第 ${sessionRound} 轮` : currentIsRepeat ? `第 ${sessionRound} 轮` : queueSource === "manual" ? "单独学习" : currentRecord ? "复习" : "新词"} · {String(currentIndex + 1).padStart(2, "0")} / {sessionQueue.length}</span>
                     <button className="speak-button" onClick={() => speak(currentWord)} aria-label={`朗读 ${currentWord.term}`}>
                       <span className="sound-rings" aria-hidden="true">◖))</span> 听发音
                     </button>
@@ -2933,7 +2934,7 @@ export default function Home() {
                           <ArticleTerm term={currentWord.term} />
                         </button>
                       </h2>
-                      {settings.studyMode === "mastery" && (
+                      {activeStudyMode === "mastery" && (
                         <span className="mastery-lights" aria-label={`当前获得 ${currentMasteryPoints} / 3 个光点`}>
                           {[0, 1, 2].map((index) => (
                             <i className={index >= 3 - currentMasteryPoints ? "lit" : ""} key={index} />
@@ -2944,9 +2945,13 @@ export default function Home() {
                     <p className="word-forms">{wordFormsForDisplay(currentWord)}</p>
                   </div>
 
-                  {settings.studyMode === "speed" ? (
+                  {activeStudyMode === "speed" ? (
                     <div className="speed-review">
-                      <div className="ink-divider"><span>{currentSessionRating ? "速刷 · 已判断" : "速刷 · 先看例句"}</span></div>
+                      {currentSessionRating ? (
+                        <p className="speed-state-label">速刷 · 已判断</p>
+                      ) : (
+                        <div className="ink-divider"><span>速刷 · 先看例句</span></div>
+                      )}
                       <div className="answer-sheet speed-answer-sheet" aria-live="polite">
                         {currentSessionRating ? (
                           <>
