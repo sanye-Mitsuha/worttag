@@ -19,6 +19,7 @@ type ThemeMode = "light" | "dark" | "system";
 type SkinMode = "parchment" | "mist" | "forest" | "wine" | "graphite";
 type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1";
 type WordOrder = "sequential" | "random";
+type StudyMode = "mastery" | "speed";
 type SpeechSpeed = "slow" | "standard" | "natural";
 type DictionaryEvidenceStatus = "idle" | "loading" | "success" | "error";
 
@@ -109,6 +110,7 @@ type AppSettings = {
   queuesPerDay: number;
   level: CEFRLevel;
   order: WordOrder;
+  studyMode: StudyMode;
   autoPronounce: boolean;
   showTranslation: boolean;
   dueFirst: boolean;
@@ -185,6 +187,10 @@ const PACKED_WORD_TYPES = new Set<PackedWordType>([
   "prop",
   "phrase",
 ]);
+const PACKED_MEANING_CORRECTIONS: Record<string, string> = {
+  // See is one spelling with two genders and two distinct meanings.
+  "der/die See": "湖泊（der）；海洋（die）",
+};
 const LIBRARY_PAGE_SIZE = 96;
 const REVIEW_PAGE_SIZE = 100;
 
@@ -195,6 +201,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   queuesPerDay: 2,
   level: "A1",
   order: "sequential",
+  studyMode: "mastery",
   autoPronounce: false,
   showTranslation: true,
   dueFirst: true,
@@ -574,8 +581,8 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
       term,
       forms,
       type: details.type,
-      // Imported meanings are preserved exactly as supplied by the word list.
-      meaning,
+      // Imported meanings are preserved except for explicit reviewed corrections.
+      meaning: PACKED_MEANING_CORRECTIONS[term] ?? meaning,
       example,
       exampleZh,
       grammarTitle: details.grammarTitle,
@@ -972,6 +979,7 @@ function prepareSavedSettings(value: unknown): AppSettings {
   const skins: SkinMode[] = ["parchment", "mist", "forest", "wine", "graphite"];
   const levels: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
   const orders: WordOrder[] = ["sequential", "random"];
+  const studyModes: StudyMode[] = ["mastery", "speed"];
   const speeds: SpeechSpeed[] = ["slow", "standard", "natural"];
   const queueSizes = [5, 10, 15, 20];
   const dailyQueues = [1, 2, 3, 4, 5];
@@ -986,6 +994,7 @@ function prepareSavedSettings(value: unknown): AppSettings {
       : DEFAULT_SETTINGS.queuesPerDay,
     level: levels.includes(saved.level as CEFRLevel) ? saved.level! : DEFAULT_SETTINGS.level,
     order: orders.includes(saved.order as WordOrder) ? saved.order! : DEFAULT_SETTINGS.order,
+    studyMode: studyModes.includes(saved.studyMode as StudyMode) ? saved.studyMode! : DEFAULT_SETTINGS.studyMode,
     autoPronounce: typeof saved.autoPronounce === "boolean" ? saved.autoPronounce : DEFAULT_SETTINGS.autoPronounce,
     showTranslation: typeof saved.showTranslation === "boolean" ? saved.showTranslation : DEFAULT_SETTINGS.showTranslation,
     dueFirst: typeof saved.dueFirst === "boolean" ? saved.dueFirst : DEFAULT_SETTINGS.dueFirst,
@@ -1994,10 +2003,11 @@ export default function Home() {
   const masteryPointsById = new Map<string, number>(Object.entries(sessionMasteryPoints));
   const latestSessionRatings = new Map<string, RecallStatus>(Object.entries(sessionLastRatings));
   const masteredInSession = sessionUniqueIds.filter((id) => (masteryPointsById.get(id) ?? 0) >= 3).length;
+  const sessionCompletedCount = settings.studyMode === "speed" ? latestSessionRatings.size : masteredInSession;
   const sessionUniqueTotal = sessionUniqueIds.length;
   const todayWordGoal = settings.wordsPerQueue * activeQueueGoal;
   const activeDailyMastery = queueSource === "daily" && !sessionCompletionCommitted
-    ? masteredInSession
+    ? sessionCompletedCount
     : 0;
   const todayWordsCompleted = Math.min(
     todayWordGoal,
@@ -2012,6 +2022,7 @@ export default function Home() {
       : "direct";
   const currentAttemptNumber: number = currentWord ? 1 : 0;
   const currentIsRepeat = currentWord ? sessionRound > 1 : false;
+  const currentSessionRating = currentWord ? latestSessionRatings.get(currentWord.id) : undefined;
   const currentMeaningChoices = useMemo(
     () => {
       const word = WORD_BY_ID.get(currentWordId);
@@ -2021,7 +2032,7 @@ export default function Home() {
   );
   const spellingWord = WORD_BY_ID.get(sessionUniqueIds[spellingIndex]);
   const sessionProgress = sessionQueue.length
-    ? Math.round((masteredInSession / Math.max(1, sessionUniqueTotal)) * 100)
+    ? Math.round((sessionCompletedCount / Math.max(1, sessionUniqueTotal)) * 100)
     : dailyComplete ? 100 : Math.round((learning.todayQueuesCompleted / activeQueueGoal) * 100);
 
   function speak(word: WordCard) {
@@ -2146,12 +2157,13 @@ export default function Home() {
     rating: RecallStatus,
     options: {
       allowUnrevealed?: boolean;
-      mode?: "choice" | "rating";
+      mode?: "choice" | "rating" | "speed";
       transitionDelay?: number;
       feedbackText?: string;
     } = {},
   ) {
     if (!currentWord || (!revealed && !options.allowUnrevealed) || grading) return;
+    if (settings.studyMode === "speed" && sessionLastRatings[currentWord.id]) return;
     hasLocalInteractionRef.current = true;
     const now = currentTimestamp();
     const latest = learningRef.current;
@@ -2176,6 +2188,15 @@ export default function Home() {
           : 0;
     const nextPoints = { ...sessionMasteryPoints, [currentWord.id]: nextMasteryPoints };
     setSessionLastRatings((ratings) => ({ ...ratings, [currentWord.id]: rating }));
+
+    if (settings.studyMode === "speed") {
+      const nextRatings = [...sessionRatings];
+      nextRatings[currentIndex] = rating;
+      setSessionRatings(nextRatings);
+      setFeedback(options.feedbackText ?? `${STATUS_META[rating].label} · 已记录，下次 ${dueLabel}`);
+      setGrading(false);
+      return;
+    }
 
     // Multiple-choice recall is round based: each word appears once in the
     // current round. A wrong answer does not get inserted immediately; it
@@ -2265,6 +2286,24 @@ export default function Home() {
     }, options.transitionDelay ?? 620);
   }
 
+  function advanceSpeedWord() {
+    if (
+      settings.studyMode !== "speed"
+      || !currentWord
+      || !currentSessionRating
+      || grading
+    ) return;
+    hasLocalInteractionRef.current = true;
+    if (currentIndex + 1 >= sessionQueue.length) {
+      finishSession(learningRef.current);
+      return;
+    }
+    setCurrentIndex((index) => index + 1);
+    setSelectedChoiceId(null);
+    setFeedback(null);
+    setGrading(false);
+  }
+
   function selectMeaningChoice(optionId: string) {
     if (!currentWord || currentPromptMode !== "choice" || currentAttemptNumber !== 1 || grading) return;
     const correct = optionId === currentWord.id;
@@ -2340,7 +2379,7 @@ export default function Home() {
     if (SYNCED_SETTING_KEYS.includes(key as keyof SyncedSettings)) {
       setSettingsUpdatedAt((current) => mutationTimestamp(current));
     }
-    if (["wordsPerQueue", "level", "order", "dueFirst"].includes(key)) setPlanDirty(true);
+    if (["wordsPerQueue", "level", "order", "dueFirst", "studyMode"].includes(key)) setPlanDirty(true);
     if (key === "level") {
       const nextLevel = value as CEFRLevel;
       setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
@@ -2363,6 +2402,8 @@ export default function Home() {
       } else {
         setSettingsNotice(`已自动保存 · 新的每日队列数明天生效，今天仍为 ${activeQueueGoal} 个`);
       }
+    } else if (key === "studyMode") {
+      setSettingsNotice(`已自动保存 · ${value === "speed" ? "速刷" : "熟记"}模式从下一次刷词开始生效`);
     } else if (key === "theme" || key === "skin") {
       setSettingsNotice("已自动保存 · 外观已在本设备更新");
     } else {
@@ -2491,7 +2532,7 @@ export default function Home() {
         openDictionary(currentWord, termButton);
         return;
       }
-      if (currentPromptMode === "choice" && !grading) {
+      if (settings.studyMode !== "speed" && currentPromptMode === "choice" && !grading) {
         const choiceIndex = Number.parseInt(event.key, 10) - 1;
         if (choiceIndex >= 0 && choiceIndex < currentMeaningChoices.length) {
           event.preventDefault();
@@ -2505,12 +2546,12 @@ export default function Home() {
         e: "unknown",
       };
       const rating = ratingByKey[event.key.toLowerCase()];
-      const ratingStage = revealed || currentPromptMode === "example" || currentPromptMode === "direct";
+      const ratingStage = settings.studyMode === "speed" || revealed || currentPromptMode === "example" || currentPromptMode === "direct";
       if (ratingStage && rating) {
         event.preventDefault();
         rateCurrent(rating, {
-          allowUnrevealed: currentPromptMode !== "choice",
-          mode: currentPromptMode === "choice" ? "choice" : "rating",
+          allowUnrevealed: settings.studyMode === "speed" || currentPromptMode !== "choice",
+          mode: settings.studyMode === "speed" ? "speed" : currentPromptMode === "choice" ? "choice" : "rating",
           transitionDelay: 620,
         });
       }
@@ -2528,6 +2569,7 @@ export default function Home() {
     grading,
     revealed,
     settings.autoPronounce,
+    settings.studyMode,
     settings.speechSpeed,
     view,
   ]);
@@ -2736,7 +2778,7 @@ export default function Home() {
               <div className="heading-progress" aria-label={`今日计划进度 ${sessionProgress}%`}>
                 <div className="progress-copy">
                   <span>{queueSource === "daily" ? `今日计划 · 第 ${Math.min(learning.todayQueuesCompleted + 1, activeQueueGoal)} / ${activeQueueGoal} 队列` : queueSource === "review" ? "本次复习" : "本次单独学习"}</span>
-                  <strong>{queueSource === "daily" && !sessionQueue.length ? `${learning.todayQueuesCompleted} / ${activeQueueGoal}` : `${masteredInSession} / ${sessionUniqueTotal}`}</strong>
+                  <strong>{queueSource === "daily" && !sessionQueue.length ? `${learning.todayQueuesCompleted} / ${activeQueueGoal}` : `${sessionCompletedCount} / ${sessionUniqueTotal}`}</strong>
                 </div>
                 <div className="progress-track"><span style={{ width: `${sessionProgress}%` }} /></div>
               </div>
@@ -2821,13 +2863,19 @@ export default function Home() {
                       if (!word) return null;
                       const recallStatus = latestSessionRatings.get(id);
                       const masteryPoints = masteryPointsById.get(id) ?? 0;
-                      const itemStatus = masteryPoints >= 3
-                        ? "done"
-                        : currentWord?.id === id
-                          ? "current"
-                          : recallStatus
-                            ? "attempted"
-                            : "upcoming";
+                      const itemStatus = settings.studyMode === "speed"
+                        ? recallStatus
+                          ? "done"
+                          : currentWord?.id === id
+                            ? "current"
+                            : "upcoming"
+                        : masteryPoints >= 3
+                          ? "done"
+                          : currentWord?.id === id
+                            ? "current"
+                            : recallStatus
+                              ? "attempted"
+                              : "upcoming";
                       const statusIcon =
                         recallStatus === "known" ? "✓" : recallStatus === "fuzzy" ? "~" : recallStatus === "unknown" ? "×" : index + 1;
                       return (
@@ -2840,9 +2888,9 @@ export default function Home() {
                   </div>
                 </aside>
 
-                <section className={revealed ? "word-card revealed" : "word-card"}>
-                  <div className="card-topline">
-                    <span className="card-mode">{currentIsRepeat ? `第 ${sessionRound} 轮` : queueSource === "manual" ? "单独学习" : currentRecord ? "复习" : "新词"} · {String(currentIndex + 1).padStart(2, "0")} / {sessionQueue.length}</span>
+                  <section className={`${revealed ? "word-card revealed" : "word-card"}${settings.studyMode === "speed" ? " speed-mode" : ""}`}>
+                    <div className="card-topline">
+                    <span className="card-mode">{settings.studyMode === "speed" ? "速刷" : currentIsRepeat ? `第 ${sessionRound} 轮` : queueSource === "manual" ? "单独学习" : currentRecord ? "复习" : "新词"} · {String(currentIndex + 1).padStart(2, "0")} / {sessionQueue.length}</span>
                     <button className="speak-button" onClick={() => speak(currentWord)} aria-label={`朗读 ${currentWord.term}`}>
                       <span className="sound-rings" aria-hidden="true">◖))</span> 听发音
                     </button>
@@ -2863,16 +2911,59 @@ export default function Home() {
                           <ArticleTerm term={currentWord.term} />
                         </button>
                       </h2>
-                      <span className="mastery-lights" aria-label={`当前获得 ${currentMasteryPoints} / 3 个光点`}>
-                        {[0, 1, 2].map((index) => (
-                          <i className={index >= 3 - currentMasteryPoints ? "lit" : ""} key={index} />
-                        ))}
-                      </span>
+                      {settings.studyMode === "mastery" && (
+                        <span className="mastery-lights" aria-label={`当前获得 ${currentMasteryPoints} / 3 个光点`}>
+                          {[0, 1, 2].map((index) => (
+                            <i className={index >= 3 - currentMasteryPoints ? "lit" : ""} key={index} />
+                          ))}
+                        </span>
+                      )}
                     </div>
                     <p className="word-forms">{wordFormsForDisplay(currentWord)}</p>
                   </div>
 
-                  {!revealed ? (
+                  {settings.studyMode === "speed" ? (
+                    <div className="speed-review">
+                      <div className="ink-divider"><span>速刷 · 直接查看</span></div>
+                      <div className="answer-sheet speed-answer-sheet" aria-live="polite">
+                        <div className="meaning-line">
+                          <span className="answer-label">释义</span>
+                          <strong>{currentWord.meaning}</strong>
+                        </div>
+                        {currentWord.example && (
+                          <blockquote>
+                            <p lang="de">{currentWord.example}</p>
+                            {settings.showTranslation && currentWord.exampleZh && <footer>{currentWord.exampleZh}</footer>}
+                          </blockquote>
+                        )}
+                      </div>
+                      <div className="rating-area speed-rating-area">
+                        <p>{currentSessionRating ? "已经记录；点击下方按钮继续。" : "选择后不会自动跳转，复习时间会立即安排。"}</p>
+                        <div className="rating-buttons" role="group" aria-label="速刷记忆程度">
+                          {(["known", "fuzzy", "unknown"] as const).map((status) => (
+                            <button
+                              className={`rating-button ${status}`}
+                              key={status}
+                              type="button"
+                              onClick={() => rateCurrent(status, { allowUnrevealed: true, mode: "speed" })}
+                              disabled={Boolean(currentSessionRating) || grading}
+                            >
+                              <span className="rating-icon" aria-hidden="true">
+                                {status === "unknown" ? "×" : status === "fuzzy" ? "~" : "✓"}
+                              </span>
+                              <span><strong>{STATUS_META[status].label}</strong><small>{previewDue(currentRecord, status, clock)}</small></span>
+                              <span className="rating-key" aria-hidden="true">{status === "known" ? "Q" : status === "fuzzy" ? "W" : "E"}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      {currentSessionRating && (
+                        <button className="reveal-button speed-next-button" type="button" onClick={advanceSpeedWord} disabled={grading}>
+                          {currentIndex + 1 >= sessionQueue.length ? "完成本轮 →" : "下一个词 →"}
+                        </button>
+                      )}
+                    </div>
+                  ) : !revealed ? (
                     currentPromptMode === "choice" ? (
                       <div className="choice-recall">
                         <div className="ink-divider"><span>第 {sessionRound} 轮 · 选择词义</span></div>
@@ -3382,6 +3473,25 @@ export default function Home() {
 
               <fieldset className="settings-card experience-settings">
                 <legend><span className="settings-index">05</span><span><small>Learning experience</small>学习体验</span></legend>
+                <div className="study-mode-setting">
+                  <div className="study-mode-copy">
+                    <strong>刷词模式</strong>
+                    <small>熟记保留三次光点回忆；速刷直接查看词义和例句。</small>
+                  </div>
+                  <div className="study-mode-options" role="radiogroup" aria-label="刷词模式">
+                    {([
+                      ["mastery", "熟记", "先回忆，再逐步点亮三个光点。"],
+                      ["speed", "速刷", "直接评分，手动点击下一个词。"],
+                    ] as const).map(([value, label, description]) => (
+                      <label className={settings.studyMode === value ? "study-mode-option selected" : "study-mode-option"} key={value}>
+                        <input type="radio" name="studyMode" checked={settings.studyMode === value} onChange={() => updateSetting("studyMode", value)} />
+                        <span className="study-mode-mark" aria-hidden="true">{value === "mastery" ? "✦" : "→"}</span>
+                        <span><strong>{label}</strong><small>{description}</small></span>
+                        <em>{settings.studyMode === value ? "✓" : ""}</em>
+                      </label>
+                    ))}
+                  </div>
+                </div>
                 <label className="toggle-row">
                   <span><strong>揭晓时自动朗读</strong><small>显示答案时自动播放德语发音。</small></span>
                   <input type="checkbox" checked={settings.autoPronounce} onChange={(event) => updateSetting("autoPronounce", event.target.checked)} />
@@ -3419,7 +3529,7 @@ export default function Home() {
                 <div className="device-row" aria-label="支持的同步设备">
                   <span>Mac</span><i aria-hidden="true" /><span>iPad</span><i aria-hidden="true" /><span>iPhone</span>
                 </div>
-                <p>使用同一 ChatGPT 账户打开 Worttag，即可同步 A1–C1 的掌握状态、复习排期和每日计划。外观、朗读与译文显示偏好仍由每台设备单独决定。</p>
+                <p>使用同一 ChatGPT 账户打开 Worttag，即可同步 A1–C1 的掌握状态、复习排期和每日计划。外观、刷词模式、朗读与译文显示偏好仍由每台设备单独决定。</p>
                 <div className="cloud-account-row">
                   <span>{cloudDisplayName ? `账户 · ${cloudDisplayName}` : "ChatGPT 安全账户"}<small>{lastSyncedAt ? `上次同步 ${new Date(lastSyncedAt).toLocaleString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}` : "首次连接后会自动建立云存档"}</small></span>
                   {cloudStatus === "signed-out" ? (

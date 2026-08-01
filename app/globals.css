@@ -2509,6 +2509,7 @@ fieldset.settings-card {
 .skin-option,
 .level-option,
 .order-option,
+.study-mode-option,
 .number-options label,
 .speech-options label {
   position: relative;
@@ -2519,6 +2520,7 @@ fieldset.settings-card {
 .skin-option input,
 .level-option input,
 .order-option input,
+.study-mode-option input,
 .number-options input,
 .speech-options input,
 .toggle-row input {
@@ -2543,7 +2545,8 @@ fieldset.settings-card {
 .theme-option.selected,
 .skin-option.selected,
 .level-option.selected,
-.order-option.selected {
+.order-option.selected,
+.study-mode-option.selected {
   border-color: var(--brick);
   box-shadow: inset 0 0 0 1px var(--brick);
 }
@@ -2552,6 +2555,7 @@ fieldset.settings-card {
 .skin-option:has(input:focus-visible),
 .level-option:has(input:focus-visible),
 .order-option:has(input:focus-visible),
+.study-mode-option:has(input:focus-visible),
 .number-options label:has(input:focus-visible),
 .speech-options label:has(input:focus-visible),
 .toggle-row:has(input:focus-visible) {
@@ -2987,6 +2991,76 @@ fieldset.settings-card {
 }
 
 .order-option em {
+  color: var(--brick);
+  font-style: normal;
+  font-weight: 800;
+}
+
+.study-mode-setting {
+  margin-bottom: 4px;
+  padding: 0 0 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.study-mode-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.study-mode-copy strong {
+  font: 600 16px/1.2 var(--serif);
+}
+
+.study-mode-copy small {
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.study-mode-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.study-mode-option {
+  min-height: 89px;
+  display: grid;
+  grid-template-columns: 28px 1fr 15px;
+  align-items: start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: rgb(231 220 196 / 0.18);
+}
+
+.study-mode-mark {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--line-dark);
+  color: var(--brick);
+  font: 700 15px/1 var(--serif);
+}
+
+.study-mode-option > span:nth-of-type(2) {
+  display: grid;
+  gap: 4px;
+}
+
+.study-mode-option strong {
+  font: 600 16px/1.2 var(--serif);
+}
+
+.study-mode-option small {
+  color: var(--ink-soft);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.study-mode-option em {
   color: var(--brick);
   font-style: normal;
   font-weight: 800;
@@ -4833,7 +4907,8 @@ html[data-theme="dark"] .warning-note {
 
   .theme-options,
   .skin-options,
-  .level-options {
+  .level-options,
+  .study-mode-options {
     grid-template-columns: 1fr;
   }
 

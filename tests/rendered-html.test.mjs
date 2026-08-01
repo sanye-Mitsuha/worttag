@@ -40,6 +40,14 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /光点规则：已知 \+1 · 模糊 −1 · 未知清零/);
   assert.match(page, /所有单词都已点亮三次/);
   assert.match(page, /现在要进行一次拼写测试吗/);
+  assert.match(page, /type StudyMode = "mastery" \| "speed"/);
+  assert.match(page, /刷词模式/);
+  assert.match(page, /熟记/);
+  assert.match(page, /速刷/);
+  assert.match(page, /选择后不会自动跳转/);
+  assert.match(page, /下一个词 →/);
+  assert.match(page, /settings\.studyMode === "speed"/);
+  assert.match(page, /"der\/die See": "湖泊（der）；海洋（die）"/);
   assert.match(page, /重新拼写/);
   assert.match(page, /预计完成 \{settings\.level\} 词书/);
   assert.match(page, /<kbd>F<\/kbd> 按 F 发音/);
@@ -47,7 +55,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /className="meaning-key"/);
   assert.match(page, /status === "known" \? "Q"/);
   assert.match(page, /event\.code === "Space"/);
-  assert.match(page, /const ratingStage = revealed \|\| currentPromptMode === "example" \|\| currentPromptMode === "direct"/);
+  assert.match(page, /const ratingStage = settings\.studyMode === "speed" \|\| revealed \|\| currentPromptMode === "example" \|\| currentPromptMode === "direct"/);
   assert.match(page, /target\?\.closest\("input, select, textarea"\)/);
   assert.match(page, /<p className="word-type">\{currentWord\.type\}<\/p>/);
   assert.match(page, /本轮按顺序每词一次；答错会在下一轮再出现/);
@@ -71,4 +79,5 @@ test("keeps the simplified learning and dictionary layouts", async () => {
   assert.match(page, /中文释义 <span>Worttag 课程释义<\/span>/);
   assert.match(css, /\.settings-plan-column > \*/);
   assert.match(css, /\.order-settings,\s*\.experience-settings/);
+  assert.match(css, /\.study-mode-options/);
 });
