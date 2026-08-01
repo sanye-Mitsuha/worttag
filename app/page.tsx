@@ -190,6 +190,10 @@ const PACKED_WORD_TYPES = new Set<PackedWordType>([
 const PACKED_MEANING_CORRECTIONS: Record<string, string> = {
   // See is one spelling with two genders and two distinct meanings.
   "der/die See": "湖泊（der）；海洋（die）",
+  "oft": "常常、时常、多次；经常、时常",
+};
+const PACKED_GRAMMAR_TITLE_CORRECTIONS: Record<string, string> = {
+  "oft": "",
 };
 const LIBRARY_PAGE_SIZE = 96;
 const REVIEW_PAGE_SIZE = 100;
@@ -585,7 +589,7 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
       meaning: PACKED_MEANING_CORRECTIONS[term] ?? meaning,
       example,
       exampleZh,
-      grammarTitle: details.grammarTitle,
+      grammarTitle: PACKED_GRAMMAR_TITLE_CORRECTIONS[term] ?? details.grammarTitle,
       grammar: details.grammar,
       memory: details.memory,
       storyDe: example,
@@ -3286,7 +3290,7 @@ export default function Home() {
                         </button>
                       </h2>
                       <p className="library-meaning">{word.meaning}</p>
-                      <div className="library-grammar"><span>搭配</span>{word.grammarTitle}</div>
+                      {word.grammarTitle && <div className="library-grammar"><span>搭配</span>{word.grammarTitle}</div>}
                       <button onClick={() => startQueue([word.id], "manual")}>单独学习 <span aria-hidden="true">→</span></button>
                     </article>
                   );
