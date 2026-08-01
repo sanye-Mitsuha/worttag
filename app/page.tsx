@@ -1121,7 +1121,11 @@ export default function Home() {
   const [settingsUpdatedAt, setSettingsUpdatedAtValue] = useState(0);
   const [learning, setLearningValue] = useState<LearningState>(() => createInitialState());
   const [sessionQueue, setSessionQueue] = useState<string[]>([]);
+  const [sessionWordIds, setSessionWordIds] = useState<string[]>([]);
   const [sessionRatings, setSessionRatings] = useState<(RecallStatus | null)[]>([]);
+  const [sessionMasteryPoints, setSessionMasteryPoints] = useState<Record<string, number>>({});
+  const [sessionLastRatings, setSessionLastRatings] = useState<Record<string, RecallStatus>>({});
+  const [sessionRound, setSessionRound] = useState(1);
   const [queueSource, setQueueSource] = useState<"daily" | "review" | "manual">("daily");
   const [returnView, setReturnView] = useState<View>("learn");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -1199,8 +1203,13 @@ export default function Home() {
   }
 
   function resetSessionQueue(ids: string[]) {
-    setSessionQueue(ids);
-    setSessionRatings(ids.map(() => null));
+    const uniqueIds = Array.from(new Set(ids));
+    setSessionQueue(uniqueIds);
+    setSessionWordIds(uniqueIds);
+    setSessionRatings(uniqueIds.map(() => null));
+    setSessionMasteryPoints(Object.fromEntries(uniqueIds.map((id) => [id, 0])));
+    setSessionLastRatings({});
+    setSessionRound(1);
     setSessionPhase("study");
     setSessionCompletionCommitted(false);
     setSelectedChoiceId(null);
@@ -1209,6 +1218,21 @@ export default function Home() {
     setSpellingChecked(false);
     setSpellingResults([]);
     pendingCompletionStateRef.current = null;
+  }
+
+  function beginSessionRound(ids: string[], points: Record<string, number>, round: number) {
+    const uniqueIds = Array.from(new Set(ids));
+    setSessionQueue(uniqueIds);
+    setSessionRatings(uniqueIds.map(() => null));
+    setSessionMasteryPoints(points);
+    setSessionRound(round);
+    setCurrentIndex(0);
+    setSessionPhase("study");
+    setSessionCompletionCommitted(false);
+    setSelectedChoiceId(null);
+    setRevealed(false);
+    setFeedback(null);
+    setGrading(false);
   }
 
   function setSettingsUpdatedAt(
@@ -1940,18 +1964,9 @@ export default function Home() {
   const targetCompletionPercent = Math.round(
     (targetLearnedWords / Math.max(1, bookWords.length)) * 100,
   );
-  const sessionUniqueIds = Array.from(new Set(sessionQueue));
-  const masteryPointsById = new Map<string, number>();
-  const latestSessionRatings = new Map<string, RecallStatus>();
-  sessionQueue.forEach((id, index) => {
-    const rating = sessionRatings[index];
-    if (!rating) return;
-    latestSessionRatings.set(id, rating);
-    const currentPoints = masteryPointsById.get(id) ?? 0;
-    if (rating === "known") masteryPointsById.set(id, Math.min(3, currentPoints + 1));
-    if (rating === "fuzzy") masteryPointsById.set(id, Math.max(0, currentPoints - 1));
-    if (rating === "unknown") masteryPointsById.set(id, 0);
-  });
+  const sessionUniqueIds = sessionWordIds;
+  const masteryPointsById = new Map<string, number>(Object.entries(sessionMasteryPoints));
+  const latestSessionRatings = new Map<string, RecallStatus>(Object.entries(sessionLastRatings));
   const masteredInSession = sessionUniqueIds.filter((id) => (masteryPointsById.get(id) ?? 0) >= 3).length;
   const sessionUniqueTotal = sessionUniqueIds.length;
   const todayWordGoal = settings.wordsPerQueue * activeQueueGoal;
@@ -1964,12 +1979,8 @@ export default function Home() {
   );
   const todayWordsRemaining = Math.max(0, todayWordGoal - todayWordsCompleted);
   const currentMasteryPoints = currentWord ? masteryPointsById.get(currentWord.id) ?? 0 : 0;
-  const currentAttemptNumber = currentWord
-    ? sessionQueue.slice(0, currentIndex).filter((id) => id === currentWord.id).length + 1
-    : 0;
-  const currentIsRepeat = currentWord
-    ? sessionQueue.slice(0, currentIndex).includes(currentWord.id)
-    : false;
+  const currentAttemptNumber: number = currentWord ? 1 : 0;
+  const currentIsRepeat = currentWord ? sessionRound > 1 : false;
   const currentMeaningChoices = useMemo(
     () => {
       const word = WORD_BY_ID.get(currentWordId);
@@ -2046,6 +2057,7 @@ export default function Home() {
       setFeedback(null);
       setRevealed(false);
       setSelectedChoiceId(null);
+      setGrading(false);
       setSessionPhase("spell-prompt");
     }, transitionDelay);
   }
@@ -2125,6 +2137,55 @@ export default function Home() {
         : rating === "fuzzy"
           ? Math.max(0, currentMasteryPoints - 1)
           : 0;
+    const nextPoints = { ...sessionMasteryPoints, [currentWord.id]: nextMasteryPoints };
+    setSessionMasteryPoints(nextPoints);
+    setSessionLastRatings((ratings) => ({ ...ratings, [currentWord.id]: rating }));
+
+    // Multiple-choice recall is round based: each word appears once in the
+    // current round. A wrong answer does not get inserted immediately; it
+    // waits for the next round. Correct answers add one light and are removed
+    // from subsequent rounds once they reach three lights.
+    if (options.allowUnrevealed) {
+      const nextRatings = [...sessionRatings];
+      nextRatings[currentIndex] = rating;
+      setSessionRatings(nextRatings);
+      setFeedback(options.feedbackText ?? (
+        nextMasteryPoints >= 3
+          ? "选择正确 · 三个光点已集齐"
+          : rating === "unknown"
+            ? "选择错误 · 本轮结束后再来一次"
+            : `选择正确 · 光点 ${nextMasteryPoints} / 3`
+      ));
+      setGrading(true);
+
+      const roundComplete = currentIndex + 1 >= sessionQueue.length;
+      if (roundComplete) {
+        const remainingIds = sessionUniqueIds.filter((id) => (nextPoints[id] ?? 0) < 3);
+        clearTransitionTimer();
+        if (!remainingIds.length) {
+          offerSpelling(nextState, options.transitionDelay);
+          return;
+        }
+        const nextRound = sessionRound + 1;
+        transitionTimerRef.current = window.setTimeout(() => {
+          transitionTimerRef.current = null;
+          beginSessionRound(remainingIds, nextPoints, nextRound);
+        }, options.transitionDelay ?? 760);
+        return;
+      }
+
+      clearTransitionTimer();
+      transitionTimerRef.current = window.setTimeout(() => {
+        transitionTimerRef.current = null;
+        setCurrentIndex((index) => index + 1);
+        setRevealed(false);
+        setSelectedChoiceId(null);
+        setFeedback(null);
+        setGrading(false);
+      }, options.transitionDelay ?? 620);
+      return;
+    }
+
     const shouldRepeat = nextMasteryPoints < 3;
     const nextQueue = [...sessionQueue];
     const nextRatings = [...sessionRatings];
@@ -2223,8 +2284,9 @@ export default function Home() {
   }
 
   function revealAnswer() {
-    if (!currentWord) return;
-    if (currentAttemptNumber === 1 && !selectedChoiceId) return;
+    // The active study loop is round-based multiple choice. Keep this guard
+    // for legacy callers so a keyboard shortcut cannot bypass the choices.
+    if (!currentWord || currentAttemptNumber === 1) return;
     hasLocalInteractionRef.current = true;
     setRevealed(true);
     if (settings.autoPronounce) speak(currentWord);
@@ -2375,11 +2437,6 @@ export default function Home() {
       if (event.key.toLowerCase() === "f") {
         event.preventDefault();
         speak(currentWord);
-        return;
-      }
-      if (event.code === "Space" && !revealed) {
-        event.preventDefault();
-        revealAnswer();
         return;
       }
       if (revealed) {
@@ -2572,6 +2629,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
+          <span className="brand-version">beta1.1</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -2714,7 +2772,7 @@ export default function Home() {
 
                 <section className={revealed ? "word-card revealed" : "word-card"}>
                   <div className="card-topline">
-                    <span className="card-mode">{currentIsRepeat ? "组内重现" : queueSource === "manual" ? "单独学习" : currentRecord ? "复习" : "新词"} · {String(currentIndex + 1).padStart(2, "0")}</span>
+                    <span className="card-mode">{currentIsRepeat ? `第 ${sessionRound} 轮` : queueSource === "manual" ? "单独学习" : currentRecord ? "复习" : "新词"} · {String(currentIndex + 1).padStart(2, "0")} / {sessionQueue.length}</span>
                     <button className="speak-button" onClick={() => speak(currentWord)} aria-label={`朗读 ${currentWord.term}`}>
                       <span className="sound-rings" aria-hidden="true">◖))</span> 听发音
                     </button>
@@ -2747,7 +2805,7 @@ export default function Home() {
                   {!revealed ? (
                     currentAttemptNumber === 1 ? (
                       <div className="choice-recall">
-                        <div className="ink-divider"><span>第一次 · 选择词义</span></div>
+                        <div className="ink-divider"><span>第 {sessionRound} 轮 · 选择词义</span></div>
                         <div className="meaning-options" role="radiogroup" aria-label={`${currentWord.term} 的词义选项`}>
                           {currentMeaningChoices.map((option) => {
                             const optionClass = grading && selectedChoiceId
@@ -2782,7 +2840,7 @@ export default function Home() {
                             {selectedChoiceId !== currentWord.id && <small>2 秒后自动进入下一个单词</small>}
                           </div>
                         ) : (
-                          <p className="choice-instruction">点选后立即判定，无需再次确认</p>
+                          <p className="choice-instruction">本轮按顺序每词一次；答错会在下一轮再出现</p>
                         )}
                       </div>
                     ) : currentAttemptNumber === 2 ? (
@@ -2847,8 +2905,7 @@ export default function Home() {
                     <p className="kicker">Tastatur · 快捷键</p>
                     <div className="shortcut-keys">
                       <span><kbd>F</kbd> 发音</span>
-                      <span><kbd>空格</kbd> 揭晓</span>
-                      <span><kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd> 判断</span>
+                      <span><kbd>点击</kbd> 选择词义</span>
                     </div>
                   </section>
                   <section className="plan-card paper-panel">

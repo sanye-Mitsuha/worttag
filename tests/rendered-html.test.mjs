@@ -43,8 +43,8 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /重新拼写/);
   assert.match(page, /预计完成 \{settings\.level\} 词书/);
   assert.match(page, /<kbd>F<\/kbd> 发音/);
-  assert.match(page, /<kbd>空格<\/kbd> 揭晓/);
-  assert.match(page, /<kbd>Q<\/kbd><kbd>W<\/kbd><kbd>E<\/kbd> 判断/);
+  assert.match(page, /<kbd>点击<\/kbd> 选择词义/);
+  assert.match(page, /本轮按顺序每词一次；答错会在下一轮再出现/);
   assert.match(page, /确定重置所有学习进度/);
   assert.match(page, /取消，保留进度/);
   assert.match(page, /云存档已同步 · Mac · iPad · iPhone/);

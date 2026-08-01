@@ -262,6 +262,15 @@ a:focus-visible {
   box-shadow: inset 0 0 0 2px rgb(255 249 235 / 0.26);
 }
 
+.brand-version {
+  align-self: flex-end;
+  margin: 0 0 2px -4px;
+  color: var(--muted);
+  font: 600 10px/1 var(--sans);
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+}
+
 .main-nav {
   height: 82px;
   display: flex;
