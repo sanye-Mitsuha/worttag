@@ -151,6 +151,13 @@ type CloudSnapshot = {
   serverUpdatedAt: string;
 };
 
+type BoardMessage = {
+  id: number;
+  nickname: string;
+  content: string;
+  createdAt: number;
+};
+
 const STORAGE_KEY = "worttag-learning-state-v1";
 const SETTINGS_KEY = "worttag-settings-v1";
 const SETTINGS_UPDATED_AT_KEY = "worttag-settings-updated-at-v1";
@@ -1344,6 +1351,24 @@ function ReviewDots({ record }: { record: MemoryRecord | undefined }) {
   );
 }
 
+function isBoardMessage(value: unknown): value is BoardMessage {
+  if (!value || typeof value !== "object") return false;
+  const message = value as Record<string, unknown>;
+  return Number.isSafeInteger(message.id)
+    && typeof message.nickname === "string"
+    && typeof message.content === "string"
+    && Number.isSafeInteger(message.createdAt);
+}
+
+function formatBoardDate(timestamp: number) {
+  return new Date(timestamp).toLocaleString("zh-CN", {
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function Home() {
   const [ready, setReady] = useState(false);
   const [wordbookRevision, setWordbookRevision] = useState(0);
@@ -1383,6 +1408,13 @@ export default function Home() {
   const [dictionaryEvidence, setDictionaryEvidence] = useState<DictionaryEvidence | null>(null);
   const [dictionaryEvidenceStatus, setDictionaryEvidenceStatus] = useState<DictionaryEvidenceStatus>("idle");
   const [dictionaryEvidenceReload, setDictionaryEvidenceReload] = useState(0);
+  const [boardOpen, setBoardOpen] = useState(false);
+  const [boardMessages, setBoardMessages] = useState<BoardMessage[]>([]);
+  const [boardLoading, setBoardLoading] = useState(false);
+  const [boardSubmitting, setBoardSubmitting] = useState(false);
+  const [boardNickname, setBoardNickname] = useState("");
+  const [boardContent, setBoardContent] = useState("");
+  const [boardNotice, setBoardNotice] = useState<string | null>(null);
   const [cloudStatus, setCloudStatus] = useState<CloudSyncStatus>("connecting");
   const [cloudDisplayName, setCloudDisplayName] = useState<string | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
@@ -1408,6 +1440,9 @@ export default function Home() {
   const dictionaryDialogRef = useRef<HTMLElement>(null);
   const dictionaryCloseRef = useRef<HTMLButtonElement>(null);
   const dictionaryTriggerRef = useRef<HTMLElement | null>(null);
+  const boardDialogRef = useRef<HTMLElement>(null);
+  const boardCloseRef = useRef<HTMLButtonElement>(null);
+  const boardTriggerRef = useRef<HTMLElement | null>(null);
   const transitionTimerRef = useRef<number | null>(null);
   const pendingCompletionStateRef = useRef<LearningState | null>(null);
   const libraryLoadMoreRef = useRef<HTMLDivElement>(null);
@@ -2717,6 +2752,70 @@ export default function Home() {
     setDictionaryEvidenceReload((revision) => revision + 1);
   }
 
+  async function loadBoardMessages() {
+    setBoardLoading(true);
+    try {
+      const response = await fetch("/api/board", {
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+      });
+      const payload = await response.json() as { messages?: unknown; error?: unknown };
+      if (!response.ok) {
+        throw new Error(typeof payload.error === "string" ? payload.error : "留言板暂时无法连接。");
+      }
+      setBoardMessages(Array.isArray(payload.messages) ? payload.messages.filter(isBoardMessage) : []);
+    } catch (error) {
+      setBoardMessages([]);
+      setBoardNotice(error instanceof Error ? error.message : "留言板暂时无法连接。");
+    } finally {
+      setBoardLoading(false);
+    }
+  }
+
+  function openBoard(trigger?: HTMLElement | null) {
+    boardTriggerRef.current = trigger ?? null;
+    setBoardNotice(null);
+    setBoardOpen(true);
+    void loadBoardMessages();
+  }
+
+  function closeBoard() {
+    setBoardOpen(false);
+  }
+
+  async function submitBoardMessage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const content = boardContent.trim();
+    if (!content) {
+      setBoardNotice("请先写下留言内容。");
+      return;
+    }
+    setBoardSubmitting(true);
+    setBoardNotice(null);
+    try {
+      const response = await fetch("/api/board", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ nickname: boardNickname, content }),
+      });
+      const payload = await response.json() as { message?: unknown; error?: unknown };
+      if (!response.ok) {
+        throw new Error(typeof payload.error === "string" ? payload.error : "留言暂时未能提交。");
+      }
+      if (!isBoardMessage(payload.message)) {
+        throw new Error("留言暂时未能提交。");
+      }
+      const message = payload.message;
+      setBoardMessages((current) => [message, ...current.filter((item) => item.id !== message.id)]);
+      setBoardContent("");
+      setBoardNotice("留言已通过审核并公开显示。");
+    } catch (error) {
+      setBoardNotice(error instanceof Error ? error.message : "留言暂时未能提交。");
+    } finally {
+      setBoardSubmitting(false);
+    }
+  }
+
   function switchView(nextView: View) {
     if (nextView === "library") setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
     if (nextView === "review") setReviewVisibleCount(REVIEW_PAGE_SIZE);
@@ -2812,6 +2911,63 @@ export default function Home() {
     settings.speechSpeed,
     view,
   ]);
+
+  useEffect(() => {
+    if (!boardOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const backgroundElements = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        ".app-shell > .topbar, .app-shell > .main-content, .app-shell > .site-footer",
+      ),
+    );
+    const previousAccessibility = backgroundElements.map((element) => ({
+      element,
+      ariaHidden: element.getAttribute("aria-hidden"),
+      inert: element.hasAttribute("inert"),
+    }));
+    backgroundElements.forEach((element) => {
+      element.setAttribute("inert", "");
+      element.setAttribute("aria-hidden", "true");
+    });
+    document.body.style.overflow = "hidden";
+    window.setTimeout(() => boardCloseRef.current?.focus(), 0);
+
+    const handleDialogKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeBoard();
+        return;
+      }
+      if (event.key !== "Tab" || !boardDialogRef.current) return;
+      const focusable = Array.from(
+        boardDialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleDialogKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      previousAccessibility.forEach(({ element, ariaHidden, inert }) => {
+        if (!inert) element.removeAttribute("inert");
+        if (ariaHidden === null) element.removeAttribute("aria-hidden");
+        else element.setAttribute("aria-hidden", ariaHidden);
+      });
+      window.removeEventListener("keydown", handleDialogKeyDown);
+      if (boardTriggerRef.current?.isConnected) boardTriggerRef.current.focus();
+    };
+  }, [boardOpen]);
 
   useEffect(() => {
     if (!confirmReset) return;
@@ -2980,7 +3136,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta2.5</span>
+          <span className="brand-version">beta2.6</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -3765,6 +3921,23 @@ export default function Home() {
                   ))}
                 </div>
                 <p className="settings-help compact-help">到期复习始终按紧急程度排序，不会被乱序设置打散。</p>
+                <div className="board-launcher">
+                  <button
+                    className="board-launch-button"
+                    type="button"
+                    onClick={(event) => openBoard(event.currentTarget)}
+                    aria-haspopup="dialog"
+                    aria-expanded={boardOpen}
+                  >
+                    <span className="board-launch-mark" aria-hidden="true">✎</span>
+                    <span>
+                      <strong>留言板</strong>
+                      <small>分享学习心得、建议或纠错，审核通过后展示。</small>
+                    </span>
+                    <span className="board-launch-arrow" aria-hidden="true">↗</span>
+                  </button>
+                  <p>匿名留言；不展示违法、低俗、广告或联系方式内容。</p>
+                </div>
               </fieldset>
 
               <fieldset className="settings-card experience-settings">
@@ -3912,6 +4085,95 @@ export default function Home() {
           </section>
         )}
       </main>
+
+      {boardOpen && (
+        <div
+          className="board-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeBoard();
+          }}
+        >
+          <section
+            ref={boardDialogRef}
+            className="board-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="board-title"
+            aria-describedby="board-description"
+          >
+            <button
+              ref={boardCloseRef}
+              className="board-close"
+              type="button"
+              onClick={closeBoard}
+              aria-label="关闭留言板"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+            <header className="board-header">
+              <p className="kicker">WORTTAG · PUBLIC BOARD</p>
+              <h2 id="board-title">留言板</h2>
+              <p id="board-description">分享学习心得、建议或纠错。所有留言先经过审核，审核不通过的内容不会展示。</p>
+            </header>
+
+            <form className="board-form" onSubmit={(event) => void submitBoardMessage(event)}>
+              <label className="board-field">
+                <span>昵称（可选）</span>
+                <input
+                  value={boardNickname}
+                  onChange={(event) => setBoardNickname(event.target.value)}
+                  maxLength={24}
+                  placeholder="匿名"
+                  autoComplete="nickname"
+                />
+              </label>
+              <label className="board-field">
+                <span>留言</span>
+                <textarea
+                  value={boardContent}
+                  onChange={(event) => setBoardContent(event.target.value)}
+                  maxLength={240}
+                  required
+                  rows={4}
+                  placeholder="写下你的学习心得、建议或纠错……"
+                />
+              </label>
+              <div className="board-form-footer">
+                <small>最多 240 个字 · 请不要填写联系方式或外部链接</small>
+                <button className="reveal-button" type="submit" disabled={boardSubmitting}>
+                  {boardSubmitting ? "审核中…" : "提交留言"}
+                </button>
+              </div>
+            </form>
+
+            {boardNotice && <p className="board-notice" role="status" aria-live="polite">{boardNotice}</p>}
+
+            <section className="board-messages" aria-live="polite" aria-busy={boardLoading}>
+              <div className="board-messages-heading">
+                <div><p className="kicker">PUBLIC NOTES</p><h3>公开留言</h3></div>
+                <span>{boardMessages.length} 条</span>
+              </div>
+              {boardLoading ? (
+                <p className="board-empty">正在载入公开留言……</p>
+              ) : boardMessages.length ? (
+                <div className="board-message-list">
+                  {boardMessages.map((message) => (
+                    <article className="board-message" key={message.id}>
+                      <div className="board-message-meta">
+                        <strong>{message.nickname}</strong>
+                        <time dateTime={new Date(message.createdAt).toISOString()}>{formatBoardDate(message.createdAt)}</time>
+                      </div>
+                      <p className="board-message-content">{message.content}</p>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="board-empty">还没有公开留言，欢迎留下第一条。</p>
+              )}
+            </section>
+          </section>
+        </div>
+      )}
 
       {dictionaryWord && (
         <div
