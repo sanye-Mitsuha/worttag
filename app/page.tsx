@@ -2553,6 +2553,11 @@ export default function Home() {
         openDictionary(currentWord, termButton);
         return;
       }
+      if (activeStudyMode === "speed" && currentSessionRating && event.key.toLowerCase() === "x") {
+        event.preventDefault();
+        advanceSpeedWord();
+        return;
+      }
       if (activeStudyMode !== "speed" && currentPromptMode === "choice" && !grading) {
         const choiceIndex = Number.parseInt(event.key, 10) - 1;
         if (choiceIndex >= 0 && choiceIndex < currentMeaningChoices.length) {
@@ -2586,6 +2591,7 @@ export default function Home() {
     currentWord,
     currentMeaningChoices,
     currentPromptMode,
+    currentSessionRating,
     dictionaryWord,
     grading,
     revealed,
@@ -2762,7 +2768,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta2.0</span>
+          <span className="brand-version">beta2.1</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -2975,8 +2981,9 @@ export default function Home() {
                       {currentSessionRating ? (
                         <div className="rating-area speed-rating-area">
                           <p>已记录；模糊和未知会在本轮结束后重刷。</p>
-                          <button className="reveal-button speed-next-button" type="button" onClick={advanceSpeedWord} disabled={grading}>
-                            下一个词 →
+                          <button className="reveal-button speed-next-button" type="button" onClick={advanceSpeedWord} disabled={grading} aria-keyshortcuts="X">
+                            <span>下一个词</span>
+                            <kbd className="speed-next-key" aria-hidden="true">X</kbd>
                           </button>
                         </div>
                       ) : (
@@ -3164,6 +3171,7 @@ export default function Home() {
                     <div className="shortcut-keys">
                       <span><kbd>F</kbd> 按 F 发音</span>
                       <span><kbd>空格</kbd> 按空格打开详情</span>
+                      <span><kbd>X</kbd> 速刷下一个词</span>
                     </div>
                   </section>
                   <section className="plan-card paper-panel">

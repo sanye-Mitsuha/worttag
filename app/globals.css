@@ -813,6 +813,27 @@ kbd {
   text-align: center;
 }
 
+.speed-next-button {
+  width: min(100%, 360px);
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  margin: 15px auto 0;
+  padding: 13px 28px;
+}
+
+.speed-next-key {
+  min-width: 27px;
+  padding: 5px 8px 4px;
+  border-color: rgb(255 249 235 / 0.5);
+  background: rgb(255 249 235 / 0.96);
+  color: var(--solid-ink);
+  font: 800 12px/1 var(--sans);
+  text-align: center;
+}
+
 .recall-prompt > p {
   margin: 34px 0 29px;
   color: var(--ink-soft);
