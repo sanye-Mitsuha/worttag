@@ -643,7 +643,8 @@ kbd {
 .word-front,
 .recall-prompt,
 .answer-sheet,
-.choice-recall {
+.choice-recall,
+.round-rating {
   position: relative;
   z-index: 1;
 }
@@ -838,6 +839,18 @@ kbd {
 .choice-recall {
   padding: 0 12px;
   text-align: center;
+}
+
+.round-rating {
+  padding: 0 12px;
+}
+
+.round-rating .ink-divider {
+  margin-bottom: 18px;
+}
+
+.round-rating .rating-buttons {
+  margin-top: 0;
 }
 
 .meaning-options {

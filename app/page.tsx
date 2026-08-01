@@ -1126,6 +1126,7 @@ export default function Home() {
   const [sessionMasteryPoints, setSessionMasteryPoints] = useState<Record<string, number>>({});
   const [sessionLastRatings, setSessionLastRatings] = useState<Record<string, RecallStatus>>({});
   const [sessionRound, setSessionRound] = useState(1);
+  const [sessionRoundMode, setSessionRoundMode] = useState<"choice" | "rating">("choice");
   const [queueSource, setQueueSource] = useState<"daily" | "review" | "manual">("daily");
   const [returnView, setReturnView] = useState<View>("learn");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -1210,6 +1211,7 @@ export default function Home() {
     setSessionMasteryPoints(Object.fromEntries(uniqueIds.map((id) => [id, 0])));
     setSessionLastRatings({});
     setSessionRound(1);
+    setSessionRoundMode("choice");
     setSessionPhase("study");
     setSessionCompletionCommitted(false);
     setSelectedChoiceId(null);
@@ -1226,6 +1228,7 @@ export default function Home() {
     setSessionRatings(uniqueIds.map(() => null));
     setSessionMasteryPoints(points);
     setSessionRound(round);
+    setSessionRoundMode("rating");
     setCurrentIndex(0);
     setSessionPhase("study");
     setSessionCompletionCommitted(false);
@@ -2110,6 +2113,7 @@ export default function Home() {
     rating: RecallStatus,
     options: {
       allowUnrevealed?: boolean;
+      mode?: "choice" | "rating";
       transitionDelay?: number;
       feedbackText?: string;
     } = {},
@@ -2151,10 +2155,14 @@ export default function Home() {
       setSessionRatings(nextRatings);
       setFeedback(options.feedbackText ?? (
         nextMasteryPoints >= 3
-          ? "选择正确 · 三个光点已集齐"
-          : rating === "unknown"
-            ? "选择错误 · 本轮结束后再来一次"
-            : `选择正确 · 光点 ${nextMasteryPoints} / 3`
+          ? options.mode === "choice" ? "选择正确 · 三个光点已集齐" : "已知 · 三个光点已集齐"
+          : options.mode === "choice"
+            ? rating === "unknown"
+              ? "选择错误 · 本轮结束后再来一次"
+              : `选择正确 · 光点 ${nextMasteryPoints} / 3`
+            : rating === "known"
+              ? `已知 · 光点 ${nextMasteryPoints} / 3`
+              : `${STATUS_META[rating].label} · 下一轮再来一次`
       ));
       setGrading(true);
 
@@ -2224,11 +2232,12 @@ export default function Home() {
   }
 
   function selectMeaningChoice(optionId: string) {
-    if (!currentWord || currentAttemptNumber !== 1 || grading) return;
+    if (!currentWord || sessionRoundMode !== "choice" || currentAttemptNumber !== 1 || grading) return;
     const correct = optionId === currentWord.id;
     setSelectedChoiceId(optionId);
     rateCurrent(correct ? "known" : "unknown", {
       allowUnrevealed: true,
+      mode: "choice",
       transitionDelay: correct ? 760 : 2000,
       feedbackText: correct ? "选择正确 · 获得一个光点" : "选择错误 · 已按未知记录，光点清零",
     });
@@ -2629,7 +2638,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta1.1</span>
+          <span className="brand-version">beta1.2</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -2779,7 +2788,7 @@ export default function Home() {
                   </div>
 
                   <div className={`word-front exposure-${Math.min(3, currentAttemptNumber)}`}>
-                    {currentAttemptNumber === 1 && <p className="word-type">{currentWord.type}</p>}
+                    {sessionRoundMode === "choice" && <p className="word-type">{currentWord.type}</p>}
                     <div className="word-title-row">
                       <h2>
                         <button
@@ -2799,11 +2808,11 @@ export default function Home() {
                         ))}
                       </span>
                     </div>
-                    {currentAttemptNumber === 1 && <p className="word-forms">{currentWord.forms}</p>}
+                    {sessionRoundMode === "choice" && <p className="word-forms">{currentWord.forms}</p>}
                   </div>
 
                   {!revealed ? (
-                    currentAttemptNumber === 1 ? (
+                    sessionRoundMode === "choice" ? (
                       <div className="choice-recall">
                         <div className="ink-divider"><span>第 {sessionRound} 轮 · 选择词义</span></div>
                         <div className="meaning-options" role="radiogroup" aria-label={`${currentWord.term} 的词义选项`}>
@@ -2842,6 +2851,30 @@ export default function Home() {
                         ) : (
                           <p className="choice-instruction">本轮按顺序每词一次；答错会在下一轮再出现</p>
                         )}
+                      </div>
+                    ) : sessionRoundMode === "rating" ? (
+                      <div className="round-rating">
+                        <div className="ink-divider"><span>第 {sessionRound} 轮 · 直接判断</span></div>
+                        <div className="rating-buttons" role="group" aria-label="记忆程度">
+                          {(["known", "fuzzy", "unknown"] as const).map((status) => (
+                            <button
+                              className={`rating-button ${status}`}
+                              key={status}
+                              type="button"
+                              onClick={() => rateCurrent(status, {
+                                allowUnrevealed: true,
+                                mode: "rating",
+                                transitionDelay: 620,
+                              })}
+                              disabled={grading}
+                            >
+                              <span className="rating-icon" aria-hidden="true">
+                                {status === "unknown" ? "×" : status === "fuzzy" ? "~" : "✓"}
+                              </span>
+                              <strong>{STATUS_META[status].label}</strong>
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     ) : currentAttemptNumber === 2 ? (
                       <div className="recall-prompt second-exposure">
