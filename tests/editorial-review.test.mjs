@@ -5,7 +5,7 @@ import { expectedDictionaryPos, loadPackedEntries } from "../scripts/audit_wordb
 
 const root = process.cwd();
 
-test("imported entries preserve the provided Chinese senses and do not fabricate example sentences", async () => {
+test("imported entries preserve the provided Chinese senses and include example pairs", async () => {
   const packed = await loadPackedEntries(root);
   assert.equal(packed.length, 6000);
 
@@ -13,8 +13,8 @@ test("imported entries preserve the provided Chinese senses and do not fabricate
     assert.ok(entry.term.trim(), `${entry.id} is missing a headword`);
     assert.ok(entry.forms.trim(), `${entry.id} is missing morphology`);
     assert.ok(entry.meaning.trim(), `${entry.id} is missing a Chinese sense`);
-    assert.equal(entry.example, "", `${entry.id} unexpectedly contains an invented German example`);
-    assert.equal(entry.exampleZh, "", `${entry.id} unexpectedly contains an invented Chinese example`);
+    assert.ok(entry.example.trim(), `${entry.id} is missing a German example`);
+    assert.ok(entry.exampleZh.trim(), `${entry.id} is missing a Chinese example`);
     assert.doesNotMatch(entry.meaning, /尚待人工|待人工核定|义项尚待人工核定|词义见例句/u);
     assert.doesNotMatch(entry.meaning, /[\uE000-\uF8FF\uFFFD]|\p{Script=Cyrillic}/u);
   }

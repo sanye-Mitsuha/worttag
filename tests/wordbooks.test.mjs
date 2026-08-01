@@ -35,8 +35,8 @@ test("Core 6000 import keeps the supplied CEFR split and core lexical fields", a
       assert.ok(forms.trim());
       assert.ok(typeCodes.has(typeCode), `unsupported type: ${typeCode}`);
       assert.match(meaning, /[\u3400-\u9fff]/);
-      assert.equal(example, "", "the imported source provides no German examples");
-      assert.equal(exampleZh, "", "the imported source provides no Chinese examples");
+      assert.ok(example.trim(), "the wordbook row is missing a German example");
+      assert.ok(exampleZh.trim(), "the wordbook row is missing a Chinese example");
       const lexicalKey = `${term.toLocaleLowerCase("de-DE")}\0${typeCode}`;
       assert.ok(!lexicalEntries.has(lexicalKey), `duplicate lexical entry: ${term}/${typeCode}`);
       lexicalEntries.add(lexicalKey);

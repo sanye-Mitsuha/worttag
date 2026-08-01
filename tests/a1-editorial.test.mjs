@@ -4,7 +4,7 @@ import { test } from "node:test";
 
 const fields = ["id", "term", "forms", "typeCode", "meaning", "example", "exampleZh"];
 
-test("A1 import contains the source-provided 700 entries without stale editorial overrides", async () => {
+test("A1 import contains 700 entries with learner-facing examples", async () => {
   const book = await readFile("public/wordbooks/a1-v1.json", "utf8").then(JSON.parse);
   assert.equal(book.level, "A1");
   assert.equal(book.count, 700);
@@ -20,8 +20,8 @@ test("A1 import contains the source-provided 700 entries without stale editorial
     assert.ok(term.trim());
     assert.ok(forms.trim());
     assert.match(meaning, /[\u3400-\u9fff]/u);
-    assert.equal(example, "");
-    assert.equal(exampleZh, "");
+    assert.ok(example.trim());
+    assert.ok(exampleZh.trim());
     if (typeCode === "nm") assert.match(term, /^der(?:\/|\s)/u);
     if (typeCode === "nf") assert.match(term, /^die(?:\/|\s)/u);
     if (typeCode === "nn") assert.match(term, /^das(?:\/|\s)/u);

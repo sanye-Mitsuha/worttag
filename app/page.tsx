@@ -2979,7 +2979,7 @@ export default function Home() {
                             <p lang="de">{currentWord.example}</p>
                           </blockquote>
                         ) : (
-                          <p className="recall-no-example">此导入词条未附例句；请直接尝试回忆词义。</p>
+                          <p className="recall-no-example">这个词条暂时没有例句；请直接尝试回忆词义。</p>
                         )}
                         <button className="reveal-button" onClick={revealAnswer}>
                           看答案 <span aria-hidden="true">→</span>
@@ -3481,8 +3481,8 @@ export default function Home() {
               <div className="story-locked paper-panel">
                 <span className="story-number">03</span>
                 <p className="kicker">Tagesgeschichte</p>
-                <h1>这份导入词库尚未附带例句。</h1>
-                <p>为了不把不可靠的机器造句当作学习材料，今日短文会在补充经核验的例句后再生成。你仍可点击任一单词查阅权威词典。</p>
+                <h1>今天的词汇还没有可组成短文的例句。</h1>
+                <p>你仍可点击任一单词查阅词义与权威词典；补充例句后，Worttag 会把它们编成今日短文。</p>
                 <button className="reveal-button" onClick={() => switchView("library")}>查看今日词汇 →</button>
               </div>
             ) : dailyComplete ? (
