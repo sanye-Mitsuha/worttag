@@ -2745,7 +2745,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta1.6</span>
+          <span className="brand-version">beta1.7</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -3290,7 +3290,6 @@ export default function Home() {
                         </button>
                       </h2>
                       <p className="library-meaning">{word.meaning}</p>
-                      {word.grammarTitle && <div className="library-grammar"><span>搭配</span>{word.grammarTitle}</div>}
                       <button onClick={() => startQueue([word.id], "manual")}>单独学习 <span aria-hidden="true">→</span></button>
                     </article>
                   );
