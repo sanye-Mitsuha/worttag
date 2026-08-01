@@ -2745,7 +2745,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta1.7</span>
+          <span className="brand-version">beta1.8</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
