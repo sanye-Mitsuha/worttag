@@ -495,9 +495,16 @@ a:focus-visible {
 }
 
 .queue-name {
+  min-width: 0;
+  flex: 1 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.queue-item > .queue-review-dots {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .article-term {
@@ -1746,15 +1753,15 @@ blockquote footer {
   width: 9px;
   height: 9px;
   display: block;
-  border: 1px solid var(--line-dark);
+  border: 1px solid rgb(73 97 88 / 0.25);
   border-radius: 50%;
-  background: transparent;
+  background: rgb(73 97 88 / 0.16);
 }
 
 .review-dots i.is-filled {
-  border-color: var(--brick);
-  background: var(--brick);
-  box-shadow: 0 0 0 2px rgb(162 64 49 / 0.08);
+  border-color: #4aae70;
+  background: #55c87d;
+  box-shadow: 0 0 0 3px rgb(85 200 125 / 0.12), 0 0 8px rgb(85 200 125 / 0.55);
 }
 
 .review-dots.mastered i,

@@ -180,7 +180,6 @@ const REVIEW_FSRS_SCHEDULER = fsrs({
   enable_fuzz: false,
 });
 const CEFR_LEVELS: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
-const LEVEL_RANK: Record<CEFRLevel, number> = { A1: 0, A2: 1, B1: 2, B2: 3, C1: 4 };
 const COURSE_WORD_COUNTS: Record<CEFRLevel, number> = {
   A1: 700,
   A2: 700,
@@ -458,7 +457,7 @@ let WORD_BY_ID = new Map<string, WordCard>();
 let expandedWordbooksPromise: Promise<void> | null = null;
 
 function isWordInBook(word: WordCard, level: CEFRLevel) {
-  return LEVEL_RANK[word.level] <= LEVEL_RANK[level];
+  return word.level === level;
 }
 
 function packedWordDetails(typeCode: PackedWordType, term: string, forms: string) {
@@ -1334,12 +1333,12 @@ function ArticleTerm({ term }: { term: string }) {
   );
 }
 
-function ReviewDots({ record }: { record: MemoryRecord | undefined }) {
+function ReviewDots({ record, className = "" }: { record: MemoryRecord | undefined; className?: string }) {
   const count = reviewCountForRecord(record);
   const mastered = count >= MAX_REVIEW_COUNT;
   return (
     <span
-      className={`review-dots${mastered ? " mastered" : ""}`}
+      className={`review-dots${mastered ? " mastered" : ""}${className ? ` ${className}` : ""}`}
       role="img"
       aria-label={mastered ? "已熟记，复习 3 次" : `已复习 ${count} 次，共 3 次`}
       title={mastered ? "已熟记，不再进入复习队列" : `已复习 ${count} 次，共 3 次`}
@@ -3136,7 +3135,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta2.6</span>
+          <span className="brand-version">beta2.7</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -3279,6 +3278,7 @@ export default function Home() {
                         <div className={`queue-item ${itemStatus}${recallStatus ? ` recall-${recallStatus}` : ""}`} key={id}>
                           <span className="queue-dot" title={recallStatus ? STATUS_META[recallStatus].label : undefined}>{statusIcon}</span>
                           <span className="queue-name"><ArticleTerm term={word.term.replace(/^etwas\s+/, "")} /></span>
+                          <ReviewDots record={learning.records[word.id]} className="queue-review-dots" />
                         </div>
                       );
                     })}
