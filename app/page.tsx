@@ -2007,7 +2007,9 @@ export default function Home() {
   const masteryPointsById = new Map<string, number>(Object.entries(sessionMasteryPoints));
   const latestSessionRatings = new Map<string, RecallStatus>(Object.entries(sessionLastRatings));
   const masteredInSession = sessionUniqueIds.filter((id) => (masteryPointsById.get(id) ?? 0) >= 3).length;
-  const sessionCompletedCount = settings.studyMode === "speed" ? latestSessionRatings.size : masteredInSession;
+  const sessionCompletedCount = settings.studyMode === "speed"
+    ? sessionUniqueIds.filter((id) => (masteryPointsById.get(id) ?? 0) >= 3).length
+    : masteredInSession;
   const sessionUniqueTotal = sessionUniqueIds.length;
   const todayWordGoal = settings.wordsPerQueue * activeQueueGoal;
   const activeDailyMastery = queueSource === "daily" && !sessionCompletionCommitted
@@ -2197,6 +2199,10 @@ export default function Home() {
       const nextRatings = [...sessionRatings];
       nextRatings[currentIndex] = rating;
       setSessionRatings(nextRatings);
+      setSessionMasteryPoints((points) => ({
+        ...points,
+        [currentWord.id]: rating === "known" ? 3 : 0,
+      }));
       setFeedback(options.feedbackText ?? `${STATUS_META[rating].label} · 已记录，下次 ${dueLabel}`);
       setGrading(false);
       return;
@@ -2298,7 +2304,17 @@ export default function Home() {
       || grading
     ) return;
     hasLocalInteractionRef.current = true;
+    const nextSpeedPoints = {
+      ...sessionMasteryPoints,
+      [currentWord.id]: currentSessionRating === "known" ? 3 : 0,
+    };
     if (currentIndex + 1 >= sessionQueue.length) {
+      const remainingIds = sessionUniqueIds.filter((id) => (nextSpeedPoints[id] ?? 0) < 3);
+      if (remainingIds.length) {
+        setSessionLastRatings({});
+        beginSessionRound(remainingIds, nextSpeedPoints, sessionRound + 1);
+        return;
+      }
       finishSession(learningRef.current);
       return;
     }
@@ -2745,7 +2761,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta1.8</span>
+          <span className="brand-version">beta1.9</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -2868,11 +2884,13 @@ export default function Home() {
                       const recallStatus = latestSessionRatings.get(id);
                       const masteryPoints = masteryPointsById.get(id) ?? 0;
                       const itemStatus = settings.studyMode === "speed"
-                        ? recallStatus
+                        ? masteryPoints >= 3
                           ? "done"
                           : currentWord?.id === id
                             ? "current"
-                            : "upcoming"
+                            : recallStatus
+                              ? "attempted"
+                              : "upcoming"
                         : masteryPoints >= 3
                           ? "done"
                           : currentWord?.id === id
@@ -2894,7 +2912,7 @@ export default function Home() {
 
                   <section className={`${revealed ? "word-card revealed" : "word-card"}${settings.studyMode === "speed" ? " speed-mode" : ""}`}>
                     <div className="card-topline">
-                    <span className="card-mode">{settings.studyMode === "speed" ? "速刷" : currentIsRepeat ? `第 ${sessionRound} 轮` : queueSource === "manual" ? "单独学习" : currentRecord ? "复习" : "新词"} · {String(currentIndex + 1).padStart(2, "0")} / {sessionQueue.length}</span>
+                    <span className="card-mode">{settings.studyMode === "speed" ? `速刷 · 第 ${sessionRound} 轮` : currentIsRepeat ? `第 ${sessionRound} 轮` : queueSource === "manual" ? "单独学习" : currentRecord ? "复习" : "新词"} · {String(currentIndex + 1).padStart(2, "0")} / {sessionQueue.length}</span>
                     <button className="speak-button" onClick={() => speak(currentWord)} aria-label={`朗读 ${currentWord.term}`}>
                       <span className="sound-rings" aria-hidden="true">◖))</span> 听发音
                     </button>
@@ -2928,43 +2946,55 @@ export default function Home() {
 
                   {settings.studyMode === "speed" ? (
                     <div className="speed-review">
-                      <div className="ink-divider"><span>速刷 · 直接查看</span></div>
+                      <div className="ink-divider"><span>{currentSessionRating ? "速刷 · 已判断" : "速刷 · 先看例句"}</span></div>
                       <div className="answer-sheet speed-answer-sheet" aria-live="polite">
-                        <div className="meaning-line">
-                          <span className="answer-label">释义</span>
-                          <strong>{currentWord.meaning}</strong>
-                        </div>
-                        {currentWord.example && (
+                        {currentSessionRating ? (
+                          <>
+                            <div className="meaning-line">
+                              <span className="answer-label">释义</span>
+                              <strong>{currentWord.meaning}</strong>
+                            </div>
+                            {currentWord.example && (
+                              <blockquote>
+                                <p lang="de">{currentWord.example}</p>
+                                {currentWord.exampleZh && <footer>{currentWord.exampleZh}</footer>}
+                              </blockquote>
+                            )}
+                          </>
+                        ) : (
                           <blockquote>
                             <p lang="de">{currentWord.example}</p>
-                            {settings.showTranslation && currentWord.exampleZh && <footer>{currentWord.exampleZh}</footer>}
                           </blockquote>
                         )}
                       </div>
-                      <div className="rating-area speed-rating-area">
-                        <p>{currentSessionRating ? "已经记录；点击下方按钮继续。" : "选择后不会自动跳转，复习时间会立即安排。"}</p>
-                        <div className="rating-buttons" role="group" aria-label="速刷记忆程度">
-                          {(["known", "fuzzy", "unknown"] as const).map((status) => (
-                            <button
-                              className={`rating-button ${status}`}
-                              key={status}
-                              type="button"
-                              onClick={() => rateCurrent(status, { allowUnrevealed: true, mode: "speed" })}
-                              disabled={Boolean(currentSessionRating) || grading}
-                            >
-                              <span className="rating-icon" aria-hidden="true">
-                                {status === "unknown" ? "×" : status === "fuzzy" ? "~" : "✓"}
-                              </span>
-                              <span><strong>{STATUS_META[status].label}</strong><small>{previewDue(currentRecord, status, clock)}</small></span>
-                              <span className="rating-key" aria-hidden="true">{status === "known" ? "Q" : status === "fuzzy" ? "W" : "E"}</span>
-                            </button>
-                          ))}
+                      {currentSessionRating ? (
+                        <div className="rating-area speed-rating-area">
+                          <p>已记录；模糊和未知会在本轮结束后重刷。</p>
+                          <button className="reveal-button speed-next-button" type="button" onClick={advanceSpeedWord} disabled={grading}>
+                            下一个词 →
+                          </button>
                         </div>
-                      </div>
-                      {currentSessionRating && (
-                        <button className="reveal-button speed-next-button" type="button" onClick={advanceSpeedWord} disabled={grading}>
-                          {currentIndex + 1 >= sessionQueue.length ? "完成本轮 →" : "下一个词 →"}
-                        </button>
+                      ) : (
+                        <div className="rating-area speed-rating-area">
+                          <p>先根据德语例句判断，再选择已知、模糊或未知。</p>
+                          <div className="rating-buttons" role="group" aria-label="速刷记忆程度">
+                            {(["known", "fuzzy", "unknown"] as const).map((status) => (
+                              <button
+                                className={`rating-button ${status}`}
+                                key={status}
+                                type="button"
+                                onClick={() => rateCurrent(status, { allowUnrevealed: true, mode: "speed" })}
+                                disabled={grading}
+                              >
+                                <span className="rating-icon" aria-hidden="true">
+                                  {status === "unknown" ? "×" : status === "fuzzy" ? "~" : "✓"}
+                                </span>
+                                <span><strong>{STATUS_META[status].label}</strong><small>{previewDue(currentRecord, status, clock)}</small></span>
+                                <span className="rating-key" aria-hidden="true">{status === "known" ? "Q" : status === "fuzzy" ? "W" : "E"}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
                   ) : !revealed ? (

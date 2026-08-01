@@ -17,7 +17,7 @@ test("declares Worttag metadata and a production-ready application shell", async
   const [page, layout, css, packageJson] = await readAppSources();
 
   assert.match(packageJson, /"name": "worttag"/);
-  assert.match(packageJson, /"version": "1\.3\.2"/);
+  assert.match(packageJson, /"version": "1\.3\.3"/);
   assert.match(layout, /const title = "Worttag · 德语词汇记忆"/);
   assert.match(layout, /间隔复习、语法例句和每日短文/);
   assert.match(layout, /openGraph:/);
@@ -44,15 +44,19 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /刷词模式/);
   assert.match(page, /熟记/);
   assert.match(page, /速刷/);
-  assert.match(page, /选择后不会自动跳转/);
+  assert.match(page, /先根据德语例句判断，再选择已知、模糊或未知/);
   assert.match(page, /下一个词 →/);
   assert.match(page, /settings\.studyMode === "speed"/);
   assert.match(page, /"der\/die See": "湖泊（der）；海洋（die）"/);
   assert.match(page, /"oft": "常常、时常、多次；经常、时常"/);
   assert.match(page, /"oft": ""/);
   assert.doesNotMatch(page, /className="library-grammar"/);
-  assert.match(page, /beta1\.8/);
+  assert.match(page, /beta1\.9/);
   assert.match(css, /\.topbar\s*\{[\s\S]*position: sticky;[\s\S]*top: 0;[\s\S]*z-index: 50;/u);
+  assert.match(page, /速刷 · 先看例句/);
+  assert.match(page, /已记录；模糊和未知会在本轮结束后重刷/);
+  assert.match(page, /remainingIds = sessionUniqueIds\.filter/);
+  assert.match(page, /setSessionLastRatings\(\{\}\)/);
   assert.match(page, /重新拼写/);
   assert.match(page, /预计完成 \{settings\.level\} 词书/);
   assert.match(page, /<kbd>F<\/kbd> 按 F 发音/);
