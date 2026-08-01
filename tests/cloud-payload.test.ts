@@ -11,7 +11,7 @@ import {
 } from "../app/cloud-payload.ts";
 
 function memoryRecord(index: number): CloudMemoryRecord {
-  return {
+  const record: CloudMemoryRecord = {
     status: (["unknown", "fuzzy", "known"] as const)[index % 3],
     stage: index % 9,
     dueAt: 1_760_000_000_000 + index * 60_000,
@@ -23,6 +23,21 @@ function memoryRecord(index: number): CloudMemoryRecord {
     lapseDayKey: index % 7 === 0 ? null : "2026-07-22",
     updatedAt: 1_760_000_000_000 + index,
   };
+  if (index === 0) {
+    record.fsrs = {
+      dueAt: 1_760_100_000_000,
+      stability: 4.5,
+      difficulty: 6.2,
+      elapsedDays: 3,
+      scheduledDays: 5,
+      learningSteps: 0,
+      reps: 4,
+      lapses: 1,
+      state: 2,
+      lastReviewAt: 1_759_900_000_000,
+    };
+  }
+  return record;
 }
 
 function payloadWithRecords(count: number): CloudPayloadV1<
@@ -77,7 +92,7 @@ test("schema v2 packs and restores every memory field", () => {
 
   assert.equal(packed.schemaVersion, 2);
   assert.ok(Array.isArray(packed.learning.records));
-  assert.equal(packed.learning.records[0].length, 11);
+  assert.equal(packed.learning.records[0].length, 12);
   assert.deepEqual(unpacked, original);
 });
 

@@ -1,5 +1,18 @@
 export type CloudRecallStatus = "unknown" | "fuzzy" | "known";
 
+export type FsrsMemorySnapshot = {
+  dueAt: number;
+  stability: number;
+  difficulty: number;
+  elapsedDays: number;
+  scheduledDays: number;
+  learningSteps: number;
+  reps: number;
+  lapses: number;
+  state: number;
+  lastReviewAt: number | null;
+};
+
 export type CloudMemoryRecord = {
   status: CloudRecallStatus;
   stage: number;
@@ -11,6 +24,7 @@ export type CloudMemoryRecord = {
   sameDayLapses: number;
   lapseDayKey: string | null;
   updatedAt: number;
+  fsrs?: FsrsMemorySnapshot;
 };
 
 export type PackedMemoryRecord = readonly [
@@ -25,6 +39,7 @@ export type PackedMemoryRecord = readonly [
   sameDayLapses: number,
   lapseDayKey: string,
   updatedAt: number,
+  fsrsJson?: string,
 ];
 
 export const MAX_CLOUD_SNAPSHOT_BYTES = 1_800_000;
@@ -74,15 +89,32 @@ function isFiniteNumber(value: unknown): value is number {
 }
 
 function isPackedMemoryRecord(value: unknown): value is PackedMemoryRecord {
-  if (!Array.isArray(value) || value.length !== 11) return false;
+  if (!Array.isArray(value) || (value.length !== 11 && value.length !== 12)) return false;
   return (
     typeof value[0] === "string" &&
     value[0].length > 0 &&
     (value[1] === 0 || value[1] === 1 || value[1] === 2) &&
     value.slice(2, 9).every(isFiniteNumber) &&
     typeof value[9] === "string" &&
-    isFiniteNumber(value[10])
+    isFiniteNumber(value[10]) &&
+    (value.length === 11 || typeof value[11] === "string")
   );
+}
+
+function isFsrsMemorySnapshot(value: unknown): value is FsrsMemorySnapshot {
+  if (!isObject(value)) return false;
+  return [
+    "dueAt",
+    "stability",
+    "difficulty",
+    "elapsedDays",
+    "scheduledDays",
+    "learningSteps",
+    "reps",
+    "lapses",
+    "state",
+  ].every((key) => isFiniteNumber(value[key])) &&
+    (value.lastReviewAt === null || isFiniteNumber(value.lastReviewAt));
 }
 
 export function packMemoryRecords(
@@ -100,6 +132,7 @@ export function packMemoryRecords(
     record.sameDayLapses,
     record.lapseDayKey ?? "",
     record.updatedAt,
+    record.fsrs ? JSON.stringify(record.fsrs) : "",
   ]);
 }
 
@@ -121,6 +154,16 @@ export function unpackMemoryRecords(
       lapseDayKey,
       updatedAt,
     ] = packed;
+    let fsrs: FsrsMemorySnapshot | undefined;
+    const fsrsJson = packed[11];
+    if (typeof fsrsJson === "string" && fsrsJson) {
+      try {
+        const parsed = JSON.parse(fsrsJson) as unknown;
+        if (isFsrsMemorySnapshot(parsed)) fsrs = parsed;
+      } catch {
+        fsrs = undefined;
+      }
+    }
     records[id] = {
       status: CODE_TO_STATUS[status],
       stage,
@@ -132,6 +175,7 @@ export function unpackMemoryRecords(
       sameDayLapses,
       lapseDayKey: lapseDayKey || null,
       updatedAt,
+      ...(fsrs ? { fsrs } : {}),
     };
   });
   return records;

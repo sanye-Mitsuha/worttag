@@ -1,7 +1,18 @@
 "use client";
 
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { packCloudPayload, unpackCloudPayload } from "./cloud-payload";
+import {
+  packCloudPayload,
+  unpackCloudPayload,
+  type FsrsMemorySnapshot,
+} from "./cloud-payload";
+import {
+  createEmptyCard,
+  fsrs,
+  Rating as FsrsRating,
+  State as FsrsState,
+  type Card as FsrsCard,
+} from "ts-fsrs";
 import {
   buildLibrarySearchText,
   matchesLibrarySearch,
@@ -85,6 +96,7 @@ type MemoryRecord = {
   sameDayLapses: number;
   lapseDayKey: string | null;
   updatedAt: number;
+  fsrs?: FsrsMemorySnapshot;
 };
 
 type LearningState = {
@@ -152,6 +164,12 @@ const SYNCED_SETTING_KEYS: (keyof SyncedSettings)[] = [
 const MINUTE = 60_000;
 const DAY = 86_400_000;
 const INTERVAL_DAYS = [0, 1, 3, 7, 14, 30, 60, 120, 180] as const;
+const FSRS_MAXIMUM_INTERVAL_DAYS = 36_500;
+const REVIEW_FSRS_SCHEDULER = fsrs({
+  request_retention: 0.9,
+  maximum_interval: FSRS_MAXIMUM_INTERVAL_DAYS,
+  enable_fuzz: false,
+});
 const CEFR_LEVELS: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
 const LEVEL_RANK: Record<CEFRLevel, number> = { A1: 0, A2: 1, B1: 2, B2: 3, C1: 4 };
 const COURSE_WORD_COUNTS: Record<CEFRLevel, number> = {
@@ -780,6 +798,117 @@ function freshMemory(): MemoryRecord {
   };
 }
 
+const FSRS_RATING_BY_STATUS: Record<RecallStatus, FsrsRating> = {
+  unknown: FsrsRating.Again,
+  fuzzy: FsrsRating.Hard,
+  known: FsrsRating.Good,
+};
+
+function fsrsCardFromMemory(record: MemoryRecord | undefined, now: number): FsrsCard {
+  const saved = record?.fsrs;
+  if (saved) {
+    return {
+      due: new Date(saved.dueAt),
+      stability: saved.stability,
+      difficulty: saved.difficulty,
+      elapsed_days: saved.elapsedDays,
+      scheduled_days: saved.scheduledDays,
+      learning_steps: saved.learningSteps,
+      reps: saved.reps,
+      lapses: saved.lapses,
+      state: Math.min(FsrsState.Relearning, Math.max(FsrsState.New, saved.state)) as FsrsState,
+      ...(saved.lastReviewAt === null ? {} : { last_review: new Date(saved.lastReviewAt) }),
+    };
+  }
+
+  const card = createEmptyCard(new Date(record?.lastReviewedAt ?? now));
+  if (!record?.lastReviewedAt || record.intervalDays <= 0) {
+    return {
+      ...card,
+      due: new Date(record?.dueAt || now),
+      reps: Math.max(0, record?.knownStreak ?? 0),
+      lapses: Math.max(0, record?.lapseCount ?? 0),
+    };
+  }
+
+  const scheduledDays = Math.max(1, record.intervalDays);
+  const elapsedDays = Math.max(0, Math.round((now - record.lastReviewedAt) / DAY));
+  return {
+    ...card,
+    due: new Date(record.dueAt),
+    stability: scheduledDays,
+    difficulty: Math.min(10, Math.max(1, 6.5 - Math.min(2, record.knownStreak * 0.25))),
+    elapsed_days: elapsedDays,
+    scheduled_days: scheduledDays,
+    reps: Math.max(1, record.knownStreak),
+    lapses: Math.max(0, record.lapseCount),
+    state: FsrsState.Review,
+    last_review: new Date(record.lastReviewedAt),
+  };
+}
+
+function fsrsSnapshotFromCard(card: FsrsCard): FsrsMemorySnapshot {
+  return {
+    dueAt: card.due.getTime(),
+    stability: card.stability,
+    difficulty: card.difficulty,
+    elapsedDays: card.elapsed_days,
+    scheduledDays: card.scheduled_days,
+    learningSteps: card.learning_steps,
+    reps: card.reps,
+    lapses: card.lapses,
+    state: card.state,
+    lastReviewAt: card.last_review?.getTime() ?? null,
+  };
+}
+
+function formatReviewDueLabel(dueAt: number, now: number) {
+  const delay = dueAt - now;
+  if (delay <= 0) return "现在";
+  if (delay < DAY) {
+    const minutes = Math.max(1, Math.round(delay / MINUTE));
+    return minutes < 60 ? `${minutes} 分钟后` : `${Math.max(1, Math.round(minutes / 60))} 小时后`;
+  }
+  return `${Math.max(1, Math.round(delay / DAY))} 天后`;
+}
+
+function gradeReviewMemory(
+  previous: MemoryRecord | undefined,
+  rating: RecallStatus,
+  now = Date.now(),
+) {
+  const state = previous ?? freshMemory();
+  const today = dayKey(now);
+  const card = fsrsCardFromMemory(previous, now);
+  const result = REVIEW_FSRS_SCHEDULER.next(
+    card,
+    new Date(now),
+    FSRS_RATING_BY_STATUS[rating],
+  );
+  const sameDayLapses = rating === "unknown"
+    ? (state.lapseDayKey === today ? state.sameDayLapses : 0) + 1
+    : 0;
+  const scheduledDays = Math.max(0, Math.round(result.card.scheduled_days));
+  const next = {
+    ...state,
+    status: rating,
+    stage: result.card.state === FsrsState.Review ? Math.max(1, state.stage) : 0,
+    dueAt: result.card.due.getTime(),
+    intervalDays: scheduledDays,
+    knownStreak: result.card.reps,
+    lapseCount: result.card.lapses,
+    lastReviewedAt: now,
+    sameDayLapses,
+    lapseDayKey: rating === "unknown" ? today : null,
+    updatedAt: Math.max(now, (state.updatedAt ?? state.lastReviewedAt ?? 0) + 1),
+    fsrs: fsrsSnapshotFromCard(result.card),
+  };
+  return {
+    next,
+    dueLabel: formatReviewDueLabel(next.dueAt, now),
+  };
+}
+
 function gradeMemory(
   previous: MemoryRecord | undefined,
   rating: RecallStatus,
@@ -855,8 +984,13 @@ function gradeMemory(
   };
 }
 
-function previewDue(record: MemoryRecord | undefined, rating: RecallStatus, now: number) {
-  return gradeMemory(record, rating, now).dueLabel;
+function previewDue(
+  record: MemoryRecord | undefined,
+  rating: RecallStatus,
+  now: number,
+  useFsrs = false,
+) {
+  return (useFsrs ? gradeReviewMemory : gradeMemory)(record, rating, now).dueLabel;
 }
 
 function seededShuffle<T>(items: T[], seedText: string) {
@@ -2019,9 +2153,11 @@ export default function Home() {
   const masteryPointsById = new Map<string, number>(Object.entries(sessionMasteryPoints));
   const latestSessionRatings = new Map<string, RecallStatus>(Object.entries(sessionLastRatings));
   const masteredInSession = sessionUniqueIds.filter((id) => (masteryPointsById.get(id) ?? 0) >= 3).length;
-  const sessionCompletedCount = activeStudyMode === "speed"
-    ? sessionUniqueIds.filter((id) => (masteryPointsById.get(id) ?? 0) >= 3).length
-    : masteredInSession;
+  const sessionCompletedCount = queueSource === "review"
+    ? sessionRatings.filter((rating) => rating !== null).length
+    : activeStudyMode === "speed"
+      ? sessionUniqueIds.filter((id) => (masteryPointsById.get(id) ?? 0) >= 3).length
+      : masteredInSession;
   const sessionUniqueTotal = sessionUniqueIds.length;
   const todayWordGoal = settings.wordsPerQueue * activeQueueGoal;
   const activeDailyMastery = queueSource === "daily" && !sessionCompletionCommitted
@@ -2185,7 +2321,9 @@ export default function Home() {
     hasLocalInteractionRef.current = true;
     const now = currentTimestamp();
     const latest = learningRef.current;
-    const { next, dueLabel } = gradeMemory(latest.records[currentWord.id], rating, now);
+    const { next, dueLabel } = queueSource === "review"
+      ? gradeReviewMemory(latest.records[currentWord.id], rating, now)
+      : gradeMemory(latest.records[currentWord.id], rating, now);
     const reviewEvents = [
       ...latest.todayReviewEventIds,
       uniqueId(`review-${latest.todayKey}-${currentWord.id}`),
@@ -2217,6 +2355,28 @@ export default function Home() {
       }));
       setFeedback(options.feedbackText ?? `${STATUS_META[rating].label} · 已记录，下次 ${dueLabel}`);
       setGrading(false);
+      return;
+    }
+
+    if (queueSource === "review") {
+      const nextRatings = [...sessionRatings];
+      nextRatings[currentIndex] = rating;
+      setSessionRatings(nextRatings);
+      setFeedback(`${STATUS_META[rating].label} · 已记录，${dueLabel}`);
+      setGrading(true);
+      if (currentIndex + 1 >= sessionQueue.length) {
+        finishSession(nextState);
+        return;
+      }
+      clearTransitionTimer();
+      transitionTimerRef.current = window.setTimeout(() => {
+        transitionTimerRef.current = null;
+        setCurrentIndex((index) => index + 1);
+        setRevealed(false);
+        setSelectedChoiceId(null);
+        setFeedback(null);
+        setGrading(false);
+      }, options.transitionDelay ?? 620);
       return;
     }
 
@@ -2779,7 +2939,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta2.2</span>
+          <span className="brand-version">beta2.3</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -3153,7 +3313,7 @@ export default function Home() {
                         </blockquote>
                       )}
                       <div className="rating-area">
-                        <p>光点规则：已知 +1 · 模糊 −1 · 未知清零</p>
+                        <p>{queueSource === "review" ? "FSRS：根据本次回忆动态安排下次复习" : "光点规则：已知 +1 · 模糊 −1 · 未知清零"}</p>
                         <div className="rating-buttons">
                           {(["known", "fuzzy", "unknown"] as const).map((status) => (
                             <button
@@ -3165,7 +3325,7 @@ export default function Home() {
                               <span className="rating-icon" aria-hidden="true">
                                 {status === "unknown" ? "×" : status === "fuzzy" ? "~" : "✓"}
                               </span>
-                              <span><strong>{STATUS_META[status].label}</strong><small>{previewDue(currentRecord, status, clock)}</small></span>
+                              <span><strong>{STATUS_META[status].label}</strong><small>{previewDue(currentRecord, status, clock, queueSource === "review")}</small></span>
                               <span className="rating-key" aria-hidden="true">{status === "known" ? "Q" : status === "fuzzy" ? "W" : "E"}</span>
                             </button>
                           ))}
@@ -3238,7 +3398,7 @@ export default function Home() {
             <div className="review-summary-grid">
               <article className="summary-card"><span>现在到期</span><strong>{dueWords.length}</strong><small>优先处理未知与逾期词</small></article>
               <article className="summary-card"><span>本日已复习</span><strong>{learning.todayReviewed}</strong><small>每次判断都会自动排期</small></article>
-              <article className="summary-card"><span>最长间隔</span><strong>180</strong><small>天 · 连续答对逐级增长</small></article>
+              <article className="summary-card"><span>最长间隔</span><strong>{FSRS_MAXIMUM_INTERVAL_DAYS}</strong><small>天 · FSRS 根据记忆动态调整</small></article>
             </div>
             <div className="due-list paper-panel">
               <div className="list-header"><span>单词</span><span>状态</span><span>上次结果</span><span>下次出现</span></div>

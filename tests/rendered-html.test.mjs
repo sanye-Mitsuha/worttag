@@ -17,7 +17,7 @@ test("declares Worttag metadata and a production-ready application shell", async
   const [page, layout, css, packageJson] = await readAppSources();
 
   assert.match(packageJson, /"name": "worttag"/);
-  assert.match(packageJson, /"version": "1\.3\.6"/);
+  assert.match(packageJson, /"version": "1\.3\.7"/);
   assert.match(layout, /const title = "Worttag · 德语词汇记忆"/);
   assert.match(layout, /间隔复习、语法例句和每日短文/);
   assert.match(layout, /openGraph:/);
@@ -51,7 +51,14 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /"oft": "常常、时常、多次；经常、时常"/);
   assert.match(page, /"oft": ""/);
   assert.doesNotMatch(page, /className="library-grammar"/);
-  assert.match(page, /beta2\.2/);
+  assert.match(page, /beta2\.3/);
+  assert.match(page, /from "ts-fsrs"/);
+  assert.match(page, /const REVIEW_FSRS_SCHEDULER = fsrs\(/);
+  assert.match(page, /function gradeReviewMemory\(/);
+  assert.match(page, /queueSource === "review"\n      \? gradeReviewMemory/s);
+  assert.match(page, /if \(queueSource === "review"\)/);
+  assert.match(page, /sessionRatings\.filter\(\(rating\) => rating !== null\)/);
+  assert.match(page, /FSRS 根据记忆动态调整/);
   assert.match(page, /function selectStoryWords\(words: WordCard\[\]\): WordCard\[\]/);
   assert.match(page, /Math\.ceil\(words\.length \/ 5\)/);
   assert.match(page, /const storyWords = useMemo\(\(\) => selectStoryWords\(learnedToday\)/);
