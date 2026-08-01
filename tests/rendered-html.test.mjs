@@ -47,6 +47,8 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /className="meaning-key"/);
   assert.match(page, /status === "known" \? "Q"/);
   assert.match(page, /event\.code === "Space"/);
+  assert.match(page, /const ratingStage = revealed \|\| currentPromptMode === "example" \|\| currentPromptMode === "direct"/);
+  assert.match(page, /target\?\.closest\("input, select, textarea"\)/);
   assert.match(page, /<p className="word-type">\{currentWord\.type\}<\/p>/);
   assert.match(page, /本轮按顺序每词一次；答错会在下一轮再出现/);
   assert.match(page, /确定重置所有学习进度/);

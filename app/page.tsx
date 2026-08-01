@@ -2476,7 +2476,10 @@ export default function Home() {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (dictionaryWord) return;
       const target = event.target as HTMLElement | null;
-      if (target?.closest("button, input, select, textarea, a")) return;
+      // Letter/number shortcuts should work even when the matching button has
+      // focus. Keep text-entry controls isolated so typing in settings or
+      // search fields never changes the active study card.
+      if (target?.closest("input, select, textarea")) return;
       if (event.key.toLowerCase() === "f") {
         event.preventDefault();
         speak(currentWord);
@@ -2496,17 +2499,20 @@ export default function Home() {
           return;
         }
       }
-      if (revealed) {
-        const ratingByKey: Record<string, RecallStatus> = {
-          q: "known",
-          w: "fuzzy",
-          e: "unknown",
-        };
-        const rating = ratingByKey[event.key.toLowerCase()];
-        if (rating) {
-          event.preventDefault();
-          rateCurrent(rating);
-        }
+      const ratingByKey: Record<string, RecallStatus> = {
+        q: "known",
+        w: "fuzzy",
+        e: "unknown",
+      };
+      const rating = ratingByKey[event.key.toLowerCase()];
+      const ratingStage = revealed || currentPromptMode === "example" || currentPromptMode === "direct";
+      if (ratingStage && rating) {
+        event.preventDefault();
+        rateCurrent(rating, {
+          allowUnrevealed: currentPromptMode !== "choice",
+          mode: currentPromptMode === "choice" ? "choice" : "rating",
+          transitionDelay: 620,
+        });
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -2693,7 +2699,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta1.5</span>
+          <span className="brand-version">beta1.6</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
