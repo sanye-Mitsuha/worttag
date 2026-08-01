@@ -2939,7 +2939,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta2.3</span>
+          <span className="brand-version">beta2.4</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -3392,13 +3392,8 @@ export default function Home() {
             <div className="page-heading">
               <div><p className="kicker">Wiederholen · {settings.level}</p><h1>到时间的词，才值得复习。</h1></div>
               <button className="primary-action" disabled={!dueWords.length} onClick={() => startQueue(dueWords.slice(0, settings.wordsPerQueue).map((word) => word.id), "review")}>
-                {dueWords.length ? `开始复习 ${Math.min(dueWords.length, settings.wordsPerQueue)} 个词` : "今天已清空"}
+                {dueWords.length ? `还剩 ${dueWords.length} 个复习` : "今天已清空"}
               </button>
-            </div>
-            <div className="review-summary-grid">
-              <article className="summary-card"><span>现在到期</span><strong>{dueWords.length}</strong><small>优先处理未知与逾期词</small></article>
-              <article className="summary-card"><span>本日已复习</span><strong>{learning.todayReviewed}</strong><small>每次判断都会自动排期</small></article>
-              <article className="summary-card"><span>最长间隔</span><strong>{FSRS_MAXIMUM_INTERVAL_DAYS}</strong><small>天 · FSRS 根据记忆动态调整</small></article>
             </div>
             <div className="due-list paper-panel">
               <div className="list-header"><span>单词</span><span>状态</span><span>上次结果</span><span>下次出现</span></div>

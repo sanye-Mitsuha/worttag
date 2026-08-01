@@ -414,7 +414,6 @@ a:focus-visible {
 .paper-panel,
 .word-card,
 .library-card,
-.summary-card,
 .generated-story,
 .story-locked {
   position: relative;
@@ -1673,42 +1672,11 @@ blockquote footer {
   font-size: 13px;
 }
 
-.review-summary-grid,
 .progress-stat-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 15px;
   margin-bottom: 20px;
-}
-
-.summary-card {
-  padding: 23px 25px;
-}
-
-.summary-card span,
-.summary-card strong,
-.summary-card small {
-  position: relative;
-  z-index: 1;
-  display: block;
-}
-
-.summary-card span {
-  color: var(--brick);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.summary-card strong {
-  margin: 10px 0 5px;
-  font: 600 42px/1 var(--serif);
-}
-
-.summary-card small {
-  color: #777063;
-  font-size: 12px;
 }
 
 .due-list {
@@ -4279,7 +4247,6 @@ html[data-theme="dark"] .queue-item,
 html[data-theme="dark"] .shortcut-keys,
 html[data-theme="dark"] .plan-stats span,
 html[data-theme="dark"] .site-footer,
-html[data-theme="dark"] .summary-card small,
 html[data-theme="dark"] .list-header,
 html[data-theme="dark"] .filter-tabs button,
 html[data-theme="dark"] .progress-stat-grid p,
@@ -4306,7 +4273,6 @@ html[data-theme="dark"] .story-lock-progress {
 html[data-theme="dark"] .paper-panel,
 html[data-theme="dark"] .word-card,
 html[data-theme="dark"] .library-card,
-html[data-theme="dark"] .summary-card,
 html[data-theme="dark"] .generated-story,
 html[data-theme="dark"] .story-locked,
 html[data-theme="dark"] .settings-card {
@@ -4812,7 +4778,6 @@ html[data-theme="dark"] .warning-note {
   .rating-buttons,
   .meaning-options,
   .insight-column,
-  .review-summary-grid,
   .progress-stat-grid,
   .word-library-grid {
     grid-template-columns: 1fr;
