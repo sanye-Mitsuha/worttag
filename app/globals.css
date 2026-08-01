@@ -853,6 +853,21 @@ kbd {
   margin-top: 0;
 }
 
+.example-stage .recall-example {
+  margin: 25px 0 28px;
+  text-align: left;
+}
+
+.example-placeholder {
+  min-height: 92px;
+  display: grid;
+  place-items: center;
+  margin: 25px 0 28px;
+  border: 1px dashed var(--line-dark);
+  color: var(--muted);
+  font: italic 19px/1.4 var(--serif);
+}
+
 .meaning-options {
   display: grid;
   grid-template-columns: 1fr 1fr;

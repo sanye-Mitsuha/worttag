@@ -897,6 +897,32 @@ function normalizeSpelling(value: string) {
     .replace(/\s+/g, " ");
 }
 
+function addPluralUmlaut(value: string) {
+  const umlauts: Record<string, string> = { a: "ä", o: "ö", u: "ü", A: "Ä", O: "Ö", U: "Ü" };
+  for (let index = value.length - 1; index >= 0; index -= 1) {
+    const replacement = umlauts[value[index]];
+    if (replacement) return `${value.slice(0, index)}${replacement}${value.slice(index + 1)}`;
+  }
+  return value;
+}
+
+function wordFormsForDisplay(word: WordCard) {
+  if (!word.type.startsWith("名词")) return "（词形待补充）";
+  const singular = word.term.trim().replace(/^(der|die|das)\s+/i, "");
+  const pluralMarker = /Plural:\s*(.+)$/i.exec(word.forms.trim())?.[1]?.trim();
+  if (!pluralMarker) return "（复数待补充）";
+  if (pluralMarker === "-" || pluralMarker === "—") return `die ${singular}`;
+  if (pluralMarker === "¨") return `die ${addPluralUmlaut(singular)}`;
+  if (pluralMarker.startsWith("¨-")) {
+    return `die ${addPluralUmlaut(singular)}${pluralMarker.slice(2)}`;
+  }
+  if (pluralMarker.startsWith("-")) {
+    const endings = pluralMarker.slice(1).split("/");
+    return endings.map((ending) => `die ${singular}${ending}`).join(" / ");
+  }
+  return `die ${pluralMarker}`;
+}
+
 function buildDailyQueue(state: LearningState, settings: AppSettings, now = Date.now()) {
   const book = WORDS.filter((word) => isWordInBook(word, settings.level));
   const bookIds = new Set(book.map((word) => word.id));
@@ -1126,7 +1152,6 @@ export default function Home() {
   const [sessionMasteryPoints, setSessionMasteryPoints] = useState<Record<string, number>>({});
   const [sessionLastRatings, setSessionLastRatings] = useState<Record<string, RecallStatus>>({});
   const [sessionRound, setSessionRound] = useState(1);
-  const [sessionRoundMode, setSessionRoundMode] = useState<"choice" | "rating">("choice");
   const [queueSource, setQueueSource] = useState<"daily" | "review" | "manual">("daily");
   const [returnView, setReturnView] = useState<View>("learn");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -1211,7 +1236,6 @@ export default function Home() {
     setSessionMasteryPoints(Object.fromEntries(uniqueIds.map((id) => [id, 0])));
     setSessionLastRatings({});
     setSessionRound(1);
-    setSessionRoundMode("choice");
     setSessionPhase("study");
     setSessionCompletionCommitted(false);
     setSelectedChoiceId(null);
@@ -1228,7 +1252,6 @@ export default function Home() {
     setSessionRatings(uniqueIds.map(() => null));
     setSessionMasteryPoints(points);
     setSessionRound(round);
-    setSessionRoundMode("rating");
     setCurrentIndex(0);
     setSessionPhase("study");
     setSessionCompletionCommitted(false);
@@ -1982,6 +2005,11 @@ export default function Home() {
   );
   const todayWordsRemaining = Math.max(0, todayWordGoal - todayWordsCompleted);
   const currentMasteryPoints = currentWord ? masteryPointsById.get(currentWord.id) ?? 0 : 0;
+  const currentPromptMode: "choice" | "example" | "direct" = currentMasteryPoints <= 0
+    ? "choice"
+    : currentMasteryPoints === 1
+      ? "example"
+      : "direct";
   const currentAttemptNumber: number = currentWord ? 1 : 0;
   const currentIsRepeat = currentWord ? sessionRound > 1 : false;
   const currentMeaningChoices = useMemo(
@@ -2232,7 +2260,7 @@ export default function Home() {
   }
 
   function selectMeaningChoice(optionId: string) {
-    if (!currentWord || sessionRoundMode !== "choice" || currentAttemptNumber !== 1 || grading) return;
+    if (!currentWord || currentPromptMode !== "choice" || currentAttemptNumber !== 1 || grading) return;
     const correct = optionId === currentWord.id;
     setSelectedChoiceId(optionId);
     rateCurrent(correct ? "known" : "unknown", {
@@ -2638,7 +2666,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta1.2</span>
+          <span className="brand-version">beta1.3</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -2788,7 +2816,7 @@ export default function Home() {
                   </div>
 
                   <div className={`word-front exposure-${Math.min(3, currentAttemptNumber)}`}>
-                    {sessionRoundMode === "choice" && <p className="word-type">{currentWord.type}</p>}
+                    {currentPromptMode === "choice" && <p className="word-type">{currentWord.type}</p>}
                     <div className="word-title-row">
                       <h2>
                         <button
@@ -2808,11 +2836,11 @@ export default function Home() {
                         ))}
                       </span>
                     </div>
-                    {sessionRoundMode === "choice" && <p className="word-forms">{currentWord.forms}</p>}
+                    <p className="word-forms">{wordFormsForDisplay(currentWord)}</p>
                   </div>
 
                   {!revealed ? (
-                    sessionRoundMode === "choice" ? (
+                    currentPromptMode === "choice" ? (
                       <div className="choice-recall">
                         <div className="ink-divider"><span>第 {sessionRound} 轮 · 选择词义</span></div>
                         <div className="meaning-options" role="radiogroup" aria-label={`${currentWord.term} 的词义选项`}>
@@ -2852,7 +2880,38 @@ export default function Home() {
                           <p className="choice-instruction">本轮按顺序每词一次；答错会在下一轮再出现</p>
                         )}
                       </div>
-                    ) : sessionRoundMode === "rating" ? (
+                    ) : currentPromptMode === "example" ? (
+                      <div className="round-rating example-stage">
+                        <div className="ink-divider"><span>第 {sessionRound} 轮 · 根据例句判断</span></div>
+                        {currentWord.example ? (
+                          <blockquote className="recall-example">
+                            <p lang="de">{currentWord.example}</p>
+                          </blockquote>
+                        ) : (
+                          <div className="example-placeholder" role="note">（例句待补充）</div>
+                        )}
+                        <div className="rating-buttons" role="group" aria-label="根据例句判断记忆程度">
+                          {(["known", "fuzzy", "unknown"] as const).map((status) => (
+                            <button
+                              className={`rating-button ${status}`}
+                              key={status}
+                              type="button"
+                              onClick={() => rateCurrent(status, {
+                                allowUnrevealed: true,
+                                mode: "rating",
+                                transitionDelay: 620,
+                              })}
+                              disabled={grading}
+                            >
+                              <span className="rating-icon" aria-hidden="true">
+                                {status === "unknown" ? "×" : status === "fuzzy" ? "~" : "✓"}
+                              </span>
+                              <strong>{STATUS_META[status].label}</strong>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : currentPromptMode === "direct" ? (
                       <div className="round-rating">
                         <div className="ink-divider"><span>第 {sessionRound} 轮 · 直接判断</span></div>
                         <div className="rating-buttons" role="group" aria-label="记忆程度">
