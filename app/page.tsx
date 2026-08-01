@@ -591,7 +591,10 @@ function loadExpandedWordbooks() {
   if (expandedWordbooksPromise) return expandedWordbooksPromise;
   expandedWordbooksPromise = Promise.all(
     CEFR_LEVELS.map(async (level) => {
-      const response = await fetch(`/wordbooks/${level.toLowerCase()}-v1.json`, { cache: "force-cache" });
+      // Include the corpus revision so a browser that still has the previous
+      // 630-entry response cannot make the imported 700/1000/1600/2000 books
+      // appear empty after a release.
+      const response = await fetch(`/wordbooks/${level.toLowerCase()}-v1.json?corpus=core6000`, { cache: "no-store" });
       if (!response.ok) throw new Error(`${level} wordbook could not be loaded.`);
       return parsePackedWordbook(await response.json(), level);
     }),
