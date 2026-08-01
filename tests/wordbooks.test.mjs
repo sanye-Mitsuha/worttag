@@ -1,28 +1,18 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { test } from "node:test";
 import path from "node:path";
+import { test } from "node:test";
 
 const root = process.cwd();
 const levels = ["A1", "A2", "B1", "B2", "C1"];
-const targets = { A1: 630, A2: 630, B1: 1080, B2: 1580, C1: 1980 };
+const targets = { A1: 700, A2: 700, B1: 1000, B2: 1600, C1: 2000 };
 const fields = ["id", "term", "forms", "typeCode", "meaning", "example", "exampleZh"];
+const typeCodes = new Set(["nm", "nf", "nn", "v", "adj", "adv", "prep", "conj", "pron", "det", "intj"]);
 
-async function legacyIds() {
-  const files = ["app/page.tsx", "app/wordbooks-a1-a2.ts", "app/wordbooks-advanced.ts"];
+test("Core 6000 import keeps the supplied CEFR split and core lexical fields", async () => {
   const ids = new Set();
-  for (const file of files) {
-    const source = await readFile(path.join(root, file), "utf8");
-    for (const match of source.matchAll(/\bid:\s*"([^"]+)"/g)) ids.add(match[1]);
-  }
-  return ids;
-}
-
-test("expanded wordbooks have exact counts, schema, and unique stable IDs", async () => {
-  const ids = await legacyIds();
-  assert.equal(ids.size, 100, "the curated legacy set must stay at 100 entries");
   const lexicalEntries = new Set();
-  let supplemental = 0;
+  let total = 0;
 
   for (const level of levels) {
     const file = path.join(root, "public", "wordbooks", `${level.toLowerCase()}-v1.json`);
@@ -35,40 +25,41 @@ test("expanded wordbooks have exact counts, schema, and unique stable IDs", asyn
 
     for (const row of document.words) {
       assert.equal(row.length, fields.length);
-      assert.ok(row.every((value) => typeof value === "string" && value.trim().length > 0));
-      const [id, term, , typeCode, meaning, example, exampleZh] = row;
-      assert.match(
-        id,
-        new RegExp(`^wb-${level.toLowerCase()}-[a-z0-9-]+-[a-f0-9]{7,8}$`),
-      );
+      const [id, term, forms, typeCode, meaning, example, exampleZh] = row;
+      assert.match(id, new RegExp(`^core6000-${level.toLowerCase()}-\\d{4}$`));
       assert.ok(!ids.has(id), `duplicate ID: ${id}`);
       ids.add(id);
+      assert.equal(typeof term, "string");
+      assert.ok(term.trim());
+      assert.equal(typeof forms, "string");
+      assert.ok(forms.trim());
+      assert.ok(typeCodes.has(typeCode), `unsupported type: ${typeCode}`);
+      assert.match(meaning, /[\u3400-\u9fff]/);
+      assert.equal(example, "", "the imported source provides no German examples");
+      assert.equal(exampleZh, "", "the imported source provides no Chinese examples");
       const lexicalKey = `${term.toLocaleLowerCase("de-DE")}\0${typeCode}`;
       assert.ok(!lexicalEntries.has(lexicalKey), `duplicate lexical entry: ${term}/${typeCode}`);
       lexicalEntries.add(lexicalKey);
-      assert.match(meaning, /[\u3400-\u9fff]/);
-      assert.match(exampleZh, /[\u3400-\u9fff]/);
-      assert.doesNotMatch(example, /\[\.\.\.|\[=/);
-      if (typeCode === "nm") assert.match(term, /^der /);
-      if (typeCode === "nf") assert.match(term, /^die /);
-      if (typeCode === "nn") assert.match(term, /^das /);
+      if (typeCode === "nm") assert.match(term, /^der(?:\/|\s)/u);
+      if (typeCode === "nf") assert.match(term, /^die(?:\/|\s)/u);
+      if (typeCode === "nn") assert.match(term, /^das(?:\/|\s)/u);
     }
-    supplemental += document.words.length;
+    total += document.words.length;
   }
 
-  assert.equal(supplemental, 5900);
+  assert.equal(total, 6000);
   assert.equal(ids.size, 6000);
 });
 
-test("wordbook manifest exposes the intended cumulative course sizes", async () => {
+test("wordbook manifest records the source and cumulative course sizes", async () => {
   const manifest = JSON.parse(
     await readFile(path.join(root, "public", "wordbooks", "manifest-v1.json"), "utf8"),
   );
-  assert.deepEqual(manifest.supplementalCounts, targets);
-  assert.deepEqual(manifest.legacyCounts, { A1: 20, A2: 20, B1: 20, B2: 20, C1: 20 });
+  assert.equal(manifest.source, "德语核心6000词_A1-C1 2.xlsx");
+  assert.deepEqual(manifest.wordCounts, targets);
   assert.deepEqual(manifest.cumulativeCourseCounts, {
-    A1: 650,
-    A2: 1300,
+    A1: 700,
+    A2: 1400,
     B1: 2400,
     B2: 4000,
     C1: 6000,

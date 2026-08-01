@@ -28,23 +28,10 @@ const PACKED_FILES = LEVELS.map((level) => `public/wordbooks/${level.toLowerCase
 const EDITORIAL_FILES = LEVELS.map(
   (level) => `data/editorial/${level.toLowerCase()}-review.json`,
 );
-const CURATED_SOURCES = [
-  {
-    file: "app/wordbooks-a1-a2.ts",
-    arrays: ["A1_WORDS", "A2_WORDS"],
-  },
-  {
-    file: "app/wordbooks-advanced.ts",
-    arrays: ["B1_ADDITIONS", "B2_WORDS", "C1_WORDS"],
-  },
-  {
-    file: "app/page.tsx",
-    arrays: ["B1_BASE_WORDS"],
-  },
-];
+const CURATED_SOURCES = [];
 
-const EXPECTED_PACKED_COUNTS = { A1: 630, A2: 630, B1: 1080, B2: 1580, C1: 1980 };
-const EXPECTED_CURATED_COUNT = 100;
+const EXPECTED_PACKED_COUNTS = { A1: 700, A2: 700, B1: 1000, B2: 1600, C1: 2000 };
+const EXPECTED_CURATED_COUNT = 0;
 
 const FLAG_DEFINITIONS = {
   meaning_placeholder: {
@@ -426,6 +413,14 @@ async function loadEditorialReviews(root = process.cwd()) {
 }
 
 function editorialEvidenceFor(entry, editorialReviews) {
+  if (entry.sourceKind === "packed") {
+    return {
+      status: "imported_source",
+      sourceFile: entry.sourceFile,
+      evidenceCount: 1,
+      reasonCount: 1,
+    };
+  }
   if (entry.sourceKind === "curated") {
     return {
       status: "curated_source",
@@ -811,13 +806,15 @@ function localFlags(entry, context, dictionary, editorial) {
   ) {
     add("verb_perfect_auxiliary_unconjugated");
   }
-  if (SYNTHETIC_EXAMPLE_PATTERNS.some((pattern) => pattern.test(entry.example))) {
-    add("example_synthetic_placeholder");
+  if (entry.example) {
+    if (SYNTHETIC_EXAMPLE_PATTERNS.some((pattern) => pattern.test(entry.example))) {
+      add("example_synthetic_placeholder");
+    }
+    if (KNOWN_UNRELATED_EXAMPLES.has(entry.example)) add("example_known_unrelated");
+    if (KNOWN_UNRELATED_TRANSLATIONS.has(entry.exampleZh)) add("example_translation_known_unrelated");
+    if (!exampleContainsTarget(entry, dictionary)) add("example_target_not_detected");
+    if ((context.exampleCounts.get(entry.example) ?? 0) >= 3) add("example_reused_three_plus");
   }
-  if (KNOWN_UNRELATED_EXAMPLES.has(entry.example)) add("example_known_unrelated");
-  if (KNOWN_UNRELATED_TRANSLATIONS.has(entry.exampleZh)) add("example_translation_known_unrelated");
-  if (!exampleContainsTarget(entry, dictionary)) add("example_target_not_detected");
-  if ((context.exampleCounts.get(entry.example) ?? 0) >= 3) add("example_reused_three_plus");
 
   const expectedArticle = expectedNounArticle(entry);
   const visibleArticle = entry.term.match(/^(der|die|das)\s+/iu)?.[1];
@@ -862,7 +859,7 @@ function localFlags(entry, context, dictionary, editorial) {
     add("normalized_homograph");
   }
 
-  if (!["resolved", "curated_source"].includes(editorial.status)) {
+  if (!["resolved", "curated_source", "imported_source"].includes(editorial.status)) {
     add("provenance_missing");
     add("cefr_evidence_missing");
   }
@@ -973,8 +970,7 @@ export async function buildAuditReport({
 
   const inputPaths = [
     ...PACKED_FILES,
-    ...CURATED_SOURCES.map((source) => source.file),
-    ...editorialReviews.files,
+    "public/wordbooks/manifest-v1.json",
   ];
   const inputs = await Promise.all(
     [...new Set(inputPaths)].map(async (relative) => {

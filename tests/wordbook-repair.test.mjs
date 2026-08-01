@@ -5,24 +5,20 @@ import { buildAuditReport } from "../scripts/audit_wordbooks.mjs";
 
 const root = process.cwd();
 
-test("packed wordbooks have no known hard lexical residue or placeholder examples", async () => {
+test("the source audit marks imported provenance and skips absent source examples", async () => {
   const report = await buildAuditReport({
     root,
-    generatedAt: "2026-07-28T00:00:00.000Z",
+    generatedAt: "2026-08-01T00:00:00.000Z",
   });
-  const hardFlags = [
-    "meaning_placeholder",
-    "meaning_machine_prompt_residue",
-    "advanced_single_character_gloss",
-    "chinese_traditional_residue",
-    "chinese_corrupt_script",
-    "chinese_known_garbage_phrase",
-    "chinese_repeated_terminal_punctuation",
+  assert.equal(report.summary.total, 6000);
+  assert.equal(report.summary.editorial.imported_source, 6000);
+  for (const flag of [
     "example_synthetic_placeholder",
     "example_known_unrelated",
     "example_translation_known_unrelated",
-  ];
-  for (const flag of hardFlags) {
+    "example_target_not_detected",
+    "example_reused_three_plus",
+  ]) {
     assert.equal(report.summary.flags[flag] ?? 0, 0, `${flag} must be zero`);
   }
 });

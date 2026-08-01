@@ -1,23 +1,18 @@
 {
   "schemaVersion": 1,
-  "generated": "2026-07-29",
-  "supplementalCounts": {
-    "A1": 630,
-    "A2": 630,
-    "B1": 1080,
-    "B2": 1580,
-    "C1": 1980
-  },
-  "legacyCounts": {
-    "A1": 20,
-    "A2": 20,
-    "B1": 20,
-    "B2": 20,
-    "C1": 20
+  "generated": "2026-08-01",
+  "source": "德语核心6000词_A1-C1 2.xlsx",
+  "importNote": "按来源文件中的首次等级拆分；源文件未提供例句，例句字段刻意保留为空，避免生成不可靠的内容。",
+  "wordCounts": {
+    "A1": 700,
+    "A2": 700,
+    "B1": 1000,
+    "B2": 1600,
+    "C1": 2000
   },
   "cumulativeCourseCounts": {
-    "A1": 650,
-    "A2": 1300,
+    "A1": 700,
+    "A2": 1400,
     "B1": 2400,
     "B2": 4000,
     "C1": 6000
@@ -30,6 +25,5 @@
     "meaning",
     "example",
     "exampleZh"
-  ],
-  "attribution": "/wordbooks/ATTRIBUTION.txt"
+  ]
 }

@@ -12,9 +12,6 @@ import {
   parseDictionaryEvidencePayload,
   type DictionaryEvidence,
 } from "./dictionary-evidence";
-import { expandedMeaning } from "./meaning-overrides";
-import { A1_WORDS, A2_WORDS } from "./wordbooks-a1-a2";
-import { B1_ADDITIONS, B2_WORDS, C1_WORDS } from "./wordbooks-advanced";
 
 type RecallStatus = "unknown" | "fuzzy" | "known";
 type View = "learn" | "review" | "library" | "story" | "settings";
@@ -155,12 +152,12 @@ const DAY = 86_400_000;
 const INTERVAL_DAYS = [0, 1, 3, 7, 14, 30, 60, 120, 180] as const;
 const CEFR_LEVELS: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
 const LEVEL_RANK: Record<CEFRLevel, number> = { A1: 0, A2: 1, B1: 2, B2: 3, C1: 4 };
-const SUPPLEMENTAL_WORD_COUNTS: Record<CEFRLevel, number> = {
-  A1: 630,
-  A2: 630,
-  B1: 1080,
-  B2: 1580,
-  C1: 1980,
+const COURSE_WORD_COUNTS: Record<CEFRLevel, number> = {
+  A1: 700,
+  A2: 700,
+  B1: 1000,
+  B2: 1600,
+  C1: 2000,
 };
 const PACKED_WORD_FIELDS: PackedWordbook["fields"] = [
   "id",
@@ -416,17 +413,10 @@ const B1_BASE_WORDS: WordCard[] = [
   },
 ];
 
-const LEGACY_WORDS: WordCard[] = [
-  ...A1_WORDS,
-  ...A2_WORDS,
-  ...B1_BASE_WORDS,
-  ...B1_ADDITIONS,
-  ...B2_WORDS,
-  ...C1_WORDS,
-].map((word) => ({ ...word, meaning: expandedMeaning(word.term, word.meaning) }));
-
-let WORDS: WordCard[] = LEGACY_WORDS;
-let WORD_BY_ID = new Map(LEGACY_WORDS.map((word) => [word.id, word]));
+// The active corpus is loaded exclusively from the imported Core 6000 books.
+// Older in-source cards remain in the repository only as reversible history.
+let WORDS: WordCard[] = [];
+let WORD_BY_ID = new Map<string, WordCard>();
 let expandedWordbooksPromise: Promise<void> | null = null;
 
 function isWordInBook(word: WordCard, level: CEFRLevel) {
@@ -547,7 +537,9 @@ function packedWordDetails(typeCode: PackedWordType, term: string, forms: string
 function isPackedWordRow(value: unknown): value is PackedWordRow {
   return Array.isArray(value) &&
     value.length === PACKED_WORD_FIELDS.length &&
-    value.every((field) => typeof field === "string" && field.trim().length > 0) &&
+    value.every((field, index) =>
+      typeof field === "string" && (index >= 5 || field.trim().length > 0),
+    ) &&
     PACKED_WORD_TYPES.has(value[3] as PackedWordType);
 }
 
@@ -562,7 +554,7 @@ function parsePackedWordbook(value: unknown, expectedLevel: CEFRLevel): PackedWo
   if (
     candidate.schemaVersion !== 1 ||
     candidate.level !== expectedLevel ||
-    candidate.count !== SUPPLEMENTAL_WORD_COUNTS[expectedLevel] ||
+    candidate.count !== COURSE_WORD_COUNTS[expectedLevel] ||
     !validFields ||
     !Array.isArray(candidate.words) ||
     candidate.words.length !== candidate.count ||
@@ -582,8 +574,7 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
       term,
       forms,
       type: details.type,
-      // Packed meanings have passed the row-level editorial review. Keep that
-      // exact sense set instead of replacing it with a global homograph hint.
+      // Imported meanings are preserved exactly as supplied by the word list.
       meaning,
       example,
       exampleZh,
@@ -605,14 +596,11 @@ function loadExpandedWordbooks() {
       return parsePackedWordbook(await response.json(), level);
     }),
   ).then((resources) => {
-    const supplementalByLevel = new Map(
+    const wordbookByLevel = new Map(
       resources.map((resource) => [resource.level, expandPackedWordbook(resource)]),
     );
     const ids = new Set<string>();
-    const expanded = CEFR_LEVELS.flatMap((level) => [
-      ...LEGACY_WORDS.filter((word) => word.level === level),
-      ...(supplementalByLevel.get(level) ?? []),
-    ]);
+    const expanded = CEFR_LEVELS.flatMap((level) => wordbookByLevel.get(level) ?? []);
     expanded.forEach((word) => {
       if (ids.has(word.id)) throw new Error(`Duplicate word id: ${word.id}`);
       ids.add(word.id);
@@ -1107,12 +1095,16 @@ function ownerStorageKey(base: string, ownerId: string) {
 }
 
 function ArticleTerm({ term }: { term: string }) {
-  const match = /^(der|die|das)\s+(.+)$/i.exec(term.trim());
+  const match = /^((?:der|die|das)(?:\/(?:der|die|das))?)\s+(.+)$/i.exec(term.trim());
   if (!match) return <>{term}</>;
-  const article = match[1].toLowerCase();
+  const articles = match[1].split("/");
   return (
     <span className="article-term" lang="de">
-      <span className={`noun-article article-${article}`}>{match[1]}</span>{" "}
+      {articles.map((article, index) => (
+        <span key={article} className={`noun-article article-${article.toLowerCase()}`}>
+          {index ? "/" : ""}{article}
+        </span>
+      ))}{" "}
       <span>{match[2]}</span>
     </span>
   );
@@ -1241,8 +1233,7 @@ export default function Home() {
       try {
         await loadExpandedWordbooks();
       } catch (error) {
-        // Keep the curated built-in cards available if a static resource is temporarily unreachable.
-        console.error("Expanded wordbooks could not be loaded.", error);
+        console.error("Imported wordbooks could not be loaded.", error);
       }
       if (cancelled) return;
 
@@ -1826,6 +1817,9 @@ export default function Home() {
       return WORDS.filter((word) => isWordInBook(word, settings.level) && learnedIds.has(word.id));
     },
     [learning.todayWordIds, settings.level, wordbookRevision],
+  );
+  const dailyStoryAvailable = learnedToday.length > 0 && learnedToday.every(
+    (word) => Boolean(word.storyDe && word.storyZh),
   );
 
   const dueWords = useMemo(
@@ -2791,9 +2785,13 @@ export default function Home() {
                     ) : currentAttemptNumber === 2 ? (
                       <div className="recall-prompt second-exposure">
                         <div className="ink-divider"><span>第二次 · 只看语境</span></div>
-                        <blockquote className="recall-example">
-                          <p lang="de">{currentWord.example}</p>
-                        </blockquote>
+                        {currentWord.example ? (
+                          <blockquote className="recall-example">
+                            <p lang="de">{currentWord.example}</p>
+                          </blockquote>
+                        ) : (
+                          <p className="recall-no-example">此导入词条未附例句；请直接尝试回忆词义。</p>
+                        )}
                         <button className="reveal-button" onClick={revealAnswer}>
                           看答案 <span aria-hidden="true">→</span>
                         </button>
@@ -2811,10 +2809,12 @@ export default function Home() {
                         <span className="answer-label">释义</span>
                         <strong>{currentWord.meaning}</strong>
                       </div>
-                      <blockquote>
-                        <p>{currentWord.example}</p>
-                        {settings.showTranslation && <footer>{currentWord.exampleZh}</footer>}
-                      </blockquote>
+                      {currentWord.example && (
+                        <blockquote>
+                          <p>{currentWord.example}</p>
+                          {settings.showTranslation && currentWord.exampleZh && <footer>{currentWord.exampleZh}</footer>}
+                        </blockquote>
+                      )}
                       <div className="rating-area">
                         <p>光点规则：已知 +1 · 模糊 −1 · 未知清零</p>
                         <div className="rating-buttons">
@@ -3270,7 +3270,7 @@ export default function Home() {
               <button className="back-link" onClick={() => switchView("learn")}>← 返回词课</button>
               <div className="story-date"><span>WORTTAG · TAGESGESCHICHTE</span><strong>{new Date().toLocaleDateString("zh-CN", { month: "long", day: "numeric" })}</strong></div>
             </div>
-            {dailyComplete && learnedToday.length > 0 ? (
+            {dailyComplete && dailyStoryAvailable ? (
               <article className="generated-story">
                 <div className="story-title-block"><p className="kicker">{settings.level} · {LEVEL_META[settings.level].topic}</p><h1>{LEVEL_META[settings.level].story}</h1><p>{LEVEL_META[settings.level].storyZh}</p></div>
                 <div className={settings.showTranslation ? "story-columns" : "story-columns translation-hidden"}>
@@ -3289,6 +3289,14 @@ export default function Home() {
                   <div className="story-chips">{learnedToday.map((word) => <button key={word.id} onClick={() => startQueue([word.id], "manual")}><ArticleTerm term={word.term} /></button>)}</div>
                 </footer>
               </article>
+            ) : dailyComplete && learnedToday.length > 0 ? (
+              <div className="story-locked paper-panel">
+                <span className="story-number">03</span>
+                <p className="kicker">Tagesgeschichte</p>
+                <h1>这份导入词库尚未附带例句。</h1>
+                <p>为了不把不可靠的机器造句当作学习材料，今日短文会在补充经核验的例句后再生成。你仍可点击任一单词查阅权威词典。</p>
+                <button className="reveal-button" onClick={() => switchView("library")}>查看今日词汇 →</button>
+              </div>
             ) : dailyComplete ? (
               <div className="story-locked paper-panel">
                 <span className="story-number">03</span>
@@ -3431,15 +3439,17 @@ export default function Home() {
               )}
             </section>
 
-            <div className="dictionary-detail-grid">
-              <section aria-labelledby="dictionary-example-title">
-                <p className="dictionary-section-label" id="dictionary-example-title">例句 · Beispiel</p>
-                <blockquote>
-                  <p lang="de">{dictionaryWord.example}</p>
-                  <footer>{dictionaryWord.exampleZh}</footer>
-                </blockquote>
-              </section>
-            </div>
+            {dictionaryWord.example && (
+              <div className="dictionary-detail-grid">
+                <section aria-labelledby="dictionary-example-title">
+                  <p className="dictionary-section-label" id="dictionary-example-title">例句 · Beispiel</p>
+                  <blockquote>
+                    <p lang="de">{dictionaryWord.example}</p>
+                    {dictionaryWord.exampleZh && <footer>{dictionaryWord.exampleZh}</footer>}
+                  </blockquote>
+                </section>
+              </div>
+            )}
 
             <section className="dictionary-sources" aria-labelledby="dictionary-sources-title">
               <div className="dictionary-sources-heading">
