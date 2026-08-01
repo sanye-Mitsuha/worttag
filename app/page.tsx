@@ -965,6 +965,16 @@ function buildDailyQueue(state: LearningState, settings: AppSettings, now = Date
   return queue.slice(0, settings.wordsPerQueue);
 }
 
+function selectStoryWords(words: WordCard[]): WordCard[] {
+  if (!words.length) return [];
+  const targetCount = Math.max(1, Math.ceil(words.length / 5));
+  if (targetCount >= words.length) return words;
+  const step = words.length / targetCount;
+  return Array.from({ length: targetCount }, (_, index) =>
+    words[Math.min(words.length - 1, Math.floor((index + 0.5) * step))],
+  );
+}
+
 function formatDate(timestamp: number) {
   if (timestamp <= Date.now()) return "现在到期";
   const date = new Date(timestamp);
@@ -1885,7 +1895,8 @@ export default function Home() {
     },
     [learning.todayWordIds, settings.level, wordbookRevision],
   );
-  const dailyStoryAvailable = learnedToday.length > 0 && learnedToday.every(
+  const storyWords = useMemo(() => selectStoryWords(learnedToday), [learnedToday]);
+  const dailyStoryAvailable = storyWords.length > 0 && storyWords.every(
     (word) => Boolean(word.storyDe && word.storyZh),
   );
 
@@ -2768,7 +2779,7 @@ export default function Home() {
         <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
           <span className="brand-word">WORTTAG</span>
           <span className="brand-seal">W</span>
-          <span className="brand-version">beta2.1</span>
+          <span className="brand-version">beta2.2</span>
         </button>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -3619,18 +3630,18 @@ export default function Home() {
                 <div className="story-title-block"><p className="kicker">{settings.level} · {LEVEL_META[settings.level].topic}</p><h1>{LEVEL_META[settings.level].story}</h1><p>{LEVEL_META[settings.level].storyZh}</p></div>
                 <div className={settings.showTranslation ? "story-columns" : "story-columns translation-hidden"}>
                   <div className="german-story">
-                    {learnedToday.map((word, index) => (
+                    {storyWords.map((word, index) => (
                       <span className={index === 0 ? "story-first-sentence" : undefined} key={word.id}>{index === 0 ? word.storyDe : ` ${word.storyDe}`}</span>
                     ))}
                   </div>
                   {settings.showTranslation && <div className="translation-panel">
                     <p className="note-label">中文译文</p>
-                    {learnedToday.map((word, index) => <span key={word.id}>{index === 0 ? word.storyZh : ` ${word.storyZh}`}</span>)}
+                    {storyWords.map((word, index) => <span key={word.id}>{index === 0 ? word.storyZh : ` ${word.storyZh}`}</span>)}
                   </div>}
                 </div>
                 <footer className="story-vocabulary">
-                  <div><p className="kicker">Heute gelernt</p><h2>短文使用了 {learnedToday.length} 个今日词汇</h2></div>
-                  <div className="story-chips">{learnedToday.map((word) => <button key={word.id} onClick={() => startQueue([word.id], "manual")}><ArticleTerm term={word.term} /></button>)}</div>
+                  <div><p className="kicker">Heute gelernt</p><h2>短文使用了 {storyWords.length} 个词（今日已刷 {learnedToday.length} 个）</h2></div>
+                  <div className="story-chips">{storyWords.map((word) => <button key={word.id} onClick={() => startQueue([word.id], "manual")}><ArticleTerm term={word.term} /></button>)}</div>
                 </footer>
               </article>
             ) : dailyComplete && learnedToday.length > 0 ? (
@@ -3654,7 +3665,7 @@ export default function Home() {
                 <span className="story-number">03</span>
                 <p className="kicker">Tagesgeschichte</p>
                 <h1>今天的短文，还差几个队列。</h1>
-                <p>完成今日计划后，Worttag 会把你在 {settings.level} 词书里真正学过的词编成一篇连贯短文。</p>
+                <p>完成今日计划后，Worttag 会从今天已刷单词中选取约五分之一，编成一篇简短连贯的德语短文。</p>
                 <div className="story-lock-progress"><span style={{ width: `${Math.min(100, (learning.todayQueuesCompleted / activeQueueGoal) * 100)}%` }} /></div>
                 <button className="reveal-button" onClick={() => switchView("learn")}>继续学习 · {learning.todayQueuesCompleted} / {activeQueueGoal} 队列 →</button>
               </div>

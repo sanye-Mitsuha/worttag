@@ -17,7 +17,7 @@ test("declares Worttag metadata and a production-ready application shell", async
   const [page, layout, css, packageJson] = await readAppSources();
 
   assert.match(packageJson, /"name": "worttag"/);
-  assert.match(packageJson, /"version": "1\.3\.5"/);
+  assert.match(packageJson, /"version": "1\.3\.6"/);
   assert.match(layout, /const title = "Worttag · 德语词汇记忆"/);
   assert.match(layout, /间隔复习、语法例句和每日短文/);
   assert.match(layout, /openGraph:/);
@@ -51,7 +51,11 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /"oft": "常常、时常、多次；经常、时常"/);
   assert.match(page, /"oft": ""/);
   assert.doesNotMatch(page, /className="library-grammar"/);
-  assert.match(page, /beta2\.1/);
+  assert.match(page, /beta2\.2/);
+  assert.match(page, /function selectStoryWords\(words: WordCard\[\]\): WordCard\[\]/);
+  assert.match(page, /Math\.ceil\(words\.length \/ 5\)/);
+  assert.match(page, /const storyWords = useMemo\(\(\) => selectStoryWords\(learnedToday\)/);
+  assert.match(page, /短文使用了 \{storyWords\.length\} 个词（今日已刷 \{learnedToday\.length\} 个）/);
   assert.match(page, /const activeStudyMode: StudyMode = queueSource === "manual" \? "speed" : settings\.studyMode/);
   assert.match(page, /className="speed-state-label"/);
   assert.match(page, /currentSessionRating && event\.key\.toLowerCase\(\) === "x"/);
