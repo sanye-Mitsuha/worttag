@@ -163,11 +163,6 @@ const APP_VERSION = "beta3.0";
 const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.0";
 const BILIBILI_URL = "https://space.bilibili.com/96625971";
 const GITHUB_URL = "https://github.com/mitsuha";
-const RELEASE_NOTES = [
-  "按判断结果调整光点：答对增加一个，模糊退回上一阶段，未知清零。",
-  "今日学习、复习和已熟记词库使用独立的状态规则，熟记单词不再进入复习队列。",
-  "设置页新增作者信息与留言板入口，并加入版本更新提醒和作者动态入口。",
-];
 
 const STORAGE_KEY = "worttag-learning-state-v1";
 const SETTINGS_KEY = "worttag-settings-v1";
@@ -3311,15 +3306,6 @@ export default function Home() {
             <span className="brand-version">{APP_VERSION}</span>
             {versionNoticeVisible && <span className="version-notice-dot" aria-hidden="true" />}
           </button>
-          <a
-            className="header-bilibili-link"
-            href={BILIBILI_URL}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="打开作者的 Bilibili 主页"
-          >
-            <span aria-hidden="true">B</span>
-          </a>
         </div>
         <nav className="main-nav" aria-label="主导航">
           {([
@@ -4397,20 +4383,7 @@ export default function Home() {
             <h2 id="release-notes-title">Worttag 已更新</h2>
             <p className="release-notes-version">当前版本 {APP_VERSION}</p>
             <p id="release-notes-description">查看本版本的更新记录与最新动态。确认后，本版本将不再显示提醒。</p>
-            <div className="release-notes-list">
-              {RELEASE_NOTES.map((note, index) => (
-                <p className="release-note" key={note}>
-                  <span aria-hidden="true">0{index + 1}</span>
-                  {note}
-                </p>
-              ))}
-            </div>
             <div className="release-links">
-              <a className="release-link release-link-github" href={GITHUB_URL} target="_blank" rel="noreferrer">
-                <span className="release-link-icon github-icon" aria-hidden="true">GH</span>
-                <span><strong>GitHub · mitsuha</strong><small>查看项目代码与完整版本记录</small></span>
-                <span aria-hidden="true">↗</span>
-              </a>
               <a className="release-link release-link-bilibili" href={BILIBILI_URL} target="_blank" rel="noreferrer">
                 <span className="release-link-icon bilibili-icon" aria-hidden="true">B</span>
                 <span><strong>Bilibili 动态</strong><small>查看开发者发布的更新动态</small></span>

@@ -316,27 +316,6 @@ a:focus-visible {
   animation: version-dot-pulse 1.8s ease-in-out infinite;
 }
 
-.header-bilibili-link {
-  width: 18px;
-  height: 18px;
-  display: grid;
-  place-items: center;
-  margin: 0 0 1px 1px;
-  border: 1px solid #ff6699;
-  border-radius: 5px;
-  color: #ff6699;
-  font: 800 11px/1 var(--sans);
-  text-decoration: none;
-  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
-}
-
-.header-bilibili-link:hover,
-.header-bilibili-link:focus-visible {
-  background: #ff6699;
-  color: white;
-  transform: translateY(-1px);
-}
-
 @keyframes version-dot-pulse {
   0%, 100% { transform: scale(0.9); opacity: 0.78; }
   50% { transform: scale(1.16); opacity: 1; }
@@ -3832,31 +3811,6 @@ fieldset.settings-card {
   line-height: 1.8;
 }
 
-.release-notes-list {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.release-note {
-  display: grid;
-  grid-template-columns: 27px minmax(0, 1fr);
-  gap: 10px;
-  margin: 0;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  background: color-mix(in srgb, var(--paper-deep) 34%, transparent);
-  color: var(--ink-soft);
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.release-note > span {
-  color: #ff6699;
-  font: 800 11px/1.6 var(--sans);
-  letter-spacing: 0.08em;
-}
-
 .release-links {
   display: grid;
   gap: 10px;
@@ -3879,12 +3833,6 @@ fieldset.settings-card {
   transform: translateY(-1px);
 }
 
-.release-link-github:hover,
-.release-link-github:focus-visible {
-  border-color: var(--ink);
-  background: color-mix(in srgb, var(--ink) 7%, transparent);
-}
-
 .release-link-bilibili {
   border-color: #ff6699;
   background: rgb(255 102 153 / 0.1);
@@ -3903,11 +3851,6 @@ fieldset.settings-card {
   border-radius: 14px;
   font: 800 13px/1 var(--sans);
   letter-spacing: -0.03em;
-}
-
-.github-icon {
-  border: 2px solid var(--ink);
-  color: var(--ink);
 }
 
 .bilibili-icon {
@@ -5268,10 +5211,6 @@ html[data-theme="dark"] .warning-note {
 
 html[data-theme="dark"] .release-notes-close {
   background: rgb(23 31 27 / 0.82);
-}
-
-html[data-theme="dark"] .release-note {
-  background: rgb(12 18 15 / 0.24);
 }
 
 @media (max-width: 1240px) {
