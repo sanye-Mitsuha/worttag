@@ -81,6 +81,10 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /record\?\.status === "known" && Boolean\(record\.fsrs\)/);
   assert.match(page, /复习次数/);
   assert.match(page, /已熟记词库/);
+  assert.match(page, /const libraryWordsSource = useMemo/);
+  assert.match(page, /libraryWordsSource\.map/);
+  assert.match(page, /Wortschatz · 6000 Wörter/);
+  assert.match(page, /当前 \$\{libraryWordsSource\.length\} 词/);
   assert.match(page, /className="mastered-drawer"/);
   assert.doesNotMatch(page, /按掌握状态筛选|filter-tabs|status-pill/);
   assert.match(page, /className="board-launch-button"/);

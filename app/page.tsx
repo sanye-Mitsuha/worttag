@@ -2182,6 +2182,13 @@ export default function Home() {
     },
     [settings.level, wordbookRevision],
   );
+  const libraryWordsSource = useMemo(
+    () => {
+      void wordbookRevision;
+      return WORDS;
+    },
+    [wordbookRevision],
+  );
   const learnedToday = useMemo(
     () => {
       void wordbookRevision;
@@ -2215,11 +2222,11 @@ export default function Home() {
     [bookWords, learning.records, reviewTotal],
   );
   const librarySearchIndex = useMemo(
-    () => bookWords.map((word) => ({
+    () => libraryWordsSource.map((word) => ({
       word,
       searchText: buildLibrarySearchText(word),
     })),
-    [bookWords],
+    [libraryWordsSource],
   );
   const libraryQueryTokens = useMemo(
     () => tokenizeLibraryQuery(libraryQuery),
@@ -2233,8 +2240,8 @@ export default function Home() {
   );
   const libraryWords = librarySearchMatches;
   const masteredWords = useMemo(
-    () => bookWords.filter((word) => isMasteredRecord(learning.records[word.id])),
-    [bookWords, learning.records],
+    () => libraryWordsSource.filter((word) => isMasteredRecord(learning.records[word.id])),
+    [libraryWordsSource, learning.records],
   );
   const dictionaryLinks = useMemo(
     () => dictionaryWord ? buildDictionaryLinks(dictionaryWord.term) : [],
@@ -3796,7 +3803,7 @@ export default function Home() {
         {view === "library" && (
           <section className="secondary-page">
             <div className="page-heading library-heading">
-              <div><p className="kicker">Wortschatz · {settings.level} {LEVEL_META[settings.level].title}</p><h1>你的词，分得清才记得住。</h1></div>
+              <div><p className="kicker">Wortschatz · 6000 Wörter</p><h1>你的词，分得清才记得住。</h1></div>
               <button
                 className={`mastered-library-trigger${masteredDrawerOpen ? " active" : ""}`}
                 type="button"
@@ -3826,7 +3833,7 @@ export default function Home() {
                     }
                   }}
                   placeholder="输入德语单词、变位或中文释义"
-                  aria-label={`在 ${settings.level} 词书中进行中德双语检索`}
+                  aria-label="在完整 6000 词库中进行中德双语检索"
                   autoComplete="off"
                   spellCheck={false}
                 />
@@ -3845,8 +3852,8 @@ export default function Home() {
               </div>
               <p className="library-search-meta" aria-live="polite">
                 {libraryQueryTokens.length
-                  ? `在 ${settings.level} 词书中找到 ${libraryWords.length} 个结果`
-                  : `支持中文与德语检索 · 当前 ${bookWords.length} 词`}
+                  ? `在完整 6000 词库中找到 ${libraryWords.length} 个结果`
+                  : `支持中文与德语检索 · 当前 ${libraryWordsSource.length} 词`}
               </p>
             </div>
             {libraryWords.length ? (
@@ -3908,7 +3915,7 @@ export default function Home() {
                 <aside className="mastered-drawer" role="dialog" aria-modal="true" aria-label="已熟记词库">
                   <div className="mastered-drawer-header">
                     <div>
-                      <p className="kicker">DAS ARCHIV · {settings.level}</p>
+                      <p className="kicker">DAS ARCHIV · 6000 WÖRTER</p>
                       <h2>已熟记词库</h2>
                       <p>三颗金色光点代表已经熟记，不再进入自动复习队列。</p>
                     </div>
