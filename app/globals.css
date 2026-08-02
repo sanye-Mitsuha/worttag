@@ -316,6 +316,27 @@ a:focus-visible {
   animation: version-dot-pulse 1.8s ease-in-out infinite;
 }
 
+.header-bilibili-link {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  margin: 0 0 1px 1px;
+  border: 1px solid #ff6699;
+  border-radius: 5px;
+  color: #ff6699;
+  font: 800 11px/1 var(--sans);
+  text-decoration: none;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.header-bilibili-link:hover,
+.header-bilibili-link:focus-visible {
+  background: #ff6699;
+  color: white;
+  transform: translateY(-1px);
+}
+
 @keyframes version-dot-pulse {
   0%, 100% { transform: scale(0.9); opacity: 0.78; }
   50% { transform: scale(1.16); opacity: 1; }

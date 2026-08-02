@@ -3311,6 +3311,15 @@ export default function Home() {
             <span className="brand-version">{APP_VERSION}</span>
             {versionNoticeVisible && <span className="version-notice-dot" aria-hidden="true" />}
           </button>
+          <a
+            className="header-bilibili-link"
+            href={BILIBILI_URL}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="打开作者的 Bilibili 主页"
+          >
+            <span aria-hidden="true">B</span>
+          </a>
         </div>
         <nav className="main-nav" aria-label="主导航">
           {([

@@ -56,6 +56,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /function openReleaseNotes/);
   assert.match(page, /已知晓，本版本不再提示/);
   assert.match(page, /https:\/\/space\.bilibili\.com\/96625971/);
+  assert.match(page, /className="header-bilibili-link"/);
   assert.match(page, /bilibili：三叶-Mitsuha/);
   assert.match(page, /github：mitsuha/);
   assert.match(page, /from "ts-fsrs"/);
