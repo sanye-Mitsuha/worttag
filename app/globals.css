@@ -3041,6 +3041,39 @@ fieldset.settings-card {
   line-height: 1.45;
 }
 
+.speech-slider {
+  width: min(250px, 100%);
+}
+
+.speech-slider input[type="range"] {
+  display: block;
+  width: 100%;
+  margin: 4px 0 7px;
+  accent-color: var(--brick);
+  cursor: pointer;
+}
+
+.speech-slider input[type="range"]:focus-visible {
+  outline: 3px solid rgb(162 64 49 / 0.36);
+  outline-offset: 4px;
+}
+
+.speech-slider-labels {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  color: var(--ink-soft);
+  font-size: 11px;
+  text-align: center;
+}
+
+.speech-slider-labels span:first-child {
+  text-align: left;
+}
+
+.speech-slider-labels span:last-child {
+  text-align: right;
+}
+
 .number-options,
 .speech-options {
   display: flex;

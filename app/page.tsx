@@ -31,7 +31,7 @@ type SkinMode = "parchment" | "mist" | "forest" | "wine" | "graphite";
 type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1";
 type WordOrder = "sequential" | "random";
 type StudyMode = "mastery" | "speed";
-type SpeechSpeed = "slow" | "standard" | "natural";
+type SpeechSpeed = "0.5" | "0.75" | "1" | "1.25";
 type DictionaryEvidenceStatus = "idle" | "loading" | "success" | "error";
 
 type WordCard = {
@@ -160,8 +160,8 @@ type BoardMessage = {
   createdAt: number;
 };
 
-const APP_VERSION = "beta3.4";
-const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.4";
+const APP_VERSION = "beta3.5";
+const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.5";
 const BILIBILI_URL = "https://space.bilibili.com/96625971";
 const GITHUB_URL = "https://github.com/mitsuha";
 
@@ -253,11 +253,14 @@ const LEVEL_META: Record<CEFRLevel, { title: string; description: string; story:
   C1: { title: "熟练", description: "精确表达、学术与专业语境", story: "Eine Frage der Tragweite", storyZh: "影响深远的问题", topic: "Bildung" },
 };
 
+const SPEECH_SPEED_VALUES: SpeechSpeed[] = ["0.5", "0.75", "1", "1.25"];
 const SPEECH_RATES: Record<SpeechSpeed, number> = {
-  slow: 0.68,
-  standard: 0.82,
-  natural: 0.98,
+  "0.5": 0.5,
+  "0.75": 0.75,
+  "1": 1,
+  "1.25": 1.25,
 };
+const FIXED_AUDIO_LEVELS: CEFRLevel[] = ["A1", "A2", "B1", "B2"];
 
 function currentTimestamp() {
   return Date.now();
@@ -616,7 +619,9 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
       id,
       level: resource.level,
       term,
-      audioUrl: resource.level === "A1" ? `/audio/a1/anna/${id}.m4a` : undefined,
+      audioUrl: FIXED_AUDIO_LEVELS.includes(resource.level)
+        ? `/audio/${resource.level.toLowerCase()}/anna/${id}.m4a`
+        : undefined,
       forms,
       type: details.type,
       // Imported meanings are preserved except for explicit reviewed corrections.
@@ -1222,7 +1227,15 @@ function prepareSavedSettings(value: unknown): AppSettings {
   const levels: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
   const orders: WordOrder[] = ["sequential", "random"];
   const studyModes: StudyMode[] = ["mastery", "speed"];
-  const speeds: SpeechSpeed[] = ["slow", "standard", "natural"];
+  const legacySpeeds: Record<string, SpeechSpeed> = {
+    slow: "0.5",
+    standard: "1",
+    natural: "1.25",
+  };
+  const savedSpeed = String(saved.speechSpeed ?? "");
+  const speechSpeed = SPEECH_SPEED_VALUES.includes(savedSpeed as SpeechSpeed)
+    ? savedSpeed as SpeechSpeed
+    : legacySpeeds[savedSpeed] ?? DEFAULT_SETTINGS.speechSpeed;
   const queueSizes = [5, 10, 15, 20];
   const dailyQueues = [1, 2, 3, 4, 5];
   return {
@@ -1240,9 +1253,7 @@ function prepareSavedSettings(value: unknown): AppSettings {
     autoPronounce: typeof saved.autoPronounce === "boolean" ? saved.autoPronounce : DEFAULT_SETTINGS.autoPronounce,
     showTranslation: typeof saved.showTranslation === "boolean" ? saved.showTranslation : DEFAULT_SETTINGS.showTranslation,
     dueFirst: typeof saved.dueFirst === "boolean" ? saved.dueFirst : DEFAULT_SETTINGS.dueFirst,
-    speechSpeed: speeds.includes(saved.speechSpeed as SpeechSpeed)
-      ? saved.speechSpeed!
-      : DEFAULT_SETTINGS.speechSpeed,
+    speechSpeed,
   };
 }
 
@@ -2367,11 +2378,7 @@ export default function Home() {
     if (word.audioUrl) {
       const audio = new Audio(word.audioUrl);
       audio.preload = "auto";
-      audio.playbackRate = settings.speechSpeed === "slow"
-        ? 0.82
-        : settings.speechSpeed === "natural"
-          ? 1.16
-          : 1;
+      audio.playbackRate = SPEECH_RATES[settings.speechSpeed];
       audio.onended = () => {
         if (audioRef.current === audio) audioRef.current = null;
       };
@@ -4191,14 +4198,20 @@ export default function Home() {
                   <span className="toggle-control" aria-hidden="true" />
                 </label>
                 <div className="speech-setting">
-                  <div><strong>朗读速度</strong><small>只影响德语单词朗读。</small></div>
-                  <div className="speech-options">
-                    {([ ["slow", "慢速"], ["standard", "标准"], ["natural", "自然"] ] as const).map(([value, label]) => (
-                      <label className={settings.speechSpeed === value ? "selected" : ""} key={value}>
-                        <input type="radio" name="speechSpeed" checked={settings.speechSpeed === value} onChange={() => updateSetting("speechSpeed", value)} />
-                        <span>{label}</span>
-                      </label>
-                    ))}
+                  <div><strong>朗读速度 · {settings.speechSpeed}×</strong><small>只影响德语单词朗读。</small></div>
+                  <div className="speech-slider">
+                    <input
+                      type="range"
+                      min="0"
+                      max={SPEECH_SPEED_VALUES.length - 1}
+                      step="1"
+                      value={SPEECH_SPEED_VALUES.indexOf(settings.speechSpeed)}
+                      onChange={(event) => updateSetting("speechSpeed", SPEECH_SPEED_VALUES[Number(event.target.value)])}
+                      aria-label={`朗读速度 ${settings.speechSpeed} 倍速`}
+                    />
+                    <div className="speech-slider-labels" aria-hidden="true">
+                      {SPEECH_SPEED_VALUES.map((value) => <span key={value}>{value}×</span>)}
+                    </div>
                   </div>
                 </div>
               </fieldset>
