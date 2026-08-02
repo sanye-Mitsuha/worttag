@@ -23,6 +23,8 @@ const LEGACY_TEMPLATE_PATTERNS = [
 test("all deterministic template examples have been replaced", async () => {
   const quality = JSON.parse(await readFile("public/wordbooks/example-quality-v1.json", "utf8"));
   const ledger = JSON.parse(await readFile("reports/example-review-ledger-v1.json", "utf8"));
+  assert.equal(quality.summary.byStatus.approved, 6000);
+  assert.equal(ledger.summary.fullCorpusReviewApproved, true);
   assert.equal(quality.summary.byStatus.template, 0);
   assert.deepEqual(quality.summary.templateFamilies, {});
   const correctedIds = new Set(

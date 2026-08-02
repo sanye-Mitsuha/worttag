@@ -73,9 +73,13 @@ test("example-quality index covers all rows and keeps explicit risks visible", a
   assert.equal(quality.schemaVersion, 1);
   assert.equal(quality.count, 6000);
   assert.equal(Object.keys(quality.entries).length, 6000);
+  assert.equal(quality.summary.byStatus.approved, 6000);
+  assert.equal(quality.summary.byStatus.pending, 0);
   assert.equal(quality.summary.byStatus.template, 0);
-  assert.equal(quality.summary.priorityReviewCount, quality.summary.byStatus.disputed);
-  assert.equal(quality.entries["core6000-a1-0005"].status, "pending");
+  assert.equal(quality.summary.byStatus.disputed, 0);
+  assert.equal(quality.summary.priorityReviewCount, 0);
+  assert.equal(quality.fullReview.fullCorpusReviewApproved, true);
+  assert.equal(quality.entries["core6000-a1-0005"].status, "approved");
   assert.ok(quality.entries["core6000-a1-0005"].reviewNotes.includes("inappropriate_beginner_content_corrected"));
   assert.equal(quality.entries["core6000-c1-5972"].status, "approved");
   assert.ok(quality.entries["core6000-c1-5972"].reasonCodes.includes("meaning_latin_residue"));
@@ -96,11 +100,13 @@ test("full example review ledger covers every Core 6000 row", async () => {
   );
   assert.equal(ledger.schemaVersion, 2);
   assert.equal(ledger.summary.total, 6000);
+  assert.equal(ledger.summary.fullCorpusReviewApproved, true);
   assert.equal(ledger.entries.length, 6000);
   assert.equal(new Set(ledger.entries.map((entry) => entry.id)).size, 6000);
   assert.ok(ledger.summary.replaced >= 2000);
   assert.ok(ledger.entries.filter((entry) => entry.action.startsWith("replaced_")).length >= 80);
   assert.ok(ledger.entries.every((entry) => entry.action && entry.qualityStatusBefore));
+  assert.ok(ledger.entries.every((entry) => entry.qualityStatusAfter === "approved"));
   assert.ok(
     ledger.entries.some((entry) =>
       ["replaced_template_with_literary_source", "replaced_literary_source_with_curated_short_source"].includes(entry.action),

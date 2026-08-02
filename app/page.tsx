@@ -188,8 +188,8 @@ type BoardMessage = {
   createdAt: number;
 };
 
-const APP_VERSION = "beta3.1";
-const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.1";
+const APP_VERSION = "beta3.2";
+const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.2";
 const BILIBILI_URL = "https://space.bilibili.com/96625971";
 const GITHUB_URL = "https://github.com/mitsuha";
 
@@ -1486,13 +1486,15 @@ function ReviewDots({
 function ExampleQualityBadge({ quality }: { quality?: ExampleQualityRecord }) {
   const status = quality?.status ?? "pending";
   const meta = EXAMPLE_QUALITY_META[status];
+  const icon = status === "approved" ? "✓" : status === "disputed" ? "!" : "·";
   return (
     <span
       className={`example-quality-badge example-quality-${status}`}
       title={meta.description}
       aria-label={`例句质量：${meta.label}`}
     >
-      <span aria-hidden="true">例句</span>
+      <span className="example-quality-icon" aria-hidden="true">{icon}</span>
+      <span>例句审核</span>
       <strong>{meta.label}</strong>
     </span>
   );
@@ -3898,6 +3900,7 @@ export default function Home() {
               <div><p className="kicker">Wortschatz · 6000 Wörter</p><h1>你的词，分得清才记得住。</h1></div>
               <div className="library-quality-summary" aria-label="例句质量统计">
                 <span className="library-quality-summary-label">例句审核</span>
+                <span className="library-quality-summary-note">已审核 {exampleQualitySummary.approved} / {libraryWordsSource.length}</span>
                 {(Object.keys(EXAMPLE_QUALITY_META) as ExampleQualityStatus[]).map((status) => (
                   <span className={`quality-summary-item example-quality-${status}`} key={status}>
                     <i aria-hidden="true" />

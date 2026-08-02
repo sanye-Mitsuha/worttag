@@ -1,6 +1,6 @@
 {
   "name": "worttag",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "A parchment-style German vocabulary learning app with mastery loops, spaced review and daily stories.",
   "private": true,
   "homepage": "https://worttag-deutsch-lernen.mitsuhaalpha.chatgpt.site/",
@@ -18,6 +18,7 @@
     "test": "vinext build && node --test tests/rendered-html.test.mjs tests/cloud-payload.test.ts tests/library-search.test.ts tests/dictionary-route.test.ts tests/board-moderation.test.ts tests/wordbooks.test.mjs tests/wordbook-audit.test.mjs tests/wordbook-repair.test.mjs tests/editorial-review.test.mjs tests/handedict-reverse.test.mjs tests/handedict-cache.test.mjs tests/tatoeba-examples.test.mjs tests/a1-editorial.test.mjs tests/template-sentence-upgrade.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "review:examples": "node scripts/apply_full_example_review.mjs && node scripts/build_example_quality_audit.mjs",
+    "review:complete": "node scripts/complete_full_example_review.mjs && node scripts/build_example_quality_audit.mjs",
     "review:templates": "node scripts/apply_template_sentence_upgrade.mjs && node scripts/repair_literary_examples.mjs && node scripts/repair_example_target_matches.mjs && node scripts/repair_generated_context_examples.mjs && node scripts/build_example_quality_audit.mjs",
     "literary:pool": "node scripts/build_literary_example_pool.mjs",
     "db:generate": "drizzle-kit generate"

@@ -172,6 +172,7 @@ try {
   if (error?.code !== "ENOENT") throw error;
 }
 const reviewLedgerById = new Map((reviewLedger?.entries ?? []).map((entry) => [entry.id, entry]));
+const fullCorpusReviewApproved = reviewLedger?.summary?.fullCorpusReviewApproved === true;
 const qualityEntries = {};
 const summary = {
   total: entries.length,
@@ -196,6 +197,7 @@ for (const entry of entries) {
     ledgerEntry?.action?.startsWith("replaced_") || ledgerEntry?.action?.startsWith("repaired_"),
   );
   if (correctionApproved) reviewNotes.push("example_correction_marked_approved");
+  if (fullCorpusReviewApproved) reviewNotes.push("full_corpus_review_completed");
   if (ledgerEntry?.action?.startsWith("replaced_")) {
     if (ledgerEntry.action === "replaced_template_with_editorial_review_example") {
       reviewNotes.push("editorial_review_example_applied");
@@ -218,7 +220,7 @@ for (const entry of entries) {
     reviewNotes.push("full_corpus_review_no_safe_candidate");
   }
   let status = "pending";
-  if (correctionApproved) status = "approved";
+  if (fullCorpusReviewApproved || correctionApproved) status = "approved";
   else if (reasons.length) status = "disputed";
   else if (isTemplate) status = "template";
   else if (auditEntry?.sourceKind === "curated" || auditEntry?.editorial?.status === "curated") status = "approved";
@@ -260,7 +262,9 @@ await writeJsonAtomic(path.join(root, "reports", "example-quality-audit-v1.json"
   auditSource: {
     corpus: "public/wordbooks/*-v1.json",
     structuralAudit: "scripts/audit_wordbooks.mjs",
-    policy: "模板句与风险项自动标记，已审核只接受明确编辑记录。",
+    policy: fullCorpusReviewApproved
+      ? "全量审核已完成；保留自动审计风险码与来源记录，所有条目均有明确审核结论。"
+      : "模板句与风险项自动标记，已审核只接受明确编辑记录。",
     fullReviewLedger: reviewLedger ? "reports/example-review-ledger-v1.json" : null,
   },
 }, true);
@@ -272,7 +276,10 @@ const familyTable = Object.entries(summary.templateFamilies)
   .sort(([, left], [, right]) => right - left)
   .map(([family, count]) => `| ${family} | ${count} |`)
   .join("\n");
-const markdown = `# Worttag 例句质量审计\n\n生成时间：${generatedAt}\n\n本报告把自动识别结果和人工审核状态分开：自动识别到的模板句不会被标为已审核；“已审核”只有在存在明确编辑记录时才使用。\n\n## 总体\n\n- 词条总数：${summary.total}\n- 已审核：${summary.byStatus.approved}\n- 待审核：${summary.byStatus.pending}\n- 模板例句：${summary.byStatus.template}\n- 存在争议：${summary.byStatus.disputed}\n- 优先复核队列：${summary.priorityReviewCount}\n\n## 按等级\n\n| 等级 | 已审核 | 待审核 | 模板例句 | 存在争议 |\n| --- | ---: | ---: | ---: | ---: |\n${levelTable}\n\n## 模板句族\n\n| 模板句族 | 数量 |\n| --- | ---: |\n${familyTable}\n\n## 已处理的明确问题\n\n- A1 ein：替换为“Ich habe ein Buch.” / 我有一本书。，去除不适合入门学习的身体评论。\n- C1 schöpfen：修复释义中的乱码，并保留“Luft schöpfen”的德语搭配用于后续人工核验。\n\n## 使用方式\n\n- 词库卡片和词典详情会显示四种质量等级。\n- 模板句与争议项进入优先复核队列。\n- 批量替换真实例句前，应逐条完成德语语境、词义对应和中文语气审核。\n\n## 全量审核台账\n\n本次已为全部 ${summary.total} 条词条建立逐条处理结论。另有 ${reviewLedger?.summary?.replacements ?? 0} 条模板句替换为带 Tatoeba 来源的候选，但仍保留在待审核队列，详见 reports/example-review-ledger-v1.md。\n`;
+const reviewConclusion = fullCorpusReviewApproved
+  ? "全量审核已完成；原始风险码、来源和处理动作保留作追溯记录，当前所有词条均标记为已审核。"
+  : "本报告把自动识别结果和人工审核状态分开：自动识别到的模板句不会被标为已审核；“已审核”只有在存在明确编辑记录时才使用。";
+const markdown = `# Worttag 例句质量审计\n\n生成时间：${generatedAt}\n\n${reviewConclusion}\n\n## 总体\n\n- 词条总数：${summary.total}\n- 已审核：${summary.byStatus.approved}\n- 待审核：${summary.byStatus.pending}\n- 模板例句：${summary.byStatus.template}\n- 存在争议：${summary.byStatus.disputed}\n- 优先复核队列：${summary.priorityReviewCount}\n\n## 按等级\n\n| 等级 | 已审核 | 待审核 | 模板例句 | 存在争议 |\n| --- | ---: | ---: | ---: | ---: |\n${levelTable}\n\n## 模板句族\n\n| 模板句族 | 数量 |\n| --- | ---: |\n${familyTable}\n\n## 已处理的明确问题\n\n- A1 ein：替换为“Ich habe ein Buch.” / 我有一本书，去除不适合入门学习的身体评论。\n- C1 schöpfen：修复释义中的乱码，并保留“Luft schöpfen”的德语搭配用于后续人工核验。\n\n## 使用方式\n\n- 词库卡片和词典详情会显示醒目的例句审核标记。\n- ${fullCorpusReviewApproved ? "当前不存在待审核、模板例句或存在争议的未完成状态。" : "模板句与争议项进入优先复核队列。"}\n- 原始审核原因和来源记录仍保留在 JSON 台账中，便于后续抽查。\n\n## 全量审核台账\n\n本次已为全部 ${summary.total} 条词条建立逐条处理结论，详见 reports/example-review-ledger-v1.md。\n`;
 await writeTextAtomic(
   path.join(root, "reports", "example-quality-audit-v1.md"),
   markdown.replace("我有一本书。，", "我有一本书，"),

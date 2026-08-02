@@ -17,7 +17,7 @@ test("declares Worttag metadata and a production-ready application shell", async
   const [page, layout, css, packageJson] = await readAppSources();
 
   assert.match(packageJson, /"name": "worttag"/);
-  assert.match(packageJson, /"version": "2\.1\.0"/);
+  assert.match(packageJson, /"version": "2\.2\.0"/);
   assert.match(layout, /const title = "Worttag · 德语词汇记忆"/);
   assert.match(layout, /间隔复习、语法例句和每日短文/);
   assert.match(layout, /openGraph:/);
@@ -51,8 +51,8 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /"oft": "常常、时常、多次；经常、时常"/);
   assert.match(page, /"oft": ""/);
   assert.doesNotMatch(page, /className="library-grammar"/);
-  assert.match(page, /beta3\.1/);
-  assert.match(page, /const APP_VERSION = "beta3\.1"/);
+  assert.match(page, /beta3\.2/);
+  assert.match(page, /const APP_VERSION = "beta3\.2"/);
   assert.match(page, /function openReleaseNotes/);
   assert.match(page, /已知晓，本版本不再提示/);
   assert.match(page, /https:\/\/space\.bilibili\.com\/96625971/);
@@ -88,6 +88,8 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /例句质量：\$\{meta\.label\}/);
   assert.match(page, /例句审核/);
   assert.match(page, /example-quality-badge/);
+  assert.match(page, /example-quality-icon/);
+  assert.match(page, /library-quality-summary-note/);
   assert.match(page, /当前 \$\{libraryWordsSource\.length\} 词/);
   assert.match(page, /className="mastered-drawer"/);
   assert.doesNotMatch(page, /按掌握状态筛选|filter-tabs|status-pill/);

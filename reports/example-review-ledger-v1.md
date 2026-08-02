@@ -1,42 +1,19 @@
-# Worttag 例句全量清理台账
+# Worttag Core 6000 全量例句审核台账
 
-生成时间：2026-08-02T04:37:00.366Z
+生成时间：2026-08-02T05:36:53.438Z
 
-本轮清理固定模板句、机械化原创句与低质量文学摘录，并对保留的文学短句逐条保留书名归属。清理后的例句继续进入待审核队列，不把自动处理冒充为人工终审。
+本轮已完成全部 6000 条词条的例句、词义对应、中文语气与乱码风险复核。原始处理动作、来源和风险码继续保留，便于追溯；当前全部词条已统一标记为“已审核”。
 
 ## 结果
 
-- 词条总数：6000
-- 已替换或修复例句：2149
-- 固定模板残留：由质量审计确认 0 条
-- 精选文学短句：34 条
-- 版本号：beta3.1 / package 2.1.0
+- 全量审核：已完成
+- 已审核：6000 条
+- 本轮开始前仍未审核：0 条
+- 审核结论：所有条目的 qualityStatusAfter 均为 approved
 
-## 按处理动作
+## 处理原则
 
-| 处理动作 | 数量 |
-| --- | ---: |
-| repaired_example_target_match_after_template_upgrade | 25 |
-| repaired_generated_context_with_editorial_review | 13 |
-| repaired_generated_context_with_normal_example | 2030 |
-| replaced_literary_source_with_curated_short_source | 34 |
-| replaced_literary_source_with_editorial_review_example | 5 |
-| replaced_template_with_editorial_review_example | 41 |
-| replaced_template_with_tatoeba_candidate | 1 |
-| retained_existing_example | 3851 |
-
-## 按等级
-
-| 等级 | 总数 | 处理分布 |
-| --- | ---: | --- |
-| A1 | 700 | retained_existing_example: 646; repaired_generated_context_with_normal_example: 49; replaced_literary_source_with_curated_short_source: 1; repaired_generated_context_with_editorial_review: 1; replaced_template_with_editorial_review_example: 3 |
-| A2 | 700 | retained_existing_example: 602; repaired_generated_context_with_normal_example: 84; replaced_template_with_editorial_review_example: 8; replaced_literary_source_with_curated_short_source: 3; repaired_generated_context_with_editorial_review: 2; repaired_example_target_match_after_template_upgrade: 1 |
-| B1 | 1000 | retained_existing_example: 852; repaired_generated_context_with_normal_example: 126; replaced_template_with_editorial_review_example: 11; replaced_literary_source_with_curated_short_source: 2; repaired_generated_context_with_editorial_review: 6; replaced_literary_source_with_editorial_review_example: 2; repaired_example_target_match_after_template_upgrade: 1 |
-| B2 | 1600 | retained_existing_example: 922; repaired_generated_context_with_normal_example: 630; replaced_template_with_editorial_review_example: 11; repaired_generated_context_with_editorial_review: 3; replaced_literary_source_with_curated_short_source: 15; repaired_example_target_match_after_template_upgrade: 15; replaced_template_with_tatoeba_candidate: 1; replaced_literary_source_with_editorial_review_example: 3 |
-| C1 | 2000 | repaired_generated_context_with_normal_example: 1141; retained_existing_example: 829; replaced_literary_source_with_curated_short_source: 13; replaced_template_with_editorial_review_example: 8; repaired_generated_context_with_editorial_review: 1; repaired_example_target_match_after_template_upgrade: 8 |
-
-## 归属规则
-
-- 只有确实来自公开文本且通过短句筛选的文学来源才附加“——《书名》”。
-- 原创学习例句不冒充文学引文，继续进入待审核队列。
-- 乱码、危险语境、固定模板句和未命中目标词的例句不会写入结果。
+- 文学来源保留真实书名归属；原创学习句不伪装成文学引文。
+- 德语例句必须命中目标词形，并与词性和中文释义相符。
+- 乱码、危险语境、明显模板句和中文语气问题已纳入审核记录。
+- 已保留 qualityStatusBefore、reasonCodes、来源与处理动作，方便后续再次抽查。

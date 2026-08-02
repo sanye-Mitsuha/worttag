@@ -1991,6 +1991,12 @@ blockquote footer {
   letter-spacing: 0.08em;
 }
 
+.library-quality-summary-note {
+  color: #2f7a5f;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .quality-summary-item {
   display: inline-flex;
   align-items: center;
@@ -2009,34 +2015,47 @@ blockquote footer {
 .example-quality-badge {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   width: max-content;
-  min-height: 24px;
-  padding: 3px 8px;
+  min-height: 28px;
+  padding: 4px 10px;
   border: 1px solid currentColor;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   line-height: 1.2;
 }
 
-.example-quality-badge > span {
+.example-quality-badge > span:not(.example-quality-icon) {
   opacity: 0.72;
+}
+
+.example-quality-icon {
+  opacity: 1;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .example-quality-approved {
   color: #2f7a5f;
+  background: rgba(47, 122, 95, 0.1);
 }
 
 .example-quality-pending {
   color: var(--ink-soft);
+  background: rgba(82, 82, 75, 0.06);
 }
 
 .example-quality-template {
   color: #a16b28;
+  background: rgba(161, 107, 40, 0.1);
 }
 
 .example-quality-disputed {
   color: var(--brick);
+  background: rgba(184, 78, 61, 0.1);
 }
 
 .dictionary-example-quality {
