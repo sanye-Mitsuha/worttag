@@ -38,6 +38,7 @@ type WordCard = {
   id: string;
   level: CEFRLevel;
   term: string;
+  audioUrl?: string;
   forms: string;
   type: string;
   meaning: string;
@@ -159,8 +160,8 @@ type BoardMessage = {
   createdAt: number;
 };
 
-const APP_VERSION = "beta3.3";
-const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.3";
+const APP_VERSION = "beta3.4";
+const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.4";
 const BILIBILI_URL = "https://space.bilibili.com/96625971";
 const GITHUB_URL = "https://github.com/mitsuha";
 
@@ -615,6 +616,7 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
       id,
       level: resource.level,
       term,
+      audioUrl: resource.level === "A1" ? `/audio/a1/anna/${id}.m4a` : undefined,
       forms,
       type: details.type,
       // Imported meanings are preserved except for explicit reviewed corrections.
@@ -1512,6 +1514,7 @@ export default function Home() {
   const releaseNotesDialogRef = useRef<HTMLElement>(null);
   const releaseNotesCloseRef = useRef<HTMLButtonElement>(null);
   const releaseNotesTriggerRef = useRef<HTMLElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const transitionTimerRef = useRef<number | null>(null);
   const pendingCompletionStateRef = useRef<LearningState | null>(null);
   const libraryLoadMoreRef = useRef<HTMLDivElement>(null);
@@ -2356,6 +2359,33 @@ export default function Home() {
     : dailyComplete ? 100 : Math.round((learning.todayQueuesCompleted / activeQueueGoal) * 100);
 
   function speak(word: WordCard) {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
+    if (word.audioUrl) {
+      const audio = new Audio(word.audioUrl);
+      audio.preload = "auto";
+      audio.playbackRate = settings.speechSpeed === "slow"
+        ? 0.82
+        : settings.speechSpeed === "natural"
+          ? 1.16
+          : 1;
+      audio.onended = () => {
+        if (audioRef.current === audio) audioRef.current = null;
+      };
+      audio.onerror = () => {
+        if (audioRef.current === audio) audioRef.current = null;
+        setFeedback("固定德语语音暂时无法播放，请刷新页面重试");
+      };
+      audioRef.current = audio;
+      void audio.play().catch(() => {
+        if (audioRef.current === audio) audioRef.current = null;
+        setFeedback("固定德语语音暂时无法播放，请刷新页面重试");
+      });
+      return;
+    }
     if (!("speechSynthesis" in window)) {
       setFeedback("当前浏览器暂不支持德语朗读");
       return;
