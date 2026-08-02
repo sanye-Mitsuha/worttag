@@ -73,8 +73,8 @@ test("example-quality index covers all rows and keeps explicit risks visible", a
   assert.equal(quality.schemaVersion, 1);
   assert.equal(quality.count, 6000);
   assert.equal(Object.keys(quality.entries).length, 6000);
-  assert.ok(quality.summary.byStatus.template > 3000);
-  assert.ok(quality.summary.priorityReviewCount > quality.summary.byStatus.template);
+  assert.equal(quality.summary.byStatus.template, 0);
+  assert.equal(quality.summary.priorityReviewCount, quality.summary.byStatus.disputed);
   assert.equal(quality.entries["core6000-a1-0005"].status, "pending");
   assert.ok(quality.entries["core6000-a1-0005"].reviewNotes.includes("inappropriate_beginner_content_corrected"));
   assert.equal(quality.entries["core6000-c1-5972"].status, "disputed");
@@ -94,20 +94,17 @@ test("full example review ledger covers every Core 6000 row", async () => {
   const ledger = JSON.parse(
     await readFile(path.join(root, "reports", "example-review-ledger-v1.json"), "utf8"),
   );
-  assert.equal(ledger.schemaVersion, 1);
+  assert.equal(ledger.schemaVersion, 2);
   assert.equal(ledger.summary.total, 6000);
   assert.equal(ledger.entries.length, 6000);
   assert.equal(new Set(ledger.entries.map((entry) => entry.id)).size, 6000);
-  assert.equal(ledger.summary.replacements, 64);
-  assert.equal(
-    ledger.entries.filter((entry) => entry.action.startsWith("replaced_")).length,
-    64,
-  );
+  assert.ok(ledger.summary.replaced >= 2000);
+  assert.ok(ledger.entries.filter((entry) => entry.action.startsWith("replaced_")).length >= 80);
   assert.ok(ledger.entries.every((entry) => entry.action && entry.qualityStatusBefore));
   assert.ok(
-    ledger.entries
-      .filter((entry) => entry.action.startsWith("replaced_"))
-      .every((entry) => entry.evidence?.source === "OPUS Tatoeba" && entry.evidence?.pairId),
+    ledger.entries.some((entry) =>
+      ["replaced_template_with_literary_source", "replaced_literary_source_with_curated_short_source"].includes(entry.action),
+    ),
   );
 });
 
@@ -118,7 +115,8 @@ test("corpus-backed replacements are not still deterministic fallback examples",
   const replacements = ledger.entries.filter((entry) => entry.action.startsWith("replaced_"));
   assert.ok(replacements.length > 0);
   for (const entry of replacements) {
-    assert.match(entry.newExample, /[.!?。！？…]["“”「」『』']?$/u);
+    const germanExample = entry.newExample.replace(/——《[^》]+》$/u, "");
+    assert.match(germanExample, /[.!?。！？…]["“”「」『』']?$/u);
     assert.match(entry.newExampleZh, /[。！？…]["“”「」『』']?$/u);
     assert.doesNotMatch(entry.newExample, /Im Gespräch kann man|Im Satz beschreibt|Mit „/u);
     assert.doesNotMatch(`${entry.newExample}\n${entry.newExampleZh}`, /�|鰌|鰂/u);

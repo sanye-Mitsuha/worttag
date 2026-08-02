@@ -67,6 +67,22 @@ function cleanSpace(value) {
   return String(value ?? "").normalize("NFC").replace(/\s+/gu, " ").trim();
 }
 
+function isLegacyTemplateExample(example) {
+  const value = cleanSpace(example);
+  return [
+    /^Im Alltag hilft es, wenn man die Aufgabe gut .+ kann\.$/u,
+    /^Im Alltag ist es hilfreich, wenn man .+ kann\.$/u,
+    /^Nach dem Gespräch war die Stimmung im Raum deutlich .+\.$/u,
+    /^(?:Anna|Ben|Clara|David|Lea|Mina|Jonas|Paul|Wir) spricht heute über .+ im (?:Museum|Büro|Markt|Bibliothek|Wohnung|Bahnhof|Kurs|Park)\.$/u,
+    /^Wir spricht heute über .+\.$/u,
+    /^Heute sprechen wir über .+ im (?:Museum|Büro|Markt|Bibliothek|Wohnung|Bahnhof|Kurs|Park)\.$/u,
+    /^(?:Anna|Ben|Clara|David|Lea|Mina|Jonas) trifft sich heute am Bahnhof und spricht .+ über den Plan\.$/u,
+    /^Wir trifft sich heute am Eingang und spricht irgendwie über den Plan\.$/u,
+    /^(?:Anna|Ben|Clara|David|Lea|Mina|Jonas|Paul) liest den Text, .+ notiert die wichtigsten Wörter\.$/u,
+    /^(?:Anna|Ben|Clara|David|Lea|Mina|Jonas|Paul) sagt, dass .+ heute selbst entscheiden darf\.$/u,
+  ].some((pattern) => pattern.test(value));
+}
+
 function visibleTerm(term) {
   return cleanSpace(term).replace(/\s+·.*$/u, "").trim();
 }
@@ -171,13 +187,28 @@ const summary = {
 for (const entry of entries) {
   const auditEntry = auditById.get(entry.id);
   const fallback = generatedFallback(entry, entry.index);
-  const isTemplate = fallback.example === entry.example;
+  const isTemplate = fallback.example === entry.example || isLegacyTemplateExample(entry.example);
   const flagged = (auditEntry?.flags ?? []).filter((flag) => DISPUTED_AUDIT_FLAGS.has(flag));
   const reasons = flagged;
   const ledgerEntry = reviewLedgerById.get(entry.id);
   const reviewNotes = [...(MANUAL_REVIEW_NOTES[entry.id] ?? [])];
   if (ledgerEntry?.action?.startsWith("replaced_")) {
-    reviewNotes.push("tatoeba_candidate_applied_pending_editorial_confirmation");
+    if (ledgerEntry.action === "replaced_template_with_editorial_review_example") {
+      reviewNotes.push("editorial_review_example_applied");
+    } else if (ledgerEntry.action === "replaced_template_with_literary_source") {
+      reviewNotes.push("public_domain_literary_example_applied_pending_editorial_confirmation");
+    } else if (ledgerEntry.action === "replaced_literary_source_with_curated_short_source") {
+      reviewNotes.push("public_domain_literary_example_applied_pending_editorial_confirmation");
+    } else if (ledgerEntry.action === "replaced_template_with_tatoeba_candidate") {
+      reviewNotes.push("tatoeba_candidate_applied_pending_editorial_confirmation");
+    } else if (ledgerEntry.action === "replaced_template_with_original_context") {
+      reviewNotes.push("original_context_example_applied_pending_editorial_confirmation");
+    } else {
+      reviewNotes.push("example_replacement_applied_pending_editorial_confirmation");
+    }
+  }
+  if (ledgerEntry?.action === "repaired_example_target_match_after_template_upgrade") {
+    reviewNotes.push("post_upgrade_target_match_repaired");
   }
   if (ledgerEntry?.action === "retained_template_without_safe_candidate") {
     reviewNotes.push("full_corpus_review_no_safe_candidate");

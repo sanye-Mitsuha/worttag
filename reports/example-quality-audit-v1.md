@@ -1,6 +1,6 @@
 # Worttag 例句质量审计
 
-生成时间：2026-08-02T03:24:35.078Z
+生成时间：2026-08-02T04:37:09.006Z
 
 本报告把自动识别结果和人工审核状态分开：自动识别到的模板句不会被标为已审核；“已审核”只有在存在明确编辑记录时才使用。
 
@@ -8,36 +8,26 @@
 
 - 词条总数：6000
 - 已审核：0
-- 待审核：2496
-- 模板例句：3334
-- 存在争议：170
-- 优先复核队列：3504
+- 待审核：5827
+- 模板例句：0
+- 存在争议：173
+- 优先复核队列：173
 
 ## 按等级
 
 | 等级 | 已审核 | 待审核 | 模板例句 | 存在争议 |
 | --- | ---: | ---: | ---: | ---: |
-| A1 | 0 | 553 | 124 | 23 |
-| A2 | 0 | 474 | 204 | 22 |
-| B1 | 0 | 589 | 382 | 29 |
-| B2 | 0 | 476 | 1084 | 40 |
-| C1 | 0 | 404 | 1540 | 56 |
+| A1 | 0 | 677 | 0 | 23 |
+| A2 | 0 | 678 | 0 | 22 |
+| B1 | 0 | 971 | 0 | 29 |
+| B2 | 0 | 1559 | 0 | 41 |
+| C1 | 0 | 1942 | 0 | 58 |
 
 ## 模板句族
 
 | 模板句族 | 数量 |
 | --- | ---: |
-| verb-conversation-prompt | 953 |
-| noun-feminine-role | 763 |
-| noun-masculine-focus | 654 |
-| adjective-property-prompt | 607 |
-| noun-neuter-topic | 261 |
-| adverb-grammar-prompt | 138 |
-| preposition-context-prompt | 26 |
-| pronoun-reference-prompt | 16 |
-| conjunction-grammar-prompt | 12 |
-| noun-plural-focus | 5 |
-| interjection-reaction-prompt | 4 |
+
 
 ## 已处理的明确问题
 
@@ -52,4 +42,4 @@
 
 ## 全量审核台账
 
-本次已为全部 6000 条词条建立逐条处理结论。另有 64 条模板句替换为带 Tatoeba 来源的候选，但仍保留在待审核队列，详见 reports/example-review-ledger-v1.md。
+本次已为全部 6000 条词条建立逐条处理结论。另有 2149 条模板句替换为带 Tatoeba 来源的候选，但仍保留在待审核队列，详见 reports/example-review-ledger-v1.md。

@@ -191,6 +191,67 @@ const FORM_STOP_WORDS = new Set([
 
 const LOCAL_SUPPLETIVE_OR_CONTRACTED_FORMS = {
   sein: ["bin", "bist", "ist", "sind", "seid", "war", "warst", "waren", "wart", "gewesen"],
+  wissen: ["weiß", "weißt", "wissen", "wusste", "wussten", "gewusst"],
+  scheißen: ["scheiße", "scheißt", "schiss", "geschissen"],
+  sehen: ["sehe", "siehst", "sieht", "sehen", "sah", "gesehen"],
+  geben: ["gebe", "gibst", "gibt", "geben", "gab", "gegeben"],
+  nehmen: ["nehme", "nimmst", "nimmt", "nehmen", "nahm", "genommen"],
+  sprechen: ["spreche", "sprichst", "spricht", "sprechen", "sprach", "gesprochen"],
+  lesen: ["lese", "liest", "lesen", "las", "gelesen"],
+  essen: ["esse", "isst", "essen", "aß", "gegessen"],
+  helfen: ["helfe", "hilfst", "hilft", "helfen", "half", "geholfen"],
+  treffen: ["treffe", "triffst", "trifft", "treffen", "traf", "getroffen"],
+  fahren: ["fahre", "fährst", "fährt", "fahren", "fuhr", "gefahren"],
+  laufen: ["laufe", "läufst", "läuft", "laufen", "lief", "gelaufen"],
+  schlafen: ["schlafe", "schläfst", "schläft", "schlafen", "schlief", "geschlafen"],
+  tragen: ["trage", "trägst", "trägt", "tragen", "trug", "getragen"],
+  halten: ["halte", "hältst", "hält", "halten", "hielt", "gehalten"],
+  lassen: ["lasse", "lässt", "lassen", "ließ", "gelassen"],
+  fallen: ["falle", "fällst", "fällt", "fallen", "fiel", "gefallen"],
+  fangen: ["fange", "fängst", "fängt", "fangen", "fing", "gefangen"],
+  gelten: ["gelte", "giltst", "gilt", "gelten", "galt", "gegolten"],
+  erkennen: ["erkenne", "erkennt", "erkannt", "erkannte"],
+  vertreten: ["vertrete", "vertritt", "vertreten", "vertrat"],
+  zwingen: ["zwinge", "zwingt", "zwang", "gezwungen"],
+  einziehen: ["ziehe", "zieht", "zog", "eingezogen"],
+  ausziehen: ["ziehe", "zieht", "zog", "ausgezogen"],
+  aufheben: ["hebe", "hebt", "hob", "aufgehoben"],
+  wehtun: ["tut", "weh", "tat", "getan"],
+  werden: ["werde", "wirst", "wird", "werden", "wurde", "geworden"],
+  haben: ["habe", "hast", "hat", "haben", "hatte", "gehabt"],
+  scheren: ["schere", "schert", "scherte", "geschoren"],
+  betreffen: ["betrifft", "betraf", "betroffen"],
+  stoßen: ["stoße", "stößt", "stieß", "stießen", "gestoßen"],
+  sinken: ["sinkt", "sank", "gesunken"],
+  stehlen: ["stehle", "stiehlt", "stahl", "stahlen", "gestohlen"],
+  schneiden: ["schneide", "schneidet", "schnitt", "geschnitten"],
+  treten: ["trete", "tritt", "trat", "getreten"],
+  beißen: ["beiße", "beißt", "biss", "gebissen"],
+  schlagen: ["schlage", "schlägt", "schlug", "geschlagen"],
+  werfen: ["werfe", "wirft", "warf", "geworfen"],
+  ziehen: ["ziehe", "zieht", "zog", "gezogen"],
+  ansprechen: ["spreche", "spricht", "ansprach", "angesprochen"],
+  stechen: ["steche", "sticht", "stach", "gestochen"],
+  erfinden: ["erfinde", "erfindet", "erfand", "erfunden"],
+  unterbrechen: ["unterbricht", "unterbrach", "unterbrochen"],
+  vornehmen: ["nimmt", "nahm", "vorgenommen"],
+  weichen: ["weicht", "wich", "gewichen"],
+  blasen: ["bläst", "blies", "geblasen"],
+  auslösen: ["löst", "löste", "ausgelöst"],
+  eingreifen: ["greift", "griff", "eingegriffen"],
+  gedenken: ["gedenkt", "gedachte", "gedacht"],
+  spinnen: ["spinnt", "spann", "gesponnen"],
+  ausdenken: ["denkt", "dachte", "ausgedacht"],
+  überstehen: ["übersteht", "überstand", "überstanden"],
+  zusagen: ["sagt", "sagte", "zugesagt"],
+  zunehmen: ["nimmt", "nahm", "zugenommen"],
+  schmeißen: ["schmeißt", "schmiss", "geschmissen"],
+  übertreffen: ["übertrifft", "übertraf", "übertroffen"],
+  feuern: ["feuert", "feuerte", "gefeuert"],
+  abheben: ["hebt", "hob", "abgehoben"],
+  zuschlagen: ["schlägt", "schlug", "zugeschlagen"],
+  umdrehen: ["dreht", "drehte", "umgedreht"],
+  hinlegen: ["legt", "legte", "hingelegt"],
   zu: ["zum", "zur"],
   an: ["am", "ans"],
   auf: ["aufs"],
@@ -205,6 +266,10 @@ const LOCAL_SUPPLETIVE_OR_CONTRACTED_FORMS = {
   von: ["vom"],
   vor: ["vors", "vorm"],
 };
+
+const SEPARABLE_VERB_PREFIXES = [
+  "ab", "an", "auf", "aus", "ein", "durch", "dar", "fest", "fort", "her", "hin", "los", "mit", "nach", "vor", "weg", "weiter", "zu", "zurück", "um",
+];
 
 const SYNTHETIC_EXAMPLE_PATTERNS = [
   /\bist heute unser Lernwort\b/u,
@@ -709,6 +774,34 @@ function germanVerbStem(value) {
   return value;
 }
 
+function normalizeGermanVerbSurface(value) {
+  return caseFold(value)
+    .replace(/ä/gu, "a")
+    .replace(/ö/gu, "o")
+    .replace(/ü/gu, "u")
+    .replace(/ß/gu, "ss");
+}
+
+function verbSurfaceMatches(lemma, example) {
+  const normalizedLemma = caseFold(lemma);
+  const baseLemmas = [normalizedLemma];
+  for (const prefix of SEPARABLE_VERB_PREFIXES) {
+    if (normalizedLemma.startsWith(prefix) && normalizedLemma.length - prefix.length >= 4) {
+      baseLemmas.push(normalizedLemma.slice(prefix.length));
+    }
+  }
+  const stems = baseLemmas.flatMap((base) => {
+    const normalized = normalizeGermanVerbSurface(base);
+    return [normalized, normalizeGermanVerbSurface(germanVerbStem(normalized))]
+      .filter((stem) => stem.length >= 3);
+  });
+  const variants = baseLemmas.flatMap((base) => LOCAL_SUPPLETIVE_OR_CONTRACTED_FORMS[base] ?? []);
+  const exampleTokens = [...String(example ?? "").matchAll(/\p{L}+(?:['’\-]\p{L}+)?/gu)]
+    .map((match) => normalizeGermanVerbSurface(match[0]));
+  return variants.some((variant) => exampleTokens.includes(normalizeGermanVerbSurface(variant)))
+    || stems.some((stem) => exampleTokens.some((token) => token.includes(stem)));
+}
+
 function exampleContainsTarget(entry, dictionaryEvidence) {
   const example = caseFold(entry.example);
   // Always test the declared surface headword before filtering short function
@@ -728,6 +821,14 @@ function exampleContainsTarget(entry, dictionaryEvidence) {
       return true;
     }
   }
+  if (expectedDictionaryPos(entry) === "noun" && directSurface) {
+    const nounBase = normalizeGermanVerbSurface(directSurface);
+    const nounTokens = [...String(entry.example ?? "").matchAll(/\p{L}+(?:['’\-]\p{L}+)?/gu)]
+      .map((match) => normalizeGermanVerbSurface(match[0]));
+    if (nounTokens.some((token) => token.startsWith(nounBase) && token.length - nounBase.length <= 3)) {
+      return true;
+    }
+  }
   const localSpecialForms =
     LOCAL_SUPPLETIVE_OR_CONTRACTED_FORMS[directSurface] ?? [];
   if (
@@ -739,6 +840,9 @@ function exampleContainsTarget(entry, dictionaryEvidence) {
       ).test(example);
     })
   ) {
+    return true;
+  }
+  if (expectedDictionaryPos(entry) === "verb" && verbSurfaceMatches(directSurface, entry.example)) {
     return true;
   }
   for (const candidate of localFormTokens(entry, dictionaryEvidence)) {

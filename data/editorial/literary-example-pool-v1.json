@@ -1,0 +1,609 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-02T04:16:54.381Z",
+  "policy": "Only short, sentence-level candidates from the listed public-domain editions are retained; source attribution is shown in the learner-facing German example.",
+  "sources": [
+    {
+      "title": "Faust: Der Tragödie erster Teil",
+      "author": "Johann Wolfgang von Goethe",
+      "localFile": "work/literary-sources/pg2229.txt",
+      "url": "https://www.gutenberg.org/cache/epub/2229/pg2229.txt",
+      "licenseUrl": "https://www.gutenberg.org/ebooks/2229"
+    },
+    {
+      "title": "Die Leiden des jungen Werther",
+      "author": "Johann Wolfgang von Goethe",
+      "localFile": "work/literary-sources/pg19794.txt",
+      "url": "https://www.gutenberg.org/cache/epub/19794/pg19794.txt",
+      "licenseUrl": "https://www.gutenberg.org/ebooks/19794"
+    },
+    {
+      "title": "Die Räuber: Ein Schauspiel",
+      "author": "Friedrich Schiller",
+      "localFile": "work/literary-sources/pg47804.txt",
+      "url": "https://www.gutenberg.org/cache/epub/47804/pg47804.txt",
+      "licenseUrl": "https://www.gutenberg.org/ebooks/47804"
+    }
+  ],
+  "count": 34,
+  "entries": [
+    {
+      "id": "core6000-b2-3302",
+      "level": "B2",
+      "term": "das Ich",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Ich gehe mit den andern.",
+      "match": {
+        "variant": "Ich",
+        "tokenIndex": 0,
+        "tokenLength": 1
+      },
+      "chinese": "我要和其他人一起去。"
+    },
+    {
+      "id": "core6000-c1-5925",
+      "level": "C1",
+      "term": "abermals",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Bin ich denn abermals betrogen?",
+      "match": {
+        "variant": "abermals",
+        "tokenIndex": 3,
+        "tokenLength": 1
+      },
+      "chinese": "难道我又被骗了？"
+    },
+    {
+      "id": "core6000-c1-4277",
+      "level": "C1",
+      "term": "vermehrt",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Mein Abscheu wird durch Euch vermehrt.",
+      "match": {
+        "variant": "vermehrt",
+        "tokenIndex": 5,
+        "tokenLength": 1
+      },
+      "chinese": "我的厌恶因你而增加。"
+    },
+    {
+      "id": "core6000-b2-3848",
+      "level": "B2",
+      "term": "die Theologie",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Fast möcht ich nun Theologie studieren.",
+      "match": {
+        "variant": "Theologie",
+        "tokenIndex": 4,
+        "tokenLength": 1
+      },
+      "chinese": "我现在几乎想学习神学。"
+    },
+    {
+      "id": "core6000-a1-0176",
+      "level": "A1",
+      "term": "der Herr",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "O Herr, verzeiht den rohen Gruß!",
+      "match": {
+        "variant": "Herr",
+        "tokenIndex": 1,
+        "tokenLength": 1
+      },
+      "chinese": "主啊，请原谅我无礼的问候！"
+    },
+    {
+      "id": "core6000-a2-1333",
+      "level": "A2",
+      "term": "not",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Fühl ich nicht immer ihre Not?",
+      "match": {
+        "variant": "not",
+        "tokenIndex": 5,
+        "tokenLength": 1
+      },
+      "chinese": "我不是一直能感受到他们的苦恼吗？"
+    },
+    {
+      "id": "core6000-a2-0952",
+      "level": "A2",
+      "term": "hoffentlich",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Es wird ihr hoffentlich nicht schaden!",
+      "match": {
+        "variant": "hoffentlich",
+        "tokenIndex": 3,
+        "tokenLength": 1
+      },
+      "chinese": "希望不会伤害她！"
+    },
+    {
+      "id": "core6000-c1-4807",
+      "level": "C1",
+      "term": "gewaltsam",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Fasse mich nicht so gewaltsam an!",
+      "match": {
+        "variant": "gewaltsam",
+        "tokenIndex": 4,
+        "tokenLength": 1
+      },
+      "chinese": "别这么用力地碰我！"
+    },
+    {
+      "id": "core6000-c1-4026",
+      "level": "C1",
+      "term": "freilich",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Und freilich ist nicht viel damit getan.",
+      "match": {
+        "variant": "freilich",
+        "tokenIndex": 1,
+        "tokenLength": 1
+      },
+      "chinese": "当然，我们并没有对此做太多事情。"
+    },
+    {
+      "id": "core6000-b2-3782",
+      "level": "B2",
+      "term": "brauen",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Kannst du den Trank nicht selber brauen?",
+      "match": {
+        "variant": "brauen",
+        "tokenIndex": 6,
+        "tokenLength": 1
+      },
+      "chinese": "自己不能熬药水吗？"
+    },
+    {
+      "id": "core6000-b2-3164",
+      "level": "B2",
+      "term": "erfreuen",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Es wird dir gleich das Herz erfreuen.",
+      "match": {
+        "variant": "erfreuen",
+        "tokenIndex": 6,
+        "tokenLength": 1
+      },
+      "chinese": "它会立刻让你的心高兴起来。"
+    },
+    {
+      "id": "core6000-c1-5503",
+      "level": "C1",
+      "term": "der Beifall",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Der Menge Beifall tönt mir nun wie Hohn.",
+      "match": {
+        "variant": "Beifall",
+        "tokenIndex": 2,
+        "tokenLength": 1
+      },
+      "chinese": "人群的掌声现在对我来说就像是嘲笑。"
+    },
+    {
+      "id": "core6000-b2-3160",
+      "level": "B2",
+      "term": "unrecht",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Gott verzeih mir’s, wenn ich ihm unrecht tu!",
+      "match": {
+        "variant": "unrecht",
+        "tokenIndex": 6,
+        "tokenLength": 1
+      },
+      "chinese": "如果我对他不公的话，上帝原谅我！"
+    },
+    {
+      "id": "core6000-a2-1341",
+      "level": "A2",
+      "term": "ehe",
+      "source": {
+        "title": "Die Räuber: Ein Schauspiel",
+        "author": "Friedrich Schiller",
+        "url": "https://www.gutenberg.org/ebooks/47804"
+      },
+      "german": "Hat er mich gekannt, ehe er mich machte?",
+      "match": {
+        "variant": "ehe",
+        "tokenIndex": 4,
+        "tokenLength": 1
+      },
+      "chinese": "他在创造我之前就认识我吗？"
+    },
+    {
+      "id": "core6000-c1-4752",
+      "level": "C1",
+      "term": "wörtlich",
+      "source": {
+        "title": "Die Räuber: Ein Schauspiel",
+        "author": "Friedrich Schiller",
+        "url": "https://www.gutenberg.org/ebooks/47804"
+      },
+      "german": "Hierin habe ich nur die Natur gleichsam wörtlich abgeschrieben.",
+      "match": {
+        "variant": "wörtlich",
+        "tokenIndex": 7,
+        "tokenLength": 1
+      },
+      "chinese": "可以说，我在这里只是照搬了自然。"
+    },
+    {
+      "id": "core6000-c1-5188",
+      "level": "C1",
+      "term": "schwanken",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Nun fängt mir an fast selbst der Kopf zu schwanken.",
+      "match": {
+        "variant": "schwanken",
+        "tokenIndex": 9,
+        "tokenLength": 1
+      },
+      "chinese": "现在我的头几乎开始摇晃。"
+    },
+    {
+      "id": "core6000-b1-2347",
+      "level": "B1",
+      "term": "schrecken",
+      "source": {
+        "title": "Die Räuber: Ein Schauspiel",
+        "author": "Friedrich Schiller",
+        "url": "https://www.gutenberg.org/ebooks/47804"
+      },
+      "german": "Mit dem leeren Schrecken wirst du meinen Muth nicht entmannen.",
+      "match": {
+        "variant": "schrecken",
+        "tokenIndex": 3,
+        "tokenLength": 1
+      },
+      "chinese": "你不会用空洞的恐惧削弱我的勇气。"
+    },
+    {
+      "id": "core6000-c1-5743",
+      "level": "C1",
+      "term": "gesellen",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Solch einen störenden Gesellen Mag ich nicht in der Nähe leiden.",
+      "match": {
+        "variant": "gesellen",
+        "tokenIndex": 3,
+        "tokenLength": 1
+      },
+      "chinese": "我不喜欢和这样令人不安的家伙在一起。"
+    },
+    {
+      "id": "core6000-b2-3823",
+      "level": "B2",
+      "term": "streben",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Das Streben meiner ganzen Kraft Ist grade das, was ich verspreche.",
+      "match": {
+        "variant": "streben",
+        "tokenIndex": 1,
+        "tokenLength": 1
+      },
+      "chinese": "我竭尽全力的努力正是我所承诺的。"
+    },
+    {
+      "id": "core6000-b2-2555",
+      "level": "B2",
+      "term": "willen",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Verhülle mir das wogende Gedränge, Das wider Willen uns zum Strudel zieht.",
+      "match": {
+        "variant": "willen",
+        "tokenIndex": 7,
+        "tokenLength": 1
+      },
+      "chinese": "向我隐藏那些违背我们意愿将我们拉入漩涡的汹涌人群。"
+    },
+    {
+      "id": "core6000-c1-4085",
+      "level": "C1",
+      "term": "öfters",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Ich hab es öfters rühmen hören, Ein Komödiant könnt einen Pfarrer lehren.",
+      "match": {
+        "variant": "öfters",
+        "tokenIndex": 3,
+        "tokenLength": 1
+      },
+      "chinese": "我经常听到有人夸口说喜剧演员可以教牧师。"
+    },
+    {
+      "id": "core6000-c1-5052",
+      "level": "C1",
+      "term": "der Diener",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Sprich die Bedingung deutlich aus; Ein solcher Diener bringt Gefahr ins Haus.",
+      "match": {
+        "variant": "Diener",
+        "tokenIndex": 7,
+        "tokenLength": 1
+      },
+      "chinese": "清楚地说明情况；这样的仆人会给家里带来危险。"
+    },
+    {
+      "id": "core6000-c1-4625",
+      "level": "C1",
+      "term": "zugrunde",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Mag ihr Geschick auf mich zusammenstürzen Und sie mit mir zugrunde gehn!",
+      "match": {
+        "variant": "zugrunde",
+        "tokenIndex": 10,
+        "tokenLength": 1
+      },
+      "chinese": "愿他们的命运在我身上崩塌，与我同归于尽！"
+    },
+    {
+      "id": "core6000-b2-2719",
+      "level": "B2",
+      "term": "der Papst",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Doch muß auch uns ein Oberhaupt nicht fehlen; Wir wollen einen Papst erwählen.",
+      "match": {
+        "variant": "Papst",
+        "tokenIndex": 11,
+        "tokenLength": 1
+      },
+      "chinese": "但我们也不必缺乏领导者；我们想选举一位教皇。"
+    },
+    {
+      "id": "core6000-b2-3005",
+      "level": "B2",
+      "term": "befassen",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "So schwätzt und lehrt man ungestört; Wer will sich mit den Narrn befassen?",
+      "match": {
+        "variant": "befassen",
+        "tokenIndex": 12,
+        "tokenLength": 1
+      },
+      "chinese": "所以你可以不受干扰地聊天和教学；谁愿意与愚人打交道？"
+    },
+    {
+      "id": "core6000-b2-3037",
+      "level": "B2",
+      "term": "der Wandel",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Verstehst du, was für neue Lebenskraft Mir dieser Wandel in der Öde schafft?",
+      "match": {
+        "variant": "Wandel",
+        "tokenIndex": 8,
+        "tokenLength": 1
+      },
+      "chinese": "你明白这种荒凉的变化给我带来了什么新的生命力量吗？"
+    },
+    {
+      "id": "core6000-b1-1720",
+      "level": "B1",
+      "term": "zerstören",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Du rissest mich von der Verzweiflung los, Die mir die Sinne schon zerstören wollte.",
+      "match": {
+        "variant": "zerstören",
+        "tokenIndex": 12,
+        "tokenLength": 1
+      },
+      "chinese": "你把我从想要摧毁我感官的绝望中拉了出来。"
+    },
+    {
+      "id": "core6000-b2-3028",
+      "level": "B2",
+      "term": "jahrelang",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Ein stiller Geist ist jahrelang geschäftig, Die Zeit nur macht die feine Gärung kräftig.",
+      "match": {
+        "variant": "jahrelang",
+        "tokenIndex": 4,
+        "tokenLength": 1
+      },
+      "chinese": "静心忙碌多年，只有时间让细腻的发酵浓烈。"
+    },
+    {
+      "id": "core6000-c1-4496",
+      "level": "C1",
+      "term": "perlen",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Das Sprichwort sagt: Ein eigner Herd, Ein braves Weib sind Gold und Perlen wert.",
+      "match": {
+        "variant": "perlen",
+        "tokenIndex": 12,
+        "tokenLength": 1
+      },
+      "chinese": "俗话说：自有炉火，好女人重金明珠。"
+    },
+    {
+      "id": "core6000-b2-2654",
+      "level": "B2",
+      "term": "erwerben",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Wie schwer sind nicht die Mittel zu erwerben, Durch die man zu den Quellen steigt!",
+      "match": {
+        "variant": "erwerben",
+        "tokenIndex": 7,
+        "tokenLength": 1
+      },
+      "chinese": "不获得攀登泉水的方法是多么困难啊！"
+    },
+    {
+      "id": "core6000-b2-3077",
+      "level": "B2",
+      "term": "hinweg",
+      "source": {
+        "title": "Die Räuber: Ein Schauspiel",
+        "author": "Friedrich Schiller",
+        "url": "https://www.gutenberg.org/ebooks/47804"
+      },
+      "german": "Sie war bürgerlicher Geburt, eine Deutsche -- aber ihr Anblick schmelzte die Vorurtheile des Adels hinweg.",
+      "match": {
+        "variant": "hinweg",
+        "tokenIndex": 14,
+        "tokenLength": 1
+      },
+      "chinese": "她出身于中产阶级，是德国人——但贵族们的偏见一看到她就消失了。"
+    },
+    {
+      "id": "core6000-b2-3029",
+      "level": "B2",
+      "term": "der Priester",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Magst Priester oder Weise fragen, Und ihre Antwort scheint nur Spott Über den Frager zu sein.",
+      "match": {
+        "variant": "Priester",
+        "tokenIndex": 1,
+        "tokenLength": 1
+      },
+      "chinese": "你可以问牧师或智者，他们的回答似乎只是对提问者的嘲笑。"
+    },
+    {
+      "id": "core6000-c1-5144",
+      "level": "C1",
+      "term": "schmücken",
+      "source": {
+        "title": "Faust: Der Tragödie erster Teil",
+        "author": "Johann Wolfgang von Goethe",
+        "url": "https://www.gutenberg.org/ebooks/2229"
+      },
+      "german": "Wie sonderbar muß diesen schönen Hals Ein einzig rotes Schnürchen schmücken, Nicht breiter als ein Messerrücken!",
+      "match": {
+        "variant": "schmücken",
+        "tokenIndex": 10,
+        "tokenLength": 1
+      },
+      "chinese": "这条不比刀背宽的美丽脖子上竟然挂着一根红绳，这是多么奇怪啊！"
+    },
+    {
+      "id": "core6000-b2-3722",
+      "level": "B2",
+      "term": "die Sünde",
+      "source": {
+        "title": "Die Räuber: Ein Schauspiel",
+        "author": "Friedrich Schiller",
+        "url": "https://www.gutenberg.org/ebooks/47804"
+      },
+      "german": "Hast du eine Sünde in jene Welt geschleppt, die dir den Eingang in die Pforten des Paradieses verrammelt?",
+      "match": {
+        "variant": "Sünde",
+        "tokenIndex": 3,
+        "tokenLength": 1
+      },
+      "chinese": "你是否把罪恶带入了这个世界，阻碍了你进入天堂之门？"
+    }
+  ]
+}
