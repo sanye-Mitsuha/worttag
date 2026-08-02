@@ -160,8 +160,8 @@ type BoardMessage = {
   createdAt: number;
 };
 
-const APP_VERSION = "beta3.6";
-const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.6";
+const APP_VERSION = "beta3.7";
+const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.7";
 const BILIBILI_URL = "https://space.bilibili.com/96625971";
 const GITHUB_URL = "https://github.com/mitsuha";
 
@@ -260,7 +260,7 @@ const SPEECH_RATES: Record<SpeechSpeed, number> = {
   "1": 1,
   "1.25": 1.25,
 };
-const FIXED_AUDIO_LEVELS: CEFRLevel[] = ["A1", "A2", "B1", "B2"];
+const FIXED_AUDIO_LEVELS: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
 
 function currentTimestamp() {
   return Date.now();
