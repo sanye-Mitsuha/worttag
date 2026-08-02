@@ -160,8 +160,8 @@ type BoardMessage = {
   createdAt: number;
 };
 
-const APP_VERSION = "beta3.5";
-const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.5";
+const APP_VERSION = "beta3.6";
+const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.6";
 const BILIBILI_URL = "https://space.bilibili.com/96625971";
 const GITHUB_URL = "https://github.com/mitsuha";
 
@@ -3896,7 +3896,13 @@ export default function Home() {
                   const record = learning.records[word.id];
                   return (
                     <article className="library-card" key={word.id}>
-                      <div className="library-card-top"><span className="folio">{String(index + 1).padStart(2, "0")}</span><ReviewDots record={record} /></div>
+                      <div className="library-card-top">
+                        <span className="folio">{String(index + 1).padStart(2, "0")}</span>
+                        <div className="library-card-meta">
+                          <span className="library-level-badge" aria-label={`CEFR 等级 ${word.level}`} title={`CEFR 等级 ${word.level}`}>{word.level}</span>
+                          <ReviewDots record={record} />
+                        </div>
+                      </div>
                       <p className="word-type">{word.type}</p>
                       <h2>
                         <button

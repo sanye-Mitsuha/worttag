@@ -1960,6 +1960,27 @@ blockquote footer {
   align-items: center;
 }
 
+.library-card-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.library-level-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  padding: 4px 7px;
+  border: 1px solid var(--brick);
+  border-radius: 999px;
+  color: var(--brick);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
 .library-card .word-type {
   margin-top: 21px;
 }
