@@ -3721,7 +3721,6 @@ export default function Home() {
                     <div className="shortcut-keys">
                       <span><kbd>F</kbd> 按 F 发音</span>
                       <span><kbd>空格</kbd> 按空格打开详情</span>
-                      <span><kbd>X</kbd> 速刷下一个词</span>
                     </div>
                   </section>
                   <section className="plan-card paper-panel">

@@ -111,7 +111,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /currentSessionRating && event\.key\.toLowerCase\(\) === "x"/);
   assert.match(page, /aria-keyshortcuts="X"/);
   assert.match(page, /className="speed-next-key"/);
-  assert.match(page, /<kbd>X<\/kbd> 速刷下一个词/);
+  assert.doesNotMatch(page, /<kbd>X<\/kbd> 速刷下一个词/);
   assert.match(css, /\.topbar\s*\{[\s\S]*position: sticky;[\s\S]*top: 0;[\s\S]*z-index: 50;/u);
   assert.match(page, /速刷 · 先看例句/);
   assert.match(page, /已记录；模糊和未知会在本轮结束后重刷/);
