@@ -48,6 +48,28 @@ type WordCard = {
   memory: string;
   storyDe: string;
   storyZh: string;
+  exampleQuality?: ExampleQualityRecord;
+};
+
+type ExampleQualityStatus = "approved" | "pending" | "template" | "disputed";
+
+type ExampleQualityRecord = {
+  status: ExampleQualityStatus;
+  reasonCodes: string[];
+  templateFamily: string | null;
+  reviewNotes?: string[];
+};
+
+type ExampleQualityResource = {
+  schemaVersion: 1;
+  generatedAt: string;
+  count: number;
+  entries: Record<string, ExampleQualityRecord>;
+  summary: {
+    total: number;
+    byStatus: Record<ExampleQualityStatus, number>;
+    priorityReviewCount: number;
+  };
 };
 
 type PackedWordType =
@@ -83,6 +105,13 @@ type PackedWordbook = {
   count: number;
   fields: ["id", "term", "forms", "typeCode", "meaning", "example", "exampleZh"];
   words: PackedWordRow[];
+};
+
+const EXAMPLE_QUALITY_META: Record<ExampleQualityStatus, { label: string; description: string }> = {
+  approved: { label: "已审核", description: "已有明确的编辑审核记录。" },
+  pending: { label: "待审核", description: "尚未完成例句与中文译文的人工审核。" },
+  template: { label: "模板例句", description: "命中通用生成模板，需优先替换为真实语境。" },
+  disputed: { label: "存在争议", description: "发现乱码、译文风险、语义疑点或其他需要人工判断的问题。" },
 };
 
 type MemoryRecord = {
@@ -608,7 +637,38 @@ function parsePackedWordbook(value: unknown, expectedLevel: CEFRLevel): PackedWo
   return candidate as PackedWordbook;
 }
 
-function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
+function parseExampleQuality(value: unknown): ExampleQualityResource {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("Example quality index is not an object.");
+  }
+  const candidate = value as Partial<ExampleQualityResource>;
+  const entries = candidate.entries;
+  const validEntries = entries && typeof entries === "object" && !Array.isArray(entries)
+    ? Object.entries(entries).every(([id, record]) => (
+        id.startsWith("core6000-") &&
+        Boolean(record) &&
+        Object.prototype.hasOwnProperty.call(EXAMPLE_QUALITY_META, (record as ExampleQualityRecord).status) &&
+        Array.isArray((record as ExampleQualityRecord).reasonCodes) &&
+        ((record as ExampleQualityRecord).reviewNotes === undefined || Array.isArray((record as ExampleQualityRecord).reviewNotes)) &&
+        ((record as ExampleQualityRecord).templateFamily === null || typeof (record as ExampleQualityRecord).templateFamily === "string")
+      ))
+    : false;
+  if (
+    candidate.schemaVersion !== 1 ||
+    candidate.count !== 6000 ||
+    typeof candidate.generatedAt !== "string" ||
+    !validEntries ||
+    Object.keys(entries ?? {}).length !== candidate.count
+  ) {
+    throw new Error("Example quality index failed schema validation.");
+  }
+  return candidate as ExampleQualityResource;
+}
+
+function expandPackedWordbook(
+  resource: PackedWordbook,
+  qualityById: Map<string, ExampleQualityRecord>,
+): WordCard[] {
   return resource.words.map(([id, term, forms, typeCode, meaning, example, exampleZh]) => {
     const details = packedWordDetails(typeCode, term, forms);
     return {
@@ -626,24 +686,30 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
       memory: details.memory,
       storyDe: example,
       storyZh: exampleZh,
+      exampleQuality: qualityById.get(id),
     };
   });
 }
 
 function loadExpandedWordbooks() {
   if (expandedWordbooksPromise) return expandedWordbooksPromise;
-  expandedWordbooksPromise = Promise.all(
-    CEFR_LEVELS.map(async (level) => {
+  expandedWordbooksPromise = Promise.all([
+    Promise.all(CEFR_LEVELS.map(async (level) => {
       // Include the corpus revision so a browser that still has the previous
       // 630-entry response cannot make the imported 700/1000/1600/2000 books
       // appear empty after a release.
       const response = await fetch(`/wordbooks/${level.toLowerCase()}-v1.json?corpus=core6000`, { cache: "no-store" });
       if (!response.ok) throw new Error(`${level} wordbook could not be loaded.`);
       return parsePackedWordbook(await response.json(), level);
+    })),
+    fetch("/wordbooks/example-quality-v1.json?corpus=core6000", { cache: "no-store" }).then(async (response) => {
+      if (!response.ok) throw new Error("Example quality index could not be loaded.");
+      return parseExampleQuality(await response.json());
     }),
-  ).then((resources) => {
+  ]).then(([resources, qualityResource]) => {
+    const qualityById = new Map(Object.entries(qualityResource.entries));
     const wordbookByLevel = new Map(
-      resources.map((resource) => [resource.level, expandPackedWordbook(resource)]),
+      resources.map((resource) => [resource.level, expandPackedWordbook(resource, qualityById)]),
     );
     const ids = new Set<string>();
     const expanded = CEFR_LEVELS.flatMap((level) => wordbookByLevel.get(level) ?? []);
@@ -1413,6 +1479,21 @@ function ReviewDots({
       {Array.from({ length: MAX_REVIEW_COUNT }, (_, index) => (
         <i className={index < resolvedCount ? "is-filled" : ""} key={index} aria-hidden="true" />
       ))}
+    </span>
+  );
+}
+
+function ExampleQualityBadge({ quality }: { quality?: ExampleQualityRecord }) {
+  const status = quality?.status ?? "pending";
+  const meta = EXAMPLE_QUALITY_META[status];
+  return (
+    <span
+      className={`example-quality-badge example-quality-${status}`}
+      title={meta.description}
+      aria-label={`例句质量：${meta.label}`}
+    >
+      <span aria-hidden="true">例句</span>
+      <strong>{meta.label}</strong>
     </span>
   );
 }
@@ -2243,6 +2324,18 @@ export default function Home() {
     () => libraryWordsSource.filter((word) => isMasteredRecord(learning.records[word.id])),
     [libraryWordsSource, learning.records],
   );
+  const exampleQualitySummary = useMemo(() => {
+    const counts: Record<ExampleQualityStatus, number> = {
+      approved: 0,
+      pending: 0,
+      template: 0,
+      disputed: 0,
+    };
+    libraryWordsSource.forEach((word) => {
+      counts[word.exampleQuality?.status ?? "pending"] += 1;
+    });
+    return counts;
+  }, [libraryWordsSource]);
   const dictionaryLinks = useMemo(
     () => dictionaryWord ? buildDictionaryLinks(dictionaryWord.term) : [],
     [dictionaryWord],
@@ -3803,6 +3896,15 @@ export default function Home() {
           <section className="secondary-page">
             <div className="page-heading library-heading">
               <div><p className="kicker">Wortschatz · 6000 Wörter</p><h1>你的词，分得清才记得住。</h1></div>
+              <div className="library-quality-summary" aria-label="例句质量统计">
+                <span className="library-quality-summary-label">例句审核</span>
+                {(Object.keys(EXAMPLE_QUALITY_META) as ExampleQualityStatus[]).map((status) => (
+                  <span className={`quality-summary-item example-quality-${status}`} key={status}>
+                    <i aria-hidden="true" />
+                    {EXAMPLE_QUALITY_META[status].label} {exampleQualitySummary[status]}
+                  </span>
+                ))}
+              </div>
               <button
                 className={`mastered-library-trigger${masteredDrawerOpen ? " active" : ""}`}
                 type="button"
@@ -3876,6 +3978,7 @@ export default function Home() {
                         </button>
                       </h2>
                       <p className="library-meaning">{word.meaning}</p>
+                      <ExampleQualityBadge quality={word.exampleQuality} />
                       <button onClick={() => startQueue([word.id], "manual")}>单独学习 <span aria-hidden="true">→</span></button>
                     </article>
                   );
@@ -4527,6 +4630,10 @@ export default function Home() {
               <div className="dictionary-detail-grid">
                 <section aria-labelledby="dictionary-example-title">
                   <p className="dictionary-section-label" id="dictionary-example-title">例句 · Beispiel</p>
+                  <div className="dictionary-example-quality">
+                    <ExampleQualityBadge quality={dictionaryWord.exampleQuality} />
+                    <span>{EXAMPLE_QUALITY_META[dictionaryWord.exampleQuality?.status ?? "pending"].description}</span>
+                  </div>
                   <blockquote>
                     <p lang="de">{dictionaryWord.example}</p>
                     {dictionaryWord.exampleZh && <footer>{dictionaryWord.exampleZh}</footer>}

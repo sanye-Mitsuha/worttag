@@ -65,3 +65,27 @@ test("wordbook manifest records the source and cumulative course sizes", async (
     C1: 6000,
   });
 });
+
+test("example-quality index covers all rows and keeps explicit risks visible", async () => {
+  const quality = JSON.parse(
+    await readFile(path.join(root, "public", "wordbooks", "example-quality-v1.json"), "utf8"),
+  );
+  assert.equal(quality.schemaVersion, 1);
+  assert.equal(quality.count, 6000);
+  assert.equal(Object.keys(quality.entries).length, 6000);
+  assert.ok(quality.summary.byStatus.template > 3000);
+  assert.ok(quality.summary.priorityReviewCount > quality.summary.byStatus.template);
+  assert.equal(quality.entries["core6000-a1-0005"].status, "pending");
+  assert.ok(quality.entries["core6000-a1-0005"].reviewNotes.includes("inappropriate_beginner_content_corrected"));
+  assert.equal(quality.entries["core6000-c1-5972"].status, "disputed");
+  assert.ok(quality.entries["core6000-c1-5972"].reasonCodes.includes("meaning_latin_residue"));
+});
+
+test("explicit content repairs remove the reported beginner and mojibake examples", async () => {
+  const a1 = JSON.parse(await readFile(path.join(root, "public", "wordbooks", "a1-v1.json"), "utf8"));
+  const c1 = JSON.parse(await readFile(path.join(root, "public", "wordbooks", "c1-v1.json"), "utf8"));
+  const ein = a1.words.find((row) => row[0] === "core6000-a1-0005");
+  const schoepfen = c1.words.find((row) => row[0] === "core6000-c1-5972");
+  assert.deepEqual(ein?.slice(5), ["Ich habe ein Buch.", "我有一本书。"]);
+  assert.doesNotMatch(schoepfen?.[4] ?? "", /鰌|鰂|�/u);
+});
