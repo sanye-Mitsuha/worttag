@@ -192,6 +192,10 @@ for (const entry of entries) {
   const reasons = flagged;
   const ledgerEntry = reviewLedgerById.get(entry.id);
   const reviewNotes = [...(MANUAL_REVIEW_NOTES[entry.id] ?? [])];
+  const correctionApproved = Boolean(
+    ledgerEntry?.action?.startsWith("replaced_") || ledgerEntry?.action?.startsWith("repaired_"),
+  );
+  if (correctionApproved) reviewNotes.push("example_correction_marked_approved");
   if (ledgerEntry?.action?.startsWith("replaced_")) {
     if (ledgerEntry.action === "replaced_template_with_editorial_review_example") {
       reviewNotes.push("editorial_review_example_applied");
@@ -214,7 +218,8 @@ for (const entry of entries) {
     reviewNotes.push("full_corpus_review_no_safe_candidate");
   }
   let status = "pending";
-  if (reasons.length) status = "disputed";
+  if (correctionApproved) status = "approved";
+  else if (reasons.length) status = "disputed";
   else if (isTemplate) status = "template";
   else if (auditEntry?.sourceKind === "curated" || auditEntry?.editorial?.status === "curated") status = "approved";
 

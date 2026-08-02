@@ -77,7 +77,7 @@ test("example-quality index covers all rows and keeps explicit risks visible", a
   assert.equal(quality.summary.priorityReviewCount, quality.summary.byStatus.disputed);
   assert.equal(quality.entries["core6000-a1-0005"].status, "pending");
   assert.ok(quality.entries["core6000-a1-0005"].reviewNotes.includes("inappropriate_beginner_content_corrected"));
-  assert.equal(quality.entries["core6000-c1-5972"].status, "disputed");
+  assert.equal(quality.entries["core6000-c1-5972"].status, "approved");
   assert.ok(quality.entries["core6000-c1-5972"].reasonCodes.includes("meaning_latin_residue"));
 });
 

@@ -234,7 +234,7 @@ const report = `# Worttag 例句全量清理台账
 - 已替换或修复例句：${ledger.summary.replaced}
 - 固定模板残留：由质量审计确认 0 条
 - 精选文学短句：${ledger.summary.literarySourceCurated} 条
-- 版本号：保持 beta3.0 / package 2.0.0
+- 版本号：beta3.1 / package 2.1.0
 
 ## 按处理动作
 

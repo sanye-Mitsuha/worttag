@@ -22,8 +22,16 @@ const LEGACY_TEMPLATE_PATTERNS = [
 
 test("all deterministic template examples have been replaced", async () => {
   const quality = JSON.parse(await readFile("public/wordbooks/example-quality-v1.json", "utf8"));
+  const ledger = JSON.parse(await readFile("reports/example-review-ledger-v1.json", "utf8"));
   assert.equal(quality.summary.byStatus.template, 0);
   assert.deepEqual(quality.summary.templateFamilies, {});
+  const correctedIds = new Set(
+    ledger.entries
+      .filter((entry) => entry.action.startsWith("replaced_") || entry.action.startsWith("repaired_"))
+      .map((entry) => entry.id),
+  );
+  assert.equal(correctedIds.size, ledger.summary.replaced);
+  assert.ok([...correctedIds].every((id) => quality.entries[id]?.status === "approved"));
 });
 
 test("legacy fixed sentence families are absent from the complete corpus", async () => {

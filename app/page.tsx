@@ -188,8 +188,8 @@ type BoardMessage = {
   createdAt: number;
 };
 
-const APP_VERSION = "beta3.0";
-const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.0";
+const APP_VERSION = "beta3.1";
+const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.1";
 const BILIBILI_URL = "https://space.bilibili.com/96625971";
 const GITHUB_URL = "https://github.com/mitsuha";
 
