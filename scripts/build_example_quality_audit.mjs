@@ -149,6 +149,13 @@ const generatedAt = new Date().toISOString();
 const entries = (await Promise.all(LEVELS.map((level) => readWordbook(root, level)))).flat();
 const audit = await buildAuditReport({ root, cachePath: null, generatedAt });
 const auditById = new Map(audit.entries.map((entry) => [entry.id, entry]));
+let reviewLedger = null;
+try {
+  reviewLedger = JSON.parse(await readFile(path.join(root, "reports", "example-review-ledger-v1.json"), "utf8"));
+} catch (error) {
+  if (error?.code !== "ENOENT") throw error;
+}
+const reviewLedgerById = new Map((reviewLedger?.entries ?? []).map((entry) => [entry.id, entry]));
 const qualityEntries = {};
 const summary = {
   total: entries.length,
@@ -167,7 +174,14 @@ for (const entry of entries) {
   const isTemplate = fallback.example === entry.example;
   const flagged = (auditEntry?.flags ?? []).filter((flag) => DISPUTED_AUDIT_FLAGS.has(flag));
   const reasons = flagged;
-  const reviewNotes = MANUAL_REVIEW_NOTES[entry.id] ?? [];
+  const ledgerEntry = reviewLedgerById.get(entry.id);
+  const reviewNotes = [...(MANUAL_REVIEW_NOTES[entry.id] ?? [])];
+  if (ledgerEntry?.action?.startsWith("replaced_")) {
+    reviewNotes.push("tatoeba_candidate_applied_pending_editorial_confirmation");
+  }
+  if (ledgerEntry?.action === "retained_template_without_safe_candidate") {
+    reviewNotes.push("full_corpus_review_no_safe_candidate");
+  }
   let status = "pending";
   if (reasons.length) status = "disputed";
   else if (isTemplate) status = "template";
@@ -178,6 +192,15 @@ for (const entry of entries) {
     reasonCodes: reasons,
     templateFamily: isTemplate ? fallback.family : null,
     reviewNotes,
+    reviewEvidence: ledgerEntry?.evidence?.source
+      ? {
+        action: ledgerEntry.action,
+        source: ledgerEntry.evidence.source,
+        release: ledgerEntry.evidence.release ?? null,
+        pairId: ledgerEntry.evidence.pairId ?? null,
+        sourceLine: ledgerEntry.evidence.sourceLine ?? null,
+      }
+      : null,
   };
   summary.byStatus[status] += 1;
   summary.byLevel[entry.level].total += 1;
@@ -192,6 +215,7 @@ const resource = {
   count: entries.length,
   statusDefinitions: STATUS_DEFINITIONS,
   summary,
+  fullReview: reviewLedger?.summary ?? null,
   entries: qualityEntries,
 };
 await writeJsonAtomic(path.join(root, "public", "wordbooks", "example-quality-v1.json"), resource);
@@ -201,6 +225,7 @@ await writeJsonAtomic(path.join(root, "reports", "example-quality-audit-v1.json"
     corpus: "public/wordbooks/*-v1.json",
     structuralAudit: "scripts/audit_wordbooks.mjs",
     policy: "模板句与风险项自动标记，已审核只接受明确编辑记录。",
+    fullReviewLedger: reviewLedger ? "reports/example-review-ledger-v1.json" : null,
   },
 }, true);
 const levelTable = LEVELS.map((level) => {
@@ -211,7 +236,7 @@ const familyTable = Object.entries(summary.templateFamilies)
   .sort(([, left], [, right]) => right - left)
   .map(([family, count]) => `| ${family} | ${count} |`)
   .join("\n");
-const markdown = `# Worttag 例句质量审计\n\n生成时间：${generatedAt}\n\n本报告把自动识别结果和人工审核状态分开：自动识别到的模板句不会被标为已审核；“已审核”只有在存在明确编辑记录时才使用。\n\n## 总体\n\n- 词条总数：${summary.total}\n- 已审核：${summary.byStatus.approved}\n- 待审核：${summary.byStatus.pending}\n- 模板例句：${summary.byStatus.template}\n- 存在争议：${summary.byStatus.disputed}\n- 优先复核队列：${summary.priorityReviewCount}\n\n## 按等级\n\n| 等级 | 已审核 | 待审核 | 模板例句 | 存在争议 |\n| --- | ---: | ---: | ---: | ---: |\n${levelTable}\n\n## 模板句族\n\n| 模板句族 | 数量 |\n| --- | ---: |\n${familyTable}\n\n## 已处理的明确问题\n\n- A1 ein：替换为“Ich habe ein Buch.” / 我有一本书。，去除不适合入门学习的身体评论。\n- C1 schöpfen：修复释义中的乱码，并保留“Luft schöpfen”的德语搭配用于后续人工核验。\n\n## 使用方式\n\n- 词库卡片和词典详情会显示四种质量等级。\n- 模板句与争议项进入优先复核队列。\n- 批量替换真实例句前，应逐条完成德语语境、词义对应和中文语气审核。\n`;
+const markdown = `# Worttag 例句质量审计\n\n生成时间：${generatedAt}\n\n本报告把自动识别结果和人工审核状态分开：自动识别到的模板句不会被标为已审核；“已审核”只有在存在明确编辑记录时才使用。\n\n## 总体\n\n- 词条总数：${summary.total}\n- 已审核：${summary.byStatus.approved}\n- 待审核：${summary.byStatus.pending}\n- 模板例句：${summary.byStatus.template}\n- 存在争议：${summary.byStatus.disputed}\n- 优先复核队列：${summary.priorityReviewCount}\n\n## 按等级\n\n| 等级 | 已审核 | 待审核 | 模板例句 | 存在争议 |\n| --- | ---: | ---: | ---: | ---: |\n${levelTable}\n\n## 模板句族\n\n| 模板句族 | 数量 |\n| --- | ---: |\n${familyTable}\n\n## 已处理的明确问题\n\n- A1 ein：替换为“Ich habe ein Buch.” / 我有一本书。，去除不适合入门学习的身体评论。\n- C1 schöpfen：修复释义中的乱码，并保留“Luft schöpfen”的德语搭配用于后续人工核验。\n\n## 使用方式\n\n- 词库卡片和词典详情会显示四种质量等级。\n- 模板句与争议项进入优先复核队列。\n- 批量替换真实例句前，应逐条完成德语语境、词义对应和中文语气审核。\n\n## 全量审核台账\n\n本次已为全部 ${summary.total} 条词条建立逐条处理结论。另有 ${reviewLedger?.summary?.replacements ?? 0} 条模板句替换为带 Tatoeba 来源的候选，但仍保留在待审核队列，详见 reports/example-review-ledger-v1.md。\n`;
 await writeTextAtomic(
   path.join(root, "reports", "example-quality-audit-v1.md"),
   markdown.replace("我有一本书。，", "我有一本书，"),

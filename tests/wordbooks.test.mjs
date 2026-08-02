@@ -89,3 +89,38 @@ test("explicit content repairs remove the reported beginner and mojibake example
   assert.deepEqual(ein?.slice(5), ["Ich habe ein Buch.", "我有一本书。"]);
   assert.doesNotMatch(schoepfen?.[4] ?? "", /鰌|鰂|�/u);
 });
+
+test("full example review ledger covers every Core 6000 row", async () => {
+  const ledger = JSON.parse(
+    await readFile(path.join(root, "reports", "example-review-ledger-v1.json"), "utf8"),
+  );
+  assert.equal(ledger.schemaVersion, 1);
+  assert.equal(ledger.summary.total, 6000);
+  assert.equal(ledger.entries.length, 6000);
+  assert.equal(new Set(ledger.entries.map((entry) => entry.id)).size, 6000);
+  assert.equal(ledger.summary.replacements, 64);
+  assert.equal(
+    ledger.entries.filter((entry) => entry.action.startsWith("replaced_")).length,
+    64,
+  );
+  assert.ok(ledger.entries.every((entry) => entry.action && entry.qualityStatusBefore));
+  assert.ok(
+    ledger.entries
+      .filter((entry) => entry.action.startsWith("replaced_"))
+      .every((entry) => entry.evidence?.source === "OPUS Tatoeba" && entry.evidence?.pairId),
+  );
+});
+
+test("corpus-backed replacements are not still deterministic fallback examples", async () => {
+  const ledger = JSON.parse(
+    await readFile(path.join(root, "reports", "example-review-ledger-v1.json"), "utf8"),
+  );
+  const replacements = ledger.entries.filter((entry) => entry.action.startsWith("replaced_"));
+  assert.ok(replacements.length > 0);
+  for (const entry of replacements) {
+    assert.match(entry.newExample, /[.!?。！？…]["“”「」『』']?$/u);
+    assert.match(entry.newExampleZh, /[。！？…]["“”「」『』']?$/u);
+    assert.doesNotMatch(entry.newExample, /Im Gespräch kann man|Im Satz beschreibt|Mit „/u);
+    assert.doesNotMatch(`${entry.newExample}\n${entry.newExampleZh}`, /�|鰌|鰂/u);
+  }
+});
