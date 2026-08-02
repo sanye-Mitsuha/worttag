@@ -159,6 +159,16 @@ type BoardMessage = {
   createdAt: number;
 };
 
+const APP_VERSION = "beta3.0";
+const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.0";
+const BILIBILI_URL = "https://space.bilibili.com/96625971";
+const GITHUB_URL = "https://github.com/mitsuha";
+const RELEASE_NOTES = [
+  "按判断结果调整光点：答对增加一个，模糊退回上一阶段，未知清零。",
+  "今日学习、复习和已熟记词库使用独立的状态规则，熟记单词不再进入复习队列。",
+  "设置页新增作者信息与留言板入口，并加入版本更新提醒和作者动态入口。",
+];
+
 const STORAGE_KEY = "worttag-learning-state-v1";
 const SETTINGS_KEY = "worttag-settings-v1";
 const SETTINGS_UPDATED_AT_KEY = "worttag-settings-updated-at-v1";
@@ -1476,6 +1486,8 @@ export default function Home() {
   const [boardNickname, setBoardNickname] = useState("");
   const [boardContent, setBoardContent] = useState("");
   const [boardNotice, setBoardNotice] = useState<string | null>(null);
+  const [releaseNotesOpen, setReleaseNotesOpen] = useState(false);
+  const [versionNoticeVisible, setVersionNoticeVisible] = useState(false);
   const [cloudStatus, setCloudStatus] = useState<CloudSyncStatus>("connecting");
   const [cloudDisplayName, setCloudDisplayName] = useState<string | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
@@ -1504,6 +1516,9 @@ export default function Home() {
   const boardDialogRef = useRef<HTMLElement>(null);
   const boardCloseRef = useRef<HTMLButtonElement>(null);
   const boardTriggerRef = useRef<HTMLElement | null>(null);
+  const releaseNotesDialogRef = useRef<HTMLElement>(null);
+  const releaseNotesCloseRef = useRef<HTMLButtonElement>(null);
+  const releaseNotesTriggerRef = useRef<HTMLElement | null>(null);
   const transitionTimerRef = useRef<number | null>(null);
   const pendingCompletionStateRef = useRef<LearningState | null>(null);
   const libraryLoadMoreRef = useRef<HTMLDivElement>(null);
@@ -2844,6 +2859,22 @@ export default function Home() {
     setBoardOpen(false);
   }
 
+  function openReleaseNotes(trigger?: HTMLElement | null) {
+    releaseNotesTriggerRef.current = trigger ?? null;
+    setVersionNoticeVisible(false);
+    setReleaseNotesOpen(true);
+  }
+
+  function closeReleaseNotes() {
+    setReleaseNotesOpen(false);
+  }
+
+  function acknowledgeReleaseNotes() {
+    window.localStorage.setItem(VERSION_NOTICE_KEY, "acknowledged");
+    setVersionNoticeVisible(false);
+    setReleaseNotesOpen(false);
+  }
+
   async function submitBoardMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const content = boardContent.trim();
@@ -3031,6 +3062,75 @@ export default function Home() {
   }, [boardOpen]);
 
   useEffect(() => {
+    if (!ready) return;
+    const timer = window.setTimeout(() => {
+      try {
+        setVersionNoticeVisible(window.localStorage.getItem(VERSION_NOTICE_KEY) !== "acknowledged");
+      } catch {
+        setVersionNoticeVisible(true);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [ready]);
+
+  useEffect(() => {
+    if (!releaseNotesOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const backgroundElements = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        ".app-shell > .topbar, .app-shell > .main-content, .app-shell > .site-footer",
+      ),
+    );
+    const previousAccessibility = backgroundElements.map((element) => ({
+      element,
+      ariaHidden: element.getAttribute("aria-hidden"),
+      inert: element.hasAttribute("inert"),
+    }));
+    backgroundElements.forEach((element) => {
+      element.setAttribute("inert", "");
+      element.setAttribute("aria-hidden", "true");
+    });
+    document.body.style.overflow = "hidden";
+    window.setTimeout(() => releaseNotesCloseRef.current?.focus(), 0);
+
+    const handleDialogKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeReleaseNotes();
+        return;
+      }
+      if (event.key !== "Tab" || !releaseNotesDialogRef.current) return;
+      const focusable = Array.from(
+        releaseNotesDialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleDialogKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      previousAccessibility.forEach(({ element, ariaHidden, inert }) => {
+        if (!inert) element.removeAttribute("inert");
+        if (ariaHidden === null) element.removeAttribute("aria-hidden");
+        else element.setAttribute("aria-hidden", ariaHidden);
+      });
+      window.removeEventListener("keydown", handleDialogKeyDown);
+      if (releaseNotesTriggerRef.current?.isConnected) releaseNotesTriggerRef.current.focus();
+    };
+  }, [releaseNotesOpen]);
+
+  useEffect(() => {
     if (!confirmReset) return;
     resetConfirmedRef.current = false;
     const resetTrigger = resetTriggerRef.current;
@@ -3194,11 +3294,24 @@ export default function Home() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
-          <span className="brand-word">WORTTAG</span>
-          <span className="brand-seal">W</span>
-          <span className="brand-version">beta2.9</span>
-        </button>
+        <div className="brand-lockup">
+          <button className="brand" onClick={() => switchView("learn")} aria-label="返回今日学习" disabled={grading}>
+            <span className="brand-word">WORTTAG</span>
+            <span className="brand-seal">W</span>
+          </button>
+          <button
+            className="brand-version-trigger"
+            type="button"
+            onClick={(event) => openReleaseNotes(event.currentTarget)}
+            aria-label={`查看 ${APP_VERSION} 更新信息`}
+            aria-haspopup="dialog"
+            aria-expanded={releaseNotesOpen}
+            disabled={grading}
+          >
+            <span className="brand-version">{APP_VERSION}</span>
+            {versionNoticeVisible && <span className="version-notice-dot" aria-hidden="true" />}
+          </button>
+        </div>
         <nav className="main-nav" aria-label="主导航">
           {([
             ["learn", "今日学习"],
@@ -4004,6 +4117,11 @@ export default function Home() {
                     <span className="board-launch-arrow" aria-hidden="true">↗</span>
                   </button>
                   <p>匿名留言；不展示违法、低俗、广告或联系方式内容。</p>
+                  <div className="author-credit" aria-label="作者信息">
+                    <span>作者</span>
+                    <a href={BILIBILI_URL} target="_blank" rel="noreferrer">bilibili：三叶-Mitsuha</a>
+                    <a href={GITHUB_URL} target="_blank" rel="noreferrer">github：mitsuha</a>
+                  </div>
                 </div>
               </fieldset>
 
@@ -4238,6 +4356,61 @@ export default function Home() {
                 <p className="board-empty">还没有公开留言，欢迎留下第一条。</p>
               )}
             </section>
+          </section>
+        </div>
+      )}
+
+      {releaseNotesOpen && (
+        <div
+          className="release-notes-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeReleaseNotes();
+          }}
+        >
+          <section
+            ref={releaseNotesDialogRef}
+            className="release-notes-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="release-notes-title"
+            aria-describedby="release-notes-description"
+          >
+            <button
+              ref={releaseNotesCloseRef}
+              className="release-notes-close"
+              type="button"
+              onClick={closeReleaseNotes}
+              aria-label="关闭更新信息"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+            <p className="kicker">WORTTAG · CHANGELOG</p>
+            <h2 id="release-notes-title">Worttag 已更新</h2>
+            <p className="release-notes-version">当前版本 {APP_VERSION}</p>
+            <p id="release-notes-description">查看本版本的更新记录与最新动态。确认后，本版本将不再显示提醒。</p>
+            <div className="release-notes-list">
+              {RELEASE_NOTES.map((note, index) => (
+                <p className="release-note" key={note}>
+                  <span aria-hidden="true">0{index + 1}</span>
+                  {note}
+                </p>
+              ))}
+            </div>
+            <div className="release-links">
+              <a className="release-link release-link-github" href={GITHUB_URL} target="_blank" rel="noreferrer">
+                <span className="release-link-icon github-icon" aria-hidden="true">GH</span>
+                <span><strong>GitHub · mitsuha</strong><small>查看项目代码与完整版本记录</small></span>
+                <span aria-hidden="true">↗</span>
+              </a>
+              <a className="release-link release-link-bilibili" href={BILIBILI_URL} target="_blank" rel="noreferrer">
+                <span className="release-link-icon bilibili-icon" aria-hidden="true">B</span>
+                <span><strong>Bilibili 动态</strong><small>查看开发者发布的更新动态</small></span>
+                <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+            <button className="release-acknowledge" type="button" onClick={acknowledgeReleaseNotes}>
+              已知晓，本版本不再提示
+            </button>
           </section>
         </div>
       )}
