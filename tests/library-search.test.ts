@@ -43,15 +43,37 @@ test("finds German words without case, umlaut or eszett sensitivity", () => {
 
   assert.equal(matchesLibrarySearch(searchText, tokenizeLibraryQuery("STRASSE")), true);
   assert.equal(matchesLibrarySearch(searchText, tokenizeLibraryQuery("strassen")), true);
-  assert.equal(matchesLibrarySearch(searchText, tokenizeLibraryQuery("ruhig")), true);
+  assert.equal(matchesLibrarySearch(searchText, tokenizeLibraryQuery("ruhig")), false);
 });
 
-test("finds Chinese meanings, examples and grammar notes", () => {
+test("finds Chinese meanings, translated examples and grammar notes", () => {
   const searchText = buildLibrarySearchText(word);
 
   assert.equal(matchesLibrarySearch(searchText, tokenizeLibraryQuery("街道")), true);
   assert.equal(matchesLibrarySearch(searchText, tokenizeLibraryQuery("非常安静")), true);
   assert.equal(matchesLibrarySearch(searchText, tokenizeLibraryQuery("静态位置")), true);
+});
+
+test("does not match German query text found only inside example sentences", () => {
+  const query = tokenizeLibraryQuery("zeigen");
+  const makeWord = (term: string) => buildLibrarySearchText({
+    ...word,
+    term,
+    forms: "",
+    meaning: "占位释义",
+    example: "Zeigen Sie mir bitte den Weg.",
+    exampleZh: "请给我指路。",
+    grammarTitle: "",
+    grammar: "",
+    memory: "",
+  });
+
+  assert.equal(matchesLibrarySearch(makeWord("anzeigen"), query), true);
+  assert.equal(matchesLibrarySearch(makeWord("zeigen"), query), true);
+  assert.equal(matchesLibrarySearch(makeWord("der"), query), false);
+  assert.equal(matchesLibrarySearch(makeWord("sie"), query), false);
+  assert.equal(matchesLibrarySearch(makeWord("Grad"), query), false);
+  assert.equal(matchesLibrarySearch(makeWord("Karte"), query), false);
 });
 
 test("requires every token while allowing mixed Chinese and German queries", () => {

@@ -10,6 +10,11 @@ export type LibrarySearchWord = {
   memory: string;
 };
 
+export type LibrarySearchText = {
+  lexical: string;
+  content: string;
+};
+
 export function normalizeLibrarySearch(value: string) {
   return value
     .normalize("NFKD")
@@ -26,9 +31,12 @@ export function tokenizeLibraryQuery(query: string) {
 }
 
 export function buildLibrarySearchText(word: LibrarySearchWord) {
-  return normalizeLibrarySearch([
+  const lexical = normalizeLibrarySearch([
     word.term,
     word.forms,
+  ].join(" "));
+  const content = normalizeLibrarySearch([
+    lexical,
     word.type,
     word.meaning,
     word.example,
@@ -37,11 +45,18 @@ export function buildLibrarySearchText(word: LibrarySearchWord) {
     word.grammar,
     word.memory,
   ].join(" "));
+  return { lexical, content };
 }
 
 export function matchesLibrarySearch(
-  searchText: string,
+  searchText: LibrarySearchText,
   queryTokens: string[],
 ) {
-  return queryTokens.every((token) => searchText.includes(token));
+  return queryTokens.every((token) => {
+    // German queries should match the headword or its forms only. Searching
+    // example prose caused words such as "der" and "sie" to appear merely
+    // because an example sentence happened to contain them.
+    const isGermanToken = /^[a-z0-9]+$/.test(token);
+    return (isGermanToken ? searchText.lexical : searchText.content).includes(token);
+  });
 }
