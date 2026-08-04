@@ -53,6 +53,10 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.doesNotMatch(page, /className="library-grammar"/);
   assert.match(page, /beta3\.7/);
   assert.match(page, /const APP_VERSION = "beta3\.7"/);
+  assert.match(page, /exampleAudioUrl/);
+  assert.match(page, /ExampleAudioButton/);
+  assert.match(page, /听例句/);
+  assert.match(page, /影响德语单词和例句朗读/);
   assert.match(page, /function openReleaseNotes/);
   assert.match(page, /已知晓，本版本不再提示/);
   assert.match(page, /https:\/\/space\.bilibili\.com\/96625971/);
@@ -97,6 +101,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(css, /\.board-message-content\s*\{/);
   assert.match(css, /\.release-notes-dialog\s*\{/);
   assert.match(css, /\.version-notice-dot\s*\{/);
+  assert.match(css, /\.example-audio-button\s*\{/);
   assert.match(page, /return word\.level === level/);
   assert.match(page, /className="queue-review-dots"/);
  assert.match(css, /\.queue-item > \.queue-review-dots/);

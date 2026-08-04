@@ -733,6 +733,33 @@ kbd {
   background: #eee7d6;
 }
 
+.example-audio-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 31px;
+  margin-top: 10px;
+  padding: 5px 10px;
+  border: 1px solid color-mix(in srgb, var(--brick) 48%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper) 72%, transparent);
+  color: var(--brick-dark);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.example-audio-button:hover {
+  background: color-mix(in srgb, var(--brick) 10%, transparent);
+  border-color: var(--brick);
+}
+
+.example-audio-button.compact {
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 10px;
+}
+
 .sound-rings {
   color: var(--brick);
   font-weight: 800;
@@ -5118,6 +5145,7 @@ html[data-theme="dark"] .theme-swatch {
 
 html[data-theme="dark"] .queue-item.current,
 html[data-theme="dark"] .speak-button:hover,
+html[data-theme="dark"] .example-audio-button:hover,
 html[data-theme="dark"] .due-row:hover {
   background: #2a352f;
 }

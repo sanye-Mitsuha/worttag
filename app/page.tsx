@@ -39,6 +39,7 @@ type WordCard = {
   level: CEFRLevel;
   term: string;
   audioUrl?: string;
+  exampleAudioUrl?: string;
   forms: string;
   type: string;
   meaning: string;
@@ -50,6 +51,29 @@ type WordCard = {
   storyDe: string;
   storyZh: string;
 };
+
+function ExampleAudioButton({
+  word,
+  onPlay,
+  compact = false,
+}: {
+  word: WordCard;
+  onPlay: (word: WordCard) => void;
+  compact?: boolean;
+}) {
+  if (!word.exampleAudioUrl) return null;
+  return (
+    <button
+      className={`example-audio-button${compact ? " compact" : ""}`}
+      type="button"
+      onClick={() => onPlay(word)}
+      aria-label={`朗读例句：${word.example}`}
+    >
+      <span className="sound-rings" aria-hidden="true">◖))</span>
+      {compact ? "例句" : "听例句"}
+    </button>
+  );
+}
 
 type PackedWordType =
   | "nm"
@@ -261,6 +285,7 @@ const SPEECH_RATES: Record<SpeechSpeed, number> = {
   "1.25": 1.25,
 };
 const FIXED_AUDIO_LEVELS: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
+const AUDIO_CACHE_LIMIT = 4;
 
 function currentTimestamp() {
   return Date.now();
@@ -622,6 +647,7 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
       audioUrl: FIXED_AUDIO_LEVELS.includes(resource.level)
         ? `/audio/${resource.level.toLowerCase()}/anna/${id}.m4a`
         : undefined,
+      exampleAudioUrl: `/audio/examples/${resource.level.toLowerCase()}/anna/${id}.m4a`,
       forms,
       type: details.type,
       // Imported meanings are preserved except for explicit reviewed corrections.
@@ -1526,6 +1552,7 @@ export default function Home() {
   const releaseNotesCloseRef = useRef<HTMLButtonElement>(null);
   const releaseNotesTriggerRef = useRef<HTMLElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const exampleAudioCacheRef = useRef<Map<string, HTMLAudioElement>>(new Map());
   const transitionTimerRef = useRef<number | null>(null);
   const pendingCompletionStateRef = useRef<LearningState | null>(null);
   const libraryLoadMoreRef = useRef<HTMLDivElement>(null);
@@ -2369,28 +2396,72 @@ export default function Home() {
     ? Math.round((sessionCompletedCount / Math.max(1, sessionUniqueTotal)) * 100)
     : dailyComplete ? 100 : Math.round((learning.todayQueuesCompleted / activeQueueGoal) * 100);
 
-  function speak(word: WordCard) {
+  function stopCurrentAudio() {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       audioRef.current = null;
     }
+  }
+
+  function getCachedAudio(url: string) {
+    const cached = exampleAudioCacheRef.current.get(url);
+    if (cached) return cached;
+    while (exampleAudioCacheRef.current.size >= AUDIO_CACHE_LIMIT) {
+      const oldestUrl = exampleAudioCacheRef.current.keys().next().value;
+      if (typeof oldestUrl !== "string") break;
+      const oldestAudio = exampleAudioCacheRef.current.get(oldestUrl);
+      oldestAudio?.pause();
+      if (oldestAudio) {
+        oldestAudio.removeAttribute("src");
+        oldestAudio.load();
+      }
+      exampleAudioCacheRef.current.delete(oldestUrl);
+    }
+    const audio = new Audio(url);
+    audio.preload = "auto";
+    audio.load();
+    exampleAudioCacheRef.current.set(url, audio);
+    return audio;
+  }
+
+  function playFixedAudio(url: string, errorMessage: string) {
+    stopCurrentAudio();
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    const audio = getCachedAudio(url);
+    audio.currentTime = 0;
+    audio.playbackRate = SPEECH_RATES[settings.speechSpeed];
+    audio.onended = () => {
+      if (audioRef.current === audio) audioRef.current = null;
+    };
+    audio.onerror = () => {
+      if (audioRef.current === audio) audioRef.current = null;
+      exampleAudioCacheRef.current.delete(url);
+      setFeedback(errorMessage);
+    };
+    audioRef.current = audio;
+    void audio.play().catch(() => {
+      if (audioRef.current === audio) audioRef.current = null;
+      exampleAudioCacheRef.current.delete(url);
+      setFeedback(errorMessage);
+    });
+  }
+
+  useEffect(() => {
+    if (!ready) return;
+    const nextWord = WORD_BY_ID.get(sessionUniqueIds[currentIndex + 1]);
+    [currentWord, nextWord].forEach((word) => {
+      if (word?.exampleAudioUrl) getCachedAudio(word.exampleAudioUrl);
+    });
+    // Preload only the current and next sentence so the 6000-file library does
+    // not consume memory or network bandwidth all at once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, currentWord?.id, ready, sessionUniqueIds]);
+
+  function speak(word: WordCard) {
+    stopCurrentAudio();
     if (word.audioUrl) {
-      const audio = new Audio(word.audioUrl);
-      audio.preload = "auto";
-      audio.playbackRate = SPEECH_RATES[settings.speechSpeed];
-      audio.onended = () => {
-        if (audioRef.current === audio) audioRef.current = null;
-      };
-      audio.onerror = () => {
-        if (audioRef.current === audio) audioRef.current = null;
-        setFeedback("固定德语语音暂时无法播放，请刷新页面重试");
-      };
-      audioRef.current = audio;
-      void audio.play().catch(() => {
-        if (audioRef.current === audio) audioRef.current = null;
-        setFeedback("固定德语语音暂时无法播放，请刷新页面重试");
-      });
+      playFixedAudio(word.audioUrl, "固定德语语音暂时无法播放，请刷新页面重试");
       return;
     }
     if (!("speechSynthesis" in window)) {
@@ -2402,6 +2473,14 @@ export default function Home() {
     utterance.lang = "de-DE";
     utterance.rate = SPEECH_RATES[settings.speechSpeed];
     window.speechSynthesis.speak(utterance);
+  }
+
+  function speakExample(word: WordCard) {
+    if (!word.exampleAudioUrl) {
+      setFeedback("这条例句暂时没有固定语音");
+      return;
+    }
+    playFixedAudio(word.exampleAudioUrl, "固定例句语音暂时无法播放，请刷新页面重试");
   }
 
   function finishSession(nextState: LearningState) {
@@ -3554,12 +3633,14 @@ export default function Home() {
                               <blockquote>
                                 <p lang="de">{currentWord.example}</p>
                                 {currentWord.exampleZh && <footer>{currentWord.exampleZh}</footer>}
+                                <ExampleAudioButton word={currentWord} onPlay={speakExample} />
                               </blockquote>
                             )}
                           </>
                         ) : (
                           <blockquote>
                             <p lang="de">{currentWord.example}</p>
+                            <ExampleAudioButton word={currentWord} onPlay={speakExample} />
                           </blockquote>
                         )}
                       </div>
@@ -3642,6 +3723,7 @@ export default function Home() {
                         {currentWord.example ? (
                           <blockquote className="recall-example">
                             <p lang="de">{currentWord.example}</p>
+                            <ExampleAudioButton word={currentWord} onPlay={speakExample} />
                           </blockquote>
                         ) : (
                           <div className="example-placeholder" role="note">（例句待补充）</div>
@@ -3699,6 +3781,7 @@ export default function Home() {
                         {currentWord.example ? (
                           <blockquote className="recall-example">
                             <p lang="de">{currentWord.example}</p>
+                            <ExampleAudioButton word={currentWord} onPlay={speakExample} />
                           </blockquote>
                         ) : (
                           <p className="recall-no-example">这个词条暂时没有例句；请直接尝试回忆词义。</p>
@@ -3724,6 +3807,7 @@ export default function Home() {
                         <blockquote>
                           <p>{currentWord.example}</p>
                           {settings.showTranslation && currentWord.exampleZh && <footer>{currentWord.exampleZh}</footer>}
+                          <ExampleAudioButton word={currentWord} onPlay={speakExample} />
                         </blockquote>
                       )}
                       <div className="rating-area">
@@ -4204,7 +4288,7 @@ export default function Home() {
                   <span className="toggle-control" aria-hidden="true" />
                 </label>
                 <div className="speech-setting">
-                  <div><strong>朗读速度 · {settings.speechSpeed}×</strong><small>只影响德语单词朗读。</small></div>
+                  <div><strong>朗读速度 · {settings.speechSpeed}×</strong><small>影响德语单词和例句朗读。</small></div>
                   <div className="speech-slider">
                     <input
                       type="range"
@@ -4578,6 +4662,7 @@ export default function Home() {
                   <blockquote>
                     <p lang="de">{dictionaryWord.example}</p>
                     {dictionaryWord.exampleZh && <footer>{dictionaryWord.exampleZh}</footer>}
+                    <ExampleAudioButton word={dictionaryWord} onPlay={speakExample} />
                   </blockquote>
                 </section>
               </div>
