@@ -111,9 +111,12 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /还剩 \$\{dueWords\.length\} 个复习/);
   assert.match(page, /function selectStoryWords\(words: WordCard\[\]\): WordCard\[\]/);
   assert.match(page, /Math\.ceil\(words\.length \/ 3\)/);
-  assert.match(page, /选取约三分之一/);
-  assert.match(page, /const storyWords = useMemo\(\(\) => selectStoryWords\(learnedToday\)/);
-  assert.match(page, /短文使用了 \{storyWords\.length\} 个词（今日已刷 \{learnedToday\.length\} 个）/);
+  assert.match(page, /function buildTodayPlanIds\(/);
+  assert.match(page, /const todayPlanWords = useMemo\(/);
+  assert.match(page, /const storyWords = useMemo\(\(\) => selectStoryWords\(todayPlanWords\)/);
+  assert.match(page, /短文使用了 \{storyWords\.length\} 个词（今日计划 \{todayPlanWords\.length\} 个）/);
+  assert.match(page, /按今日计划生成 · 随时阅读/);
+  assert.doesNotMatch(page, /dailyComplete && dailyStoryAvailable/);
   assert.match(page, /const activeStudyMode: StudyMode = queueSource === "manual" \? "speed" : settings\.studyMode/);
   assert.match(page, /className="speed-state-label"/);
   assert.match(page, /currentSessionRating && event\.key\.toLowerCase\(\) === "x"/);

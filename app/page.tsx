@@ -132,6 +132,7 @@ type LearningState = {
   todayKey: string;
   todayReviewed: number;
   todayWordIds: string[];
+  todayPlanWordIds: string[];
   todayReviewEventIds: string[];
   streakDays: number;
   sessionComplete: boolean;
@@ -795,6 +796,7 @@ function createInitialState(now = Date.now()): LearningState {
     todayKey: dayKey(now),
     todayReviewed: 0,
     todayWordIds: [],
+    todayPlanWordIds: [],
     todayReviewEventIds: [],
     streakDays: 1,
     sessionComplete: false,
@@ -820,6 +822,11 @@ function prepareSavedState(
     : {};
   const savedTodayWordIds = Array.isArray(saved.todayWordIds)
     ? saved.todayWordIds.filter(
+      (id): id is string => typeof id === "string" && WORD_BY_ID.has(id),
+    )
+    : [];
+  const savedTodayPlanWordIds = Array.isArray(saved.todayPlanWordIds)
+    ? saved.todayPlanWordIds.filter(
       (id): id is string => typeof id === "string" && WORD_BY_ID.has(id),
     )
     : [];
@@ -850,6 +857,7 @@ function prepareSavedState(
     todayKey: saved.todayKey ?? currentDay,
     todayReviewed: normalizedReviewEvents.length,
     todayWordIds: savedTodayWordIds,
+    todayPlanWordIds: savedTodayPlanWordIds,
     todayReviewEventIds: normalizedReviewEvents,
     streakDays: saved.streakDays ?? 1,
     sessionComplete: saved.sessionComplete ?? false,
@@ -874,6 +882,7 @@ function prepareSavedState(
     todayKey: currentDay,
     todayReviewed: 0,
     todayWordIds: [],
+    todayPlanWordIds: [],
     todayReviewEventIds: [],
     streakDays: gap === 1 ? normalized.streakDays + 1 : 1,
     sessionComplete: false,
@@ -1189,12 +1198,18 @@ function wordFormsForDisplay(word: WordCard) {
   return `die ${pluralMarker}`;
 }
 
-function buildDailyQueue(state: LearningState, settings: AppSettings, now = Date.now()) {
+function buildDailyQueue(
+  state: LearningState,
+  settings: AppSettings,
+  now = Date.now(),
+  excludedIds = new Set<string>(),
+) {
   const book = WORDS.filter((word) => isWordInBook(word, settings.level));
   const bookIds = new Set(book.map((word) => word.id));
   const due = Object.entries(state.records)
     .filter(([id, record]) =>
       bookIds.has(id) &&
+      !excludedIds.has(id) &&
       record.lastReviewedAt !== null &&
       record.dueAt <= now &&
       !isMasteredRecord(record),
@@ -1206,7 +1221,9 @@ function buildDailyQueue(state: LearningState, settings: AppSettings, now = Date
     })
     .map(([id]) => id);
 
-  let fresh = book.filter((word) => !state.records[word.id]).map((word) => word.id);
+  let fresh = book
+    .filter((word) => !excludedIds.has(word.id) && !state.records[word.id])
+    .map((word) => word.id);
   if (settings.order === "random") {
     fresh = seededShuffle(fresh, `${state.todayKey}-${state.todayQueuesCompleted}-${settings.level}`);
   }
@@ -1225,14 +1242,48 @@ function buildDailyQueue(state: LearningState, settings: AppSettings, now = Date
   return queue.slice(0, settings.wordsPerQueue);
 }
 
+function buildTodayPlanIds(
+  state: LearningState,
+  settings: AppSettings,
+  queueGoal: number,
+  activeQueueIds: string[] = [],
+  now = Date.now(),
+) {
+  const bookIds = new Set(
+    WORDS.filter((word) => isWordInBook(word, settings.level)).map((word) => word.id),
+  );
+  const planned = new Set(
+    (state.todayPlanWordIds ?? []).filter((id) => bookIds.has(id)),
+  );
+  const completedQueues = state.todayQueueLevel === settings.level
+    ? Math.min(state.todayQueuesCompleted, queueGoal)
+    : 0;
+  const currentQueue = activeQueueIds
+    .filter((id) => bookIds.has(id))
+    .filter((id) => !planned.has(id));
+  currentQueue.forEach((id) => planned.add(id));
+
+  const futureStart = completedQueues + (activeQueueIds.length ? 1 : 0);
+  for (let queueIndex = futureStart; queueIndex < queueGoal; queueIndex += 1) {
+    const queue = buildDailyQueue(
+      { ...state, todayQueuesCompleted: queueIndex },
+      settings,
+      now,
+      planned,
+    );
+    queue.forEach((id) => planned.add(id));
+  }
+  return Array.from(planned);
+}
+
 function selectStoryWords(words: WordCard[]): WordCard[] {
   if (!words.length) return [];
   const targetCount = Math.max(1, Math.ceil(words.length / 3));
   if (targetCount >= words.length) return words;
-  const step = words.length / targetCount;
-  return Array.from({ length: targetCount }, (_, index) =>
-    words[Math.min(words.length - 1, Math.floor((index + 0.5) * step))],
-  );
+  // Keep one contiguous slice in plan order so the short text does not jump
+  // between unrelated examples from distant parts of the day's queue.
+  const start = Math.floor((words.length - targetCount) / 2);
+  return words.slice(start, start + targetCount);
 }
 
 function formatDate(timestamp: number) {
@@ -1377,12 +1428,16 @@ function mergeLearningStates(local: LearningState, remote: LearningState): Learn
     ]))
     : [...newer.todayQueueCompletionIds];
 
-  return {
-    ...newer,
-    records,
-    todayReviewed: reviewEvents.length,
-    todayWordIds: Array.from(new Set([...local.todayWordIds, ...remote.todayWordIds])),
-    todayReviewEventIds: reviewEvents,
+    return {
+      ...newer,
+      records,
+      todayReviewed: reviewEvents.length,
+      todayWordIds: Array.from(new Set([...local.todayWordIds, ...remote.todayWordIds])),
+      todayPlanWordIds: Array.from(new Set([
+        ...(local.todayPlanWordIds ?? []),
+        ...(remote.todayPlanWordIds ?? []),
+      ])),
+      todayReviewEventIds: reviewEvents,
     streakDays: Math.max(local.streakDays, remote.streakDays),
     sessionComplete: sameQueuePlan
       ? local.sessionComplete || remote.sessionComplete
@@ -1701,6 +1756,7 @@ export default function Home() {
           todayQueuesCompleted: 0,
           todayQueueCompletionIds: [],
           sessionComplete: false,
+          todayPlanWordIds: [],
           todayQueueLevel: nextSettings.level,
           todayQueueGoal: nextSettings.queuesPerDay,
         };
@@ -2237,11 +2293,6 @@ export default function Home() {
     },
     [learning.todayWordIds, settings.level, wordbookRevision],
   );
-  const storyWords = useMemo(() => selectStoryWords(learnedToday), [learnedToday]);
-  const dailyStoryAvailable = storyWords.length > 0 && storyWords.every(
-    (word) => Boolean(word.storyDe && word.storyZh),
-  );
-
   const dueWords = useMemo(
     () =>
       bookWords.filter((word) => {
@@ -2346,6 +2397,22 @@ export default function Home() {
   const activeQueueGoal = learning.todayQueueLevel === settings.level
     ? (learning.todayQueueGoal ?? settings.queuesPerDay)
     : settings.queuesPerDay;
+  const todayPlanWords = useMemo(
+    () => buildTodayPlanIds(
+      learning,
+      settings,
+      activeQueueGoal,
+      queueSource === "daily" ? sessionQueue : [],
+      clock,
+    )
+      .map((id) => WORD_BY_ID.get(id))
+      .filter((word): word is WordCard => Boolean(word)),
+    [activeQueueGoal, clock, learning, queueSource, sessionQueue, settings],
+  );
+  const storyWords = useMemo(() => selectStoryWords(todayPlanWords), [todayPlanWords]);
+  const dailyStoryAvailable = storyWords.length > 0 && storyWords.every(
+    (word) => Boolean(word.storyDe && word.storyZh),
+  );
   const dailyComplete = learning.todayQueueLevel === settings.level &&
     (learning.sessionComplete || learning.todayQueuesCompleted >= activeQueueGoal);
   const dailyTarget = settings.wordsPerQueue * settings.queuesPerDay;
@@ -2616,6 +2683,9 @@ export default function Home() {
       records: { ...latest.records, [currentWord.id]: next },
       todayReviewed: reviewEvents.length,
       todayWordIds: Array.from(new Set([...latest.todayWordIds, currentWord.id])),
+      todayPlanWordIds: queueSource === "daily"
+        ? Array.from(new Set([...(latest.todayPlanWordIds ?? []), currentWord.id]))
+        : latest.todayPlanWordIds,
       todayReviewEventIds: reviewEvents,
     });
     setLearning(nextState);
@@ -2786,7 +2856,17 @@ export default function Home() {
     if (source === "daily") setPlanDirty(false);
     setQueueUnavailable(false);
     setQueueSource(source);
-    resetSessionQueue(ids, source);
+    const uniqueIds = Array.from(new Set(ids));
+    if (source === "daily") {
+      setLearning((current) => touchLearning({
+        ...current,
+        todayPlanWordIds: Array.from(new Set([
+          ...(current.todayPlanWordIds ?? []),
+          ...uniqueIds,
+        ])),
+      }));
+    }
+    resetSessionQueue(uniqueIds, source);
     setCurrentIndex(0);
     setRevealed(false);
     setFeedback(null);
@@ -2849,6 +2929,7 @@ export default function Home() {
         todayQueuesCompleted: 0,
         todayQueueCompletionIds: [],
         sessionComplete: false,
+        todayPlanWordIds: [],
         todayQueueLevel: nextLevel,
         todayQueueGoal: settings.queuesPerDay,
       }));
@@ -2886,6 +2967,7 @@ export default function Home() {
         todayQueuesCompleted: levelChanged ? 0 : current.todayQueuesCompleted,
         todayQueueCompletionIds: levelChanged ? [] : current.todayQueueCompletionIds,
         sessionComplete: levelChanged ? false : current.sessionComplete,
+        todayPlanWordIds: levelChanged ? [] : current.todayPlanWordIds,
         todayQueueLevel: DEFAULT_SETTINGS.level,
         todayQueueGoal: levelChanged || canApplyGoal ? DEFAULT_SETTINGS.queuesPerDay : current.todayQueueGoal,
       });
@@ -3862,7 +3944,7 @@ export default function Home() {
                   </section>
                   <button className="story-preview" onClick={() => switchView("story")} disabled={grading}>
                     <span className="story-number">03</span>
-                    <span><small>{settings.level} · 每日短文</small><strong>{LEVEL_META[settings.level].story}</strong><em>{dailyComplete ? "已经生成 · 阅读 →" : `完成 ${activeQueueGoal} 个队列后自动生成`}</em></span>
+                    <span><small>{settings.level} · 每日短文</small><strong>{LEVEL_META[settings.level].story}</strong><em>按今日计划生成 · 随时阅读 →</em></span>
                   </button>
                 </aside>
               </div>
@@ -4361,7 +4443,7 @@ export default function Home() {
               <button className="back-link" onClick={() => switchView("learn")}>← 返回词课</button>
               <div className="story-date"><span>WORTTAG · TAGESGESCHICHTE</span><strong>{new Date().toLocaleDateString("zh-CN", { month: "long", day: "numeric" })}</strong></div>
             </div>
-            {dailyComplete && dailyStoryAvailable ? (
+            {dailyStoryAvailable ? (
               <article className="generated-story">
                 <div className="story-title-block"><p className="kicker">{settings.level} · {LEVEL_META[settings.level].topic}</p><h1>{LEVEL_META[settings.level].story}</h1><p>{LEVEL_META[settings.level].storyZh}</p></div>
                 <div className={settings.showTranslation ? "story-columns" : "story-columns translation-hidden"}>
@@ -4376,34 +4458,25 @@ export default function Home() {
                   </div>}
                 </div>
                 <footer className="story-vocabulary">
-                  <div><p className="kicker">Heute gelernt</p><h2>短文使用了 {storyWords.length} 个词（今日已刷 {learnedToday.length} 个）</h2></div>
+                  <div><p className="kicker">Heute geplant</p><h2>短文使用了 {storyWords.length} 个词（今日计划 {todayPlanWords.length} 个）</h2></div>
                   <div className="story-chips">{storyWords.map((word) => <button key={word.id} onClick={() => startQueue([word.id], "manual")}><ArticleTerm term={word.term} /></button>)}</div>
                 </footer>
               </article>
-            ) : dailyComplete && learnedToday.length > 0 ? (
+            ) : todayPlanWords.length > 0 ? (
               <div className="story-locked paper-panel">
                 <span className="story-number">03</span>
                 <p className="kicker">Tagesgeschichte</p>
-                <h1>今天的词汇还没有可组成短文的例句。</h1>
-                <p>你仍可点击任一单词查阅词义与权威词典；补充例句后，Worttag 会把它们编成今日短文。</p>
+                <h1>今日计划正在准备短文。</h1>
+                <p>短文会始终从今日计划中选取完整例句，保持计划顺序，避免随机拼接。</p>
                 <button className="reveal-button" onClick={() => switchView("library")}>查看今日词汇 →</button>
-              </div>
-            ) : dailyComplete ? (
-              <div className="story-locked paper-panel">
-                <span className="story-number">03</span>
-                <p className="kicker">Tagesgeschichte</p>
-                <h1>今天没有可用于短文的新词。</h1>
-                <p>到期复习会继续按遗忘曲线安排。你可以切换词书开始新的等级，学习记录不会丢失。</p>
-                <button className="reveal-button" onClick={() => switchView("settings")}>选择词书 →</button>
               </div>
             ) : (
               <div className="story-locked paper-panel">
                 <span className="story-number">03</span>
                 <p className="kicker">Tagesgeschichte</p>
-                <h1>今天的短文，还差几个队列。</h1>
-                <p>完成今日计划后，Worttag 会从今天已刷单词中选取约三分之一，编成一篇简短连贯的德语短文。</p>
-                <div className="story-lock-progress"><span style={{ width: `${Math.min(100, (learning.todayQueuesCompleted / activeQueueGoal) * 100)}%` }} /></div>
-                <button className="reveal-button" onClick={() => switchView("learn")}>继续学习 · {learning.todayQueuesCompleted} / {activeQueueGoal} 队列 →</button>
+                <h1>今日计划暂时没有可用于短文的词。</h1>
+                <p>返回今日学习后，Worttag 会根据当前计划生成一篇符合语义顺序的短文。</p>
+                <button className="reveal-button" onClick={() => switchView("learn")}>返回今日学习 →</button>
               </div>
             )}
           </section>
