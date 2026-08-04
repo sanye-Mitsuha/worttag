@@ -68,6 +68,7 @@ function ExampleAudioButton({
       type="button"
       onClick={() => onPlay(word)}
       aria-label={`朗读例句：${word.example}`}
+      aria-keyshortcuts="G"
     >
       <span className="sound-rings" aria-hidden="true">◖))</span>
       {compact ? "例句" : "听例句"}
@@ -3066,6 +3067,11 @@ export default function Home() {
         speak(currentWord);
         return;
       }
+      if (event.key.toLowerCase() === "g") {
+        event.preventDefault();
+        speakExample(currentWord);
+        return;
+      }
       if (event.code === "Space" || event.key === " ") {
         event.preventDefault();
         const termButton = document.querySelector<HTMLElement>(".dictionary-term-main");
@@ -3840,6 +3846,7 @@ export default function Home() {
                     <div className="shortcut-keys">
                       <span><kbd>F</kbd> 按 F 发音</span>
                       <span><kbd>空格</kbd> 按空格打开详情</span>
+                      <span><kbd>G</kbd> <span className="sound-rings" aria-hidden="true">◖))</span> 按 G 播放例句</span>
                     </div>
                   </section>
                   <section className="plan-card paper-panel">

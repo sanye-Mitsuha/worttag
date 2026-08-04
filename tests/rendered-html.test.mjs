@@ -127,6 +127,8 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /重新拼写/);
   assert.match(page, /预计完成 \{settings\.level\} 词书/);
   assert.match(page, /<kbd>F<\/kbd> 按 F 发音/);
+  assert.match(page, /<kbd>G<\/kbd> <span className="sound-rings" aria-hidden="true">◖\)\)<\/span> 按 G 播放例句/);
+  assert.match(page, /aria-keyshortcuts="G"/);
   assert.match(page, /<kbd>空格<\/kbd> 按空格打开详情/);
   assert.match(page, /className="meaning-key"/);
   assert.match(page, /status === "known" \? "Q"/);
