@@ -453,7 +453,7 @@ a:focus-visible {
 
 .study-layout {
   display: grid;
-  grid-template-columns: 228px minmax(560px, 1fr) 292px;
+  grid-template-columns: 228px minmax(560px, 1fr);
   align-items: stretch;
   gap: 20px;
 }
@@ -731,6 +731,33 @@ kbd {
 
 .speak-button:hover {
   background: #eee7d6;
+}
+
+.feature-shortcut {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  min-height: 20px;
+  margin-left: 2px;
+  padding: 2px 5px;
+  border-color: currentColor;
+  border-bottom-width: 1px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--paper) 72%, transparent);
+  color: inherit;
+  font: 800 10px/1 var(--sans);
+  letter-spacing: 0;
+}
+
+.dictionary-term-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dictionary-term-main .feature-shortcut {
+  font-size: 9px;
 }
 
 .example-audio-button {
@@ -1525,53 +1552,6 @@ blockquote footer {
   border-color: var(--unknown);
   background: rgb(164 73 62 / 0.08);
   color: var(--unknown);
-}
-
-.insight-column {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.insight-column > * {
-  min-height: 0;
-  flex: 1 1 0;
-}
-
-.shortcut-card {
-  flex: 0 0 auto;
-  padding: 20px 22px;
-}
-
-.shortcut-card .kicker,
-.shortcut-keys {
-  position: relative;
-  z-index: 1;
-}
-
-.shortcut-keys {
-  display: grid;
-  grid-template-columns: auto auto;
-  gap: 12px 16px;
-  margin-top: 16px;
-  color: #817a6d;
-  font-size: 13px;
-}
-
-.shortcut-keys span {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  white-space: nowrap;
-}
-
-.shortcut-keys span:last-child {
-  grid-column: 1 / -1;
-}
-
-.shortcut-keys span:last-child kbd + kbd {
-  margin-left: -5px;
 }
 
 .plan-card {
@@ -5089,7 +5069,6 @@ html[data-theme="dark"] .nav-item,
 html[data-theme="dark"] .word-forms,
 html[data-theme="dark"] .card-mode,
 html[data-theme="dark"] .queue-item,
-html[data-theme="dark"] .shortcut-keys,
 html[data-theme="dark"] .plan-stats span,
 html[data-theme="dark"] .site-footer,
 html[data-theme="dark"] .list-header,
@@ -5318,13 +5297,6 @@ html[data-theme="dark"] .release-notes-close {
     grid-template-columns: 205px minmax(520px, 1fr);
   }
 
-  .insight-column {
-    grid-column: 1 / -1;
-    height: auto;
-    display: grid;
-    grid-template-columns: minmax(230px, 0.8fr) minmax(360px, 1.2fr);
-  }
-
   .story-preview {
     grid-column: 1 / -1;
   }
@@ -5378,11 +5350,6 @@ html[data-theme="dark"] .release-notes-close {
 
   .session-panel {
     display: none;
-  }
-
-  .insight-column {
-    grid-column: auto;
-    grid-template-columns: 1fr 1fr;
   }
 
   .story-preview {
@@ -5742,7 +5709,6 @@ html[data-theme="dark"] .release-notes-close {
 
   .rating-buttons,
   .meaning-options,
-  .insight-column,
   .progress-stat-grid,
   .word-library-grid {
     grid-template-columns: 1fr;

@@ -58,11 +58,12 @@ function ExampleAudioButton({
       className={`example-audio-button${compact ? " compact" : ""}`}
       type="button"
       onClick={() => onPlay(word)}
-      aria-label={`朗读例句：${word.example}`}
+      aria-label={`朗读例句：${word.example}（快捷键 G）`}
       aria-keyshortcuts="G"
     >
       <span className="sound-rings" aria-hidden="true">◖))</span>
       {compact ? "例句" : "听例句"}
+      <kbd className="feature-shortcut" aria-hidden="true">G</kbd>
     </button>
   );
 }
@@ -3401,8 +3402,9 @@ export default function Home() {
                 <div className="spelling-cue">
                   <span>{spellingWord.type}</span>
                   <h2>{spellingWord.meaning}</h2>
-                  <button className="speak-button" type="button" onClick={() => speak(spellingWord)}>
+                  <button className="speak-button" type="button" onClick={() => speak(spellingWord)} aria-label={`朗读 ${spellingWord.term}（快捷键 F）`} aria-keyshortcuts="F">
                     <span className="sound-rings" aria-hidden="true">◖))</span> 听发音
+                    <kbd className="feature-shortcut" aria-hidden="true">F</kbd>
                   </button>
                 </div>
                 <form className="spelling-form" onSubmit={submitSpelling}>
@@ -3486,8 +3488,9 @@ export default function Home() {
                   <section className={`${revealed ? "word-card revealed" : "word-card"}${activeStudyMode === "speed" ? " speed-mode" : ""}`}>
                     <div className="card-topline">
                     <span className="card-mode">{activeStudyMode === "speed" ? `速刷 · 第 ${sessionRound} 轮` : currentIsRepeat ? `第 ${sessionRound} 轮` : queueSource === "manual" ? "单独学习" : currentRecord ? "复习" : "新词"} · {String(currentIndex + 1).padStart(2, "0")} / {sessionQueue.length}</span>
-                    <button className="speak-button" onClick={() => speak(currentWord)} aria-label={`朗读 ${currentWord.term}`}>
+                    <button className="speak-button" type="button" onClick={() => speak(currentWord)} aria-label={`朗读 ${currentWord.term}（快捷键 F）`} aria-keyshortcuts="F">
                       <span className="sound-rings" aria-hidden="true">◖))</span> 听发音
+                      <kbd className="feature-shortcut" aria-hidden="true">F</kbd>
                     </button>
                   </div>
 
@@ -3500,10 +3503,12 @@ export default function Home() {
                           type="button"
                           onClick={(event) => openDictionary(currentWord, event.currentTarget)}
                           aria-haspopup="dialog"
-                          aria-label={`查看 ${currentWord.term} 的词典释义`}
+                          aria-label={`查看 ${currentWord.term} 的词典释义（快捷键 空格）`}
+                          aria-keyshortcuts="Space"
                           title="查看权威词典释义"
                         >
                           <ArticleTerm term={currentWord.term} />
+                          <kbd className="feature-shortcut" aria-hidden="true">空格</kbd>
                         </button>
                       </h2>
                       {activeStudyMode === "mastery" && (
@@ -3736,16 +3741,6 @@ export default function Home() {
                   {feedback && <div className="feedback-toast" role="status">{feedback}</div>}
                 </section>
 
-                <aside className="insight-column">
-                  <section className="shortcut-card paper-panel" aria-label="学习快捷键">
-                    <p className="kicker">Tastatur · 快捷键</p>
-                    <div className="shortcut-keys">
-                      <span><kbd>F</kbd> 按 F 发音</span>
-                      <span><kbd>空格</kbd> 按空格打开详情</span>
-                      <span><kbd>G</kbd> <span className="sound-rings" aria-hidden="true">◖))</span> 按 G 播放例句</span>
-                    </div>
-                  </section>
-                </aside>
               </div>
             ) : queueUnavailable && !dailyComplete ? (
               <section className="empty-state word-card">
