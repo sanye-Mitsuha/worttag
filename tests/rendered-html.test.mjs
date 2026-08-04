@@ -131,7 +131,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /<kbd className="feature-shortcut" aria-hidden="true">F<\/kbd>/);
   assert.match(page, /<kbd className="feature-shortcut" aria-hidden="true">G<\/kbd>/);
   assert.match(page, /aria-keyshortcuts="G"/);
-  assert.match(page, /<kbd className="feature-shortcut" aria-hidden="true">空格<\/kbd>/);
+  assert.doesNotMatch(page, /<kbd className="feature-shortcut" aria-hidden="true">空格<\/kbd>/);
   assert.match(page, /aria-keyshortcuts="F"/);
   assert.match(page, /aria-keyshortcuts="Space"/);
   assert.match(page, /className="meaning-key"/);

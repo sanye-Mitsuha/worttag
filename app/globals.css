@@ -781,6 +781,12 @@ kbd {
   border-color: var(--brick);
 }
 
+.example-audio-button .feature-shortcut {
+  border-color: var(--brick-dark);
+  background: transparent;
+  color: var(--brick-dark);
+}
+
 .example-audio-button.compact {
   min-height: 28px;
   padding: 4px 8px;

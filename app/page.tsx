@@ -3503,12 +3503,11 @@ export default function Home() {
                           type="button"
                           onClick={(event) => openDictionary(currentWord, event.currentTarget)}
                           aria-haspopup="dialog"
-                          aria-label={`查看 ${currentWord.term} 的词典释义（快捷键 空格）`}
+                          aria-label={`查看 ${currentWord.term} 的词典释义`}
                           aria-keyshortcuts="Space"
                           title="查看权威词典释义"
                         >
                           <ArticleTerm term={currentWord.term} />
-                          <kbd className="feature-shortcut" aria-hidden="true">空格</kbd>
                         </button>
                       </h2>
                       {activeStudyMode === "mastery" && (
