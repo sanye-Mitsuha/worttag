@@ -1227,7 +1227,7 @@ function buildDailyQueue(state: LearningState, settings: AppSettings, now = Date
 
 function selectStoryWords(words: WordCard[]): WordCard[] {
   if (!words.length) return [];
-  const targetCount = Math.max(1, Math.ceil(words.length / 5));
+  const targetCount = Math.max(1, Math.ceil(words.length / 3));
   if (targetCount >= words.length) return words;
   const step = words.length / targetCount;
   return Array.from({ length: targetCount }, (_, index) =>
@@ -4401,7 +4401,7 @@ export default function Home() {
                 <span className="story-number">03</span>
                 <p className="kicker">Tagesgeschichte</p>
                 <h1>今天的短文，还差几个队列。</h1>
-                <p>完成今日计划后，Worttag 会从今天已刷单词中选取约五分之一，编成一篇简短连贯的德语短文。</p>
+                <p>完成今日计划后，Worttag 会从今天已刷单词中选取约三分之一，编成一篇简短连贯的德语短文。</p>
                 <div className="story-lock-progress"><span style={{ width: `${Math.min(100, (learning.todayQueuesCompleted / activeQueueGoal) * 100)}%` }} /></div>
                 <button className="reveal-button" onClick={() => switchView("learn")}>继续学习 · {learning.todayQueuesCompleted} / {activeQueueGoal} 队列 →</button>
               </div>

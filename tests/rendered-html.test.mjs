@@ -110,7 +110,8 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /record\?\.status === "known" && Boolean\(record\.fsrs\)/);
   assert.match(page, /还剩 \$\{dueWords\.length\} 个复习/);
   assert.match(page, /function selectStoryWords\(words: WordCard\[\]\): WordCard\[\]/);
-  assert.match(page, /Math\.ceil\(words\.length \/ 5\)/);
+  assert.match(page, /Math\.ceil\(words\.length \/ 3\)/);
+  assert.match(page, /选取约三分之一/);
   assert.match(page, /const storyWords = useMemo\(\(\) => selectStoryWords\(learnedToday\)/);
   assert.match(page, /短文使用了 \{storyWords\.length\} 个词（今日已刷 \{learnedToday\.length\} 个）/);
   assert.match(page, /const activeStudyMode: StudyMode = queueSource === "manual" \? "speed" : settings\.studyMode/);
