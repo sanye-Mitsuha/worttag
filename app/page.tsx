@@ -25,7 +25,7 @@ import {
 } from "./dictionary-evidence";
 
 type RecallStatus = "unknown" | "fuzzy" | "known";
-type View = "learn" | "review" | "library" | "story" | "settings";
+type View = "learn" | "review" | "library" | "settings";
 type ThemeMode = "light" | "dark" | "system";
 type SkinMode = "parchment" | "mist" | "forest" | "wine" | "graphite";
 type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1";
@@ -48,8 +48,6 @@ type WordCard = {
   grammarTitle: string;
   grammar: string;
   memory: string;
-  storyDe: string;
-  storyZh: string;
 };
 
 function ExampleAudioButton({
@@ -132,7 +130,6 @@ type LearningState = {
   todayKey: string;
   todayReviewed: number;
   todayWordIds: string[];
-  todayPlanWordIds: string[];
   todayReviewEventIds: string[];
   streakDays: number;
   sessionComplete: boolean;
@@ -271,12 +268,12 @@ const DEFAULT_SETTINGS: AppSettings = {
   speechSpeed: "standard",
 };
 
-const LEVEL_META: Record<CEFRLevel, { title: string; description: string; story: string; storyZh: string; topic: string }> = {
-  A1: { title: "入门", description: "自我介绍、家庭与日常动作", story: "Ein ganz normaler Tag", storyZh: "平常的一天", topic: "Alltag" },
-  A2: { title: "基础", description: "住房、工作、旅行与简单经历", story: "Ein neuer Anfang", storyZh: "新的开始", topic: "Neuanfang" },
-  B1: { title: "独立", description: "叙述经历、处理问题与表达看法", story: "Ein kleiner Umweg", storyZh: "一个小小的绕路", topic: "Alltag" },
-  B2: { title: "进阶", description: "复杂讨论、因果关系与抽象主题", story: "Ein Bahnhof für alle", storyZh: "属于大家的车站", topic: "Stadtleben" },
-  C1: { title: "熟练", description: "精确表达、学术与专业语境", story: "Eine Frage der Tragweite", storyZh: "影响深远的问题", topic: "Bildung" },
+const LEVEL_META: Record<CEFRLevel, { title: string; description: string }> = {
+  A1: { title: "入门", description: "自我介绍、家庭与日常动作" },
+  A2: { title: "基础", description: "住房、工作、旅行与简单经历" },
+  B1: { title: "独立", description: "叙述经历、处理问题与表达看法" },
+  B2: { title: "进阶", description: "复杂讨论、因果关系与抽象主题" },
+  C1: { title: "熟练", description: "精确表达、学术与专业语境" },
 };
 
 const SPEECH_SPEED_VALUES: SpeechSpeed[] = ["0.5", "0.75", "1", "1.25"];
@@ -317,8 +314,6 @@ const B1_BASE_WORDS: WordCard[] = [
     grammarTitle: "aus Gewohnheit",
     grammar: "表示“出于习惯”，通常不加冠词。以 -heit 结尾的名词几乎总是阴性。",
     memory: "Gewohnheit 是已经形成的“习惯”；sich gewöhnen 是“逐渐习惯”。",
-    storyDe: "Mara verlässt jeden Morgen aus Gewohnheit um sieben Uhr das Haus.",
-    storyZh: "玛拉每天早晨都习惯在七点出门。",
   },
   {
     id: "verspaetung",
@@ -332,8 +327,6 @@ const B1_BASE_WORDS: WordCard[] = [
     grammarTitle: "Verspätung haben",
     grammar: "交通工具晚点常说 Verspätung haben，也可以说 mit Verspätung ankommen。",
     memory: "来自 sich verspäten；-ung 结尾的名词通常为阴性。",
-    storyDe: "Heute hat ihr Bus jedoch Verspätung.",
-    storyZh: "但今天她乘坐的公交车晚点了。",
   },
   {
     id: "entscheiden",
@@ -347,8 +340,6 @@ const B1_BASE_WORDS: WordCard[] = [
     grammarTitle: "sich für + Akk. entscheiden",
     grammar: "选择某项事物用 für + 第四格；表示放弃某项选择时可用 gegen + 第四格。",
     memory: "把 für 理解成“决定站到这个选择的一边”。",
-    storyDe: "Deshalb entscheidet sie sich, zu Fuß zur Arbeit zu gehen.",
-    storyZh: "因此，她决定步行去上班。",
   },
   {
     id: "umweg",
@@ -362,8 +353,6 @@ const B1_BASE_WORDS: WordCard[] = [
     grammarTitle: "einen Umweg machen",
     grammar: "常与 machen 或 nehmen 搭配。wegen 后面在正式书面语中通常接第二格。",
     memory: "um 是“绕着”，Weg 是“路”，合起来就是“绕路”。",
-    storyDe: "Wegen einer Baustelle muss sie einen kleinen Umweg machen.",
-    storyZh: "因为道路施工，她不得不稍微绕路。",
   },
   {
     id: "ruecksicht",
@@ -377,8 +366,6 @@ const B1_BASE_WORDS: WordCard[] = [
     grammarTitle: "Rücksicht nehmen auf + Akk.",
     grammar: "auf 后面固定接第四格。Rücksicht 本身通常不加冠词。",
     memory: "先“回头看”一下别人再行动，就是 Rücksicht nehmen。",
-    storyDe: "Unterwegs nimmt sie Rücksicht auf ihren älteren Nachbarn Herrn Wolf und trägt eine seiner Einkaufstaschen.",
-    storyZh: "途中，她体谅年长的邻居沃尔夫先生，还帮他提了一个购物袋。",
   },
   {
     id: "zuverlaessig",
@@ -392,8 +379,6 @@ const B1_BASE_WORDS: WordCard[] = [
     grammarTitle: "zuverlässig sein / arbeiten",
     grammar: "既可作表语，也可在名词前变格，例如 ein zuverlässiger Kollege。",
     memory: "可靠的人值得让你 auf ihn zählen——可以指望他。",
-    storyDe: "Er ist sehr zuverlässig und gießt im Urlaub immer Maras Pflanzen.",
-    storyZh: "他很可靠，玛拉度假时总会帮她浇花。",
   },
   {
     id: "gelegenheit",
@@ -407,8 +392,6 @@ const B1_BASE_WORDS: WordCard[] = [
     grammarTitle: "die Gelegenheit nutzen, … zu",
     grammar: "后面可接带 zu 的不定式，也常用 um … zu 表示目的。",
     memory: "把 gute Gelegenheit 当作一个整体来记：一个好机会。",
-    storyDe: "Mara nutzt die Gelegenheit, sich für seine Hilfe zu bedanken.",
-    storyZh: "玛拉借这个机会感谢他的帮助。",
   },
   {
     id: "erledigen",
@@ -422,8 +405,6 @@ const B1_BASE_WORDS: WordCard[] = [
     grammarTitle: "etwas erledigen + Akk.",
     grammar: "直接接第四格宾语，常见宾语有 Aufgaben、Arbeit、Einkäufe 和 Besorgungen。",
     memory: "看到 erledigt，可以联想到待办事项被划掉——“搞定了”。",
-    storyDe: "Gemeinsam erledigen sie noch eine Besorgung in der Apotheke.",
-    storyZh: "两人还一起去药店办了一件事。",
   },
   {
     id: "gewoehnen",
@@ -437,8 +418,6 @@ const B1_BASE_WORDS: WordCard[] = [
     grammarTitle: "sich an + Akk. gewöhnen",
     grammar: "an 后面固定接第四格，例如 an den Lärm、an das Wetter。",
     memory: "Gewohnheit 是结果，sich gewöhnen 是形成这个结果的过程。",
-    storyDe: "Herr Wolf erzählt, dass er sich noch nicht an sein neues Handy gewöhnt hat.",
-    storyZh: "沃尔夫先生说，自己还没习惯使用新手机。",
   },
   {
     id: "vereinbaren",
@@ -452,8 +431,6 @@ const B1_BASE_WORDS: WordCard[] = [
     grammarTitle: "einen Termin vereinbaren",
     grammar: "与某人商定用 mit + 第三格，例如 einen Termin mit der Ärztin vereinbaren。",
     memory: "把双方的安排“统一起来”，就是 vereinbaren。",
-    storyDe: "Sie vereinbaren, sich am Abend noch einmal zu treffen.",
-    storyZh: "他们约好晚上再见一次。",
   },
   {
     id: "kuemmern",
@@ -467,8 +444,6 @@ const B1_BASE_WORDS: WordCard[] = [
     grammarTitle: "sich kümmern um + Akk.",
     grammar: "um 后面固定接第四格；人和事情都可以作宾语。",
     memory: "对某人或某事“围绕着操心”，介词固定使用 um。",
-    storyDe: "Dann will Mara sich um die wichtigsten Einstellungen kümmern.",
-    storyZh: "玛拉打算帮他处理最重要的手机设置。",
   },
   {
     id: "vermeiden",
@@ -482,8 +457,6 @@ const B1_BASE_WORDS: WordCard[] = [
     grammarTitle: "vermeiden, etwas zu tun",
     grammar: "可接名词，也可接带 zu 的不定式，例如 vermeiden, zu spät zu kommen。",
     memory: "这是不可分动词，过去分词为 vermieden，没有 ge-。",
-    storyDe: "So kann sie ihm helfen, zukünftigen Ärger mit dem Gerät zu vermeiden.",
-    storyZh: "这样她可以帮助他避免以后再为这台设备烦恼。",
   },
 ];
 
@@ -659,8 +632,6 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
       grammarTitle: PACKED_GRAMMAR_TITLE_CORRECTIONS[term] ?? details.grammarTitle,
       grammar: details.grammar,
       memory: details.memory,
-      storyDe: example,
-      storyZh: exampleZh,
     };
   });
 }
@@ -796,7 +767,6 @@ function createInitialState(now = Date.now()): LearningState {
     todayKey: dayKey(now),
     todayReviewed: 0,
     todayWordIds: [],
-    todayPlanWordIds: [],
     todayReviewEventIds: [],
     streakDays: 1,
     sessionComplete: false,
@@ -822,11 +792,6 @@ function prepareSavedState(
     : {};
   const savedTodayWordIds = Array.isArray(saved.todayWordIds)
     ? saved.todayWordIds.filter(
-      (id): id is string => typeof id === "string" && WORD_BY_ID.has(id),
-    )
-    : [];
-  const savedTodayPlanWordIds = Array.isArray(saved.todayPlanWordIds)
-    ? saved.todayPlanWordIds.filter(
       (id): id is string => typeof id === "string" && WORD_BY_ID.has(id),
     )
     : [];
@@ -857,7 +822,6 @@ function prepareSavedState(
     todayKey: saved.todayKey ?? currentDay,
     todayReviewed: normalizedReviewEvents.length,
     todayWordIds: savedTodayWordIds,
-    todayPlanWordIds: savedTodayPlanWordIds,
     todayReviewEventIds: normalizedReviewEvents,
     streakDays: saved.streakDays ?? 1,
     sessionComplete: saved.sessionComplete ?? false,
@@ -882,7 +846,6 @@ function prepareSavedState(
     todayKey: currentDay,
     todayReviewed: 0,
     todayWordIds: [],
-    todayPlanWordIds: [],
     todayReviewEventIds: [],
     streakDays: gap === 1 ? normalized.streakDays + 1 : 1,
     sessionComplete: false,
@@ -1202,14 +1165,12 @@ function buildDailyQueue(
   state: LearningState,
   settings: AppSettings,
   now = Date.now(),
-  excludedIds = new Set<string>(),
 ) {
   const book = WORDS.filter((word) => isWordInBook(word, settings.level));
   const bookIds = new Set(book.map((word) => word.id));
   const due = Object.entries(state.records)
     .filter(([id, record]) =>
       bookIds.has(id) &&
-      !excludedIds.has(id) &&
       record.lastReviewedAt !== null &&
       record.dueAt <= now &&
       !isMasteredRecord(record),
@@ -1222,7 +1183,7 @@ function buildDailyQueue(
     .map(([id]) => id);
 
   let fresh = book
-    .filter((word) => !excludedIds.has(word.id) && !state.records[word.id])
+    .filter((word) => !state.records[word.id])
     .map((word) => word.id);
   if (settings.order === "random") {
     fresh = seededShuffle(fresh, `${state.todayKey}-${state.todayQueuesCompleted}-${settings.level}`);
@@ -1240,50 +1201,6 @@ function buildDailyQueue(
     if (fresh.length) queue.push(fresh.shift()!);
   }
   return queue.slice(0, settings.wordsPerQueue);
-}
-
-function buildTodayPlanIds(
-  state: LearningState,
-  settings: AppSettings,
-  queueGoal: number,
-  activeQueueIds: string[] = [],
-  now = Date.now(),
-) {
-  const bookIds = new Set(
-    WORDS.filter((word) => isWordInBook(word, settings.level)).map((word) => word.id),
-  );
-  const planned = new Set(
-    (state.todayPlanWordIds ?? []).filter((id) => bookIds.has(id)),
-  );
-  const completedQueues = state.todayQueueLevel === settings.level
-    ? Math.min(state.todayQueuesCompleted, queueGoal)
-    : 0;
-  const currentQueue = activeQueueIds
-    .filter((id) => bookIds.has(id))
-    .filter((id) => !planned.has(id));
-  currentQueue.forEach((id) => planned.add(id));
-
-  const futureStart = completedQueues + (activeQueueIds.length ? 1 : 0);
-  for (let queueIndex = futureStart; queueIndex < queueGoal; queueIndex += 1) {
-    const queue = buildDailyQueue(
-      { ...state, todayQueuesCompleted: queueIndex },
-      settings,
-      now,
-      planned,
-    );
-    queue.forEach((id) => planned.add(id));
-  }
-  return Array.from(planned);
-}
-
-function selectStoryWords(words: WordCard[]): WordCard[] {
-  if (!words.length) return [];
-  const targetCount = Math.max(1, Math.ceil(words.length / 3));
-  if (targetCount >= words.length) return words;
-  // Keep one contiguous slice in plan order so the short text does not jump
-  // between unrelated examples from distant parts of the day's queue.
-  const start = Math.floor((words.length - targetCount) / 2);
-  return words.slice(start, start + targetCount);
 }
 
 function formatDate(timestamp: number) {
@@ -1433,10 +1350,6 @@ function mergeLearningStates(local: LearningState, remote: LearningState): Learn
       records,
       todayReviewed: reviewEvents.length,
       todayWordIds: Array.from(new Set([...local.todayWordIds, ...remote.todayWordIds])),
-      todayPlanWordIds: Array.from(new Set([
-        ...(local.todayPlanWordIds ?? []),
-        ...(remote.todayPlanWordIds ?? []),
-      ])),
       todayReviewEventIds: reviewEvents,
     streakDays: Math.max(local.streakDays, remote.streakDays),
     sessionComplete: sameQueuePlan
@@ -1756,7 +1669,6 @@ export default function Home() {
           todayQueuesCompleted: 0,
           todayQueueCompletionIds: [],
           sessionComplete: false,
-          todayPlanWordIds: [],
           todayQueueLevel: nextSettings.level,
           todayQueueGoal: nextSettings.queuesPerDay,
         };
@@ -2397,22 +2309,6 @@ export default function Home() {
   const activeQueueGoal = learning.todayQueueLevel === settings.level
     ? (learning.todayQueueGoal ?? settings.queuesPerDay)
     : settings.queuesPerDay;
-  const todayPlanWords = useMemo(
-    () => buildTodayPlanIds(
-      learning,
-      settings,
-      activeQueueGoal,
-      queueSource === "daily" ? sessionQueue : [],
-      clock,
-    )
-      .map((id) => WORD_BY_ID.get(id))
-      .filter((word): word is WordCard => Boolean(word)),
-    [activeQueueGoal, clock, learning, queueSource, sessionQueue, settings],
-  );
-  const storyWords = useMemo(() => selectStoryWords(todayPlanWords), [todayPlanWords]);
-  const dailyStoryAvailable = storyWords.length > 0 && storyWords.every(
-    (word) => Boolean(word.storyDe && word.storyZh),
-  );
   const dailyComplete = learning.todayQueueLevel === settings.level &&
     (learning.sessionComplete || learning.todayQueuesCompleted >= activeQueueGoal);
   const dailyTarget = settings.wordsPerQueue * settings.queuesPerDay;
@@ -2584,7 +2480,6 @@ export default function Home() {
       setRevealed(false);
       if (queueSource === "daily") {
         resetSessionQueue([]);
-        if (finishedDay) setView("story");
       } else {
         const dailyQueue = dailyComplete ? [] : buildDailyQueue(finalState, settings);
         resetSessionQueue(dailyQueue);
@@ -2683,9 +2578,6 @@ export default function Home() {
       records: { ...latest.records, [currentWord.id]: next },
       todayReviewed: reviewEvents.length,
       todayWordIds: Array.from(new Set([...latest.todayWordIds, currentWord.id])),
-      todayPlanWordIds: queueSource === "daily"
-        ? Array.from(new Set([...(latest.todayPlanWordIds ?? []), currentWord.id]))
-        : latest.todayPlanWordIds,
       todayReviewEventIds: reviewEvents,
     });
     setLearning(nextState);
@@ -2857,15 +2749,6 @@ export default function Home() {
     setQueueUnavailable(false);
     setQueueSource(source);
     const uniqueIds = Array.from(new Set(ids));
-    if (source === "daily") {
-      setLearning((current) => touchLearning({
-        ...current,
-        todayPlanWordIds: Array.from(new Set([
-          ...(current.todayPlanWordIds ?? []),
-          ...uniqueIds,
-        ])),
-      }));
-    }
     resetSessionQueue(uniqueIds, source);
     setCurrentIndex(0);
     setRevealed(false);
@@ -2902,7 +2785,6 @@ export default function Home() {
       });
     });
     setQueueUnavailable(false);
-    setView("story");
   }
 
   function revealAnswer() {
@@ -2929,7 +2811,6 @@ export default function Home() {
         todayQueuesCompleted: 0,
         todayQueueCompletionIds: [],
         sessionComplete: false,
-        todayPlanWordIds: [],
         todayQueueLevel: nextLevel,
         todayQueueGoal: settings.queuesPerDay,
       }));
@@ -2967,7 +2848,6 @@ export default function Home() {
         todayQueuesCompleted: levelChanged ? 0 : current.todayQueuesCompleted,
         todayQueueCompletionIds: levelChanged ? [] : current.todayQueueCompletionIds,
         sessionComplete: levelChanged ? false : current.sessionComplete,
-        todayPlanWordIds: levelChanged ? [] : current.todayPlanWordIds,
         todayQueueLevel: DEFAULT_SETTINGS.level,
         todayQueueGoal: levelChanged || canApplyGoal ? DEFAULT_SETTINGS.queuesPerDay : current.todayQueueGoal,
       });
@@ -3942,20 +3822,16 @@ export default function Home() {
                       <div><strong>{Math.max(2, Math.round((queueSource === "daily" ? settings.wordsPerQueue : sessionUniqueTotal) * 1.1))}</strong><span>约分钟</span></div>
                     </div>
                   </section>
-                  <button className="story-preview" onClick={() => switchView("story")} disabled={grading}>
-                    <span className="story-number">03</span>
-                    <span><small>{settings.level} · 每日短文</small><strong>{LEVEL_META[settings.level].story}</strong><em>按今日计划生成 · 随时阅读 →</em></span>
-                  </button>
                 </aside>
               </div>
             ) : queueUnavailable && !dailyComplete ? (
               <section className="empty-state word-card">
                 <p className="kicker">Heute ruhig · {settings.level}</p>
                 <h2>{learnedToday.length ? "今天能学的词已经全部完成。" : "当前词书暂时没有需要学习的词。"}</h2>
-                <p>{learnedToday.length ? `今天已经学习 ${learnedToday.length} 个词，可以直接用这些词生成短文。` : "新词已经完成，下一次复习会按遗忘曲线准时出现。你也可以先切换另一本词书。"}</p>
+                <p>{learnedToday.length ? `今天已经学习 ${learnedToday.length} 个词，复习安排已保存。` : "新词已经完成，下一次复习会按遗忘曲线准时出现。你也可以先切换另一本词书。"}</p>
                 <div className="empty-actions">
                   <button className="reveal-button" onClick={learnedToday.length ? finishDayWithAvailableWords : () => switchView("settings")}>
-                    {learnedToday.length ? "生成今日短文 →" : "选择其他词书 →"}
+                    {learnedToday.length ? "完成今日计划" : "选择其他词书 →"}
                   </button>
                   <button className="secondary-action" onClick={() => switchView("review")}>查看复习安排</button>
                 </div>
@@ -3964,9 +3840,9 @@ export default function Home() {
               <section className="empty-state word-card">
                 <p className="kicker">{dailyComplete ? "Heute geschafft" : `Sitzung ${learning.todayQueuesCompleted + 1}`}</p>
                 <h2>{dailyComplete ? "今天的学习已经完成。" : `第 ${learning.todayQueuesCompleted} 个队列完成。`}</h2>
-                <p>{dailyComplete ? "复习节奏已排好，现在去读一篇只属于今天的小短文。" : `今天还剩 ${Math.max(0, activeQueueGoal - learning.todayQueuesCompleted)} 个队列，每个最多 ${settings.wordsPerQueue} 个词。`}</p>
-                <button className="reveal-button" onClick={dailyComplete ? () => switchView("story") : startNextDailyQueue}>
-                  {dailyComplete ? "阅读今日短文 →" : "开始下一队列 →"}
+                <p>{dailyComplete ? "复习节奏已排好，可以查看复习安排或继续浏览词库。" : `今天还剩 ${Math.max(0, activeQueueGoal - learning.todayQueuesCompleted)} 个队列，每个最多 ${settings.wordsPerQueue} 个词。`}</p>
+                <button className="reveal-button" onClick={dailyComplete ? () => switchView("review") : startNextDailyQueue}>
+                  {dailyComplete ? "查看复习安排 →" : "开始下一队列 →"}
                 </button>
               </section>
             )}
@@ -4367,7 +4243,7 @@ export default function Home() {
                   <span className="toggle-control" aria-hidden="true" />
                 </label>
                 <label className="toggle-row">
-                  <span><strong>显示中文译文</strong><small>在例句与每日短文旁显示中文。</small></span>
+                  <span><strong>显示中文译文</strong><small>在例句旁显示中文。</small></span>
                   <input type="checkbox" checked={settings.showTranslation} onChange={(event) => updateSetting("showTranslation", event.target.checked)} />
                   <span className="toggle-control" aria-hidden="true" />
                 </label>
@@ -4437,50 +4313,6 @@ export default function Home() {
           </section>
         )}
 
-        {view === "story" && (
-          <section className="story-page">
-            <div className="story-page-header">
-              <button className="back-link" onClick={() => switchView("learn")}>← 返回词课</button>
-              <div className="story-date"><span>WORTTAG · TAGESGESCHICHTE</span><strong>{new Date().toLocaleDateString("zh-CN", { month: "long", day: "numeric" })}</strong></div>
-            </div>
-            {dailyStoryAvailable ? (
-              <article className="generated-story">
-                <div className="story-title-block"><p className="kicker">{settings.level} · {LEVEL_META[settings.level].topic}</p><h1>{LEVEL_META[settings.level].story}</h1><p>{LEVEL_META[settings.level].storyZh}</p></div>
-                <div className={settings.showTranslation ? "story-columns" : "story-columns translation-hidden"}>
-                  <div className="german-story">
-                    {storyWords.map((word, index) => (
-                      <span className={index === 0 ? "story-first-sentence" : undefined} key={word.id}>{index === 0 ? word.storyDe : ` ${word.storyDe}`}</span>
-                    ))}
-                  </div>
-                  {settings.showTranslation && <div className="translation-panel">
-                    <p className="note-label">中文译文</p>
-                    {storyWords.map((word, index) => <span key={word.id}>{index === 0 ? word.storyZh : ` ${word.storyZh}`}</span>)}
-                  </div>}
-                </div>
-                <footer className="story-vocabulary">
-                  <div><p className="kicker">Heute geplant</p><h2>短文使用了 {storyWords.length} 个词（今日计划 {todayPlanWords.length} 个）</h2></div>
-                  <div className="story-chips">{storyWords.map((word) => <button key={word.id} onClick={() => startQueue([word.id], "manual")}><ArticleTerm term={word.term} /></button>)}</div>
-                </footer>
-              </article>
-            ) : todayPlanWords.length > 0 ? (
-              <div className="story-locked paper-panel">
-                <span className="story-number">03</span>
-                <p className="kicker">Tagesgeschichte</p>
-                <h1>今日计划正在准备短文。</h1>
-                <p>短文会始终从今日计划中选取完整例句，保持计划顺序，避免随机拼接。</p>
-                <button className="reveal-button" onClick={() => switchView("library")}>查看今日词汇 →</button>
-              </div>
-            ) : (
-              <div className="story-locked paper-panel">
-                <span className="story-number">03</span>
-                <p className="kicker">Tagesgeschichte</p>
-                <h1>今日计划暂时没有可用于短文的词。</h1>
-                <p>返回今日学习后，Worttag 会根据当前计划生成一篇符合语义顺序的短文。</p>
-                <button className="reveal-button" onClick={() => switchView("learn")}>返回今日学习 →</button>
-              </div>
-            )}
-          </section>
-        )}
       </main>
 
       {boardOpen && (

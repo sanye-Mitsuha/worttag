@@ -19,7 +19,7 @@ test("declares Worttag metadata and a production-ready application shell", async
   assert.match(packageJson, /"name": "worttag"/);
   assert.match(packageJson, /"version": "2\.3\.4"/);
   assert.match(layout, /const title = "Worttag · 德语词汇记忆"/);
-  assert.match(layout, /间隔复习、语法例句和每日短文/);
+  assert.match(layout, /间隔复习和高质量语法例句/);
   assert.match(layout, /openGraph:/);
   assert.match(layout, /twitter:/);
   assert.match(layout, /<html lang="zh-CN"/);
@@ -109,14 +109,9 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /showMasteredGold=\{queueSource === "review"\}/);
   assert.match(page, /record\?\.status === "known" && Boolean\(record\.fsrs\)/);
   assert.match(page, /还剩 \$\{dueWords\.length\} 个复习/);
-  assert.match(page, /function selectStoryWords\(words: WordCard\[\]\): WordCard\[\]/);
-  assert.match(page, /Math\.ceil\(words\.length \/ 3\)/);
-  assert.match(page, /function buildTodayPlanIds\(/);
-  assert.match(page, /const todayPlanWords = useMemo\(/);
-  assert.match(page, /const storyWords = useMemo\(\(\) => selectStoryWords\(todayPlanWords\)/);
-  assert.match(page, /短文使用了 \{storyWords\.length\} 个词（今日计划 \{todayPlanWords\.length\} 个）/);
-  assert.match(page, /按今日计划生成 · 随时阅读/);
-  assert.doesNotMatch(page, /dailyComplete && dailyStoryAvailable/);
+  assert.doesNotMatch(page, /每日短文|Tagesgeschichte|story-preview|story-page|generated-story/);
+  assert.doesNotMatch(page, /todayPlanWordIds|buildTodayPlanIds|selectStoryWords|dailyStoryAvailable/);
+  assert.doesNotMatch(page, /storyDe|storyZh/);
   assert.match(page, /const activeStudyMode: StudyMode = queueSource === "manual" \? "speed" : settings\.studyMode/);
   assert.match(page, /className="speed-state-label"/);
   assert.match(page, /currentSessionRating && event\.key\.toLowerCase\(\) === "x"/);
