@@ -17,7 +17,7 @@ test("declares Worttag metadata and a production-ready application shell", async
   const [page, layout, css, packageJson] = await readAppSources();
 
   assert.match(packageJson, /"name": "worttag"/);
-  assert.match(packageJson, /"version": "2\.3\.4"/);
+  assert.match(packageJson, /"version": "2\.3\.5"/);
   assert.match(layout, /const title = "Worttag · 德语词汇记忆"/);
   assert.match(layout, /间隔复习和高质量语法例句/);
   assert.match(layout, /openGraph:/);
@@ -51,8 +51,8 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /"oft": "常常、时常、多次；经常、时常"/);
   assert.match(page, /"oft": ""/);
   assert.doesNotMatch(page, /className="library-grammar"/);
-  assert.match(page, /beta3\.7/);
-  assert.match(page, /const APP_VERSION = "beta3\.7"/);
+  assert.match(page, /beta3\.8/);
+  assert.match(page, /const APP_VERSION = "beta3\.8"/);
   assert.match(page, /exampleAudioUrl/);
   assert.match(page, /ExampleAudioButton/);
   assert.match(page, /听例句/);
@@ -139,6 +139,15 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /确定重置所有学习进度/);
   assert.match(page, /取消，保留进度/);
   assert.match(page, /云存档已同步 · Mac · iPad · iPhone/);
+  assert.doesNotMatch(page, /className="streak"/);
+  assert.doesNotMatch(page, /className="plan-card paper-panel"/);
+  assert.doesNotMatch(page, /className="dictionary-evidence/);
+  assert.doesNotMatch(page, /className="dictionary-sources"/);
+  assert.doesNotMatch(page, /buildDictionaryLinks|parseDictionaryEvidencePayload|\/api\/dictionary/);
+  assert.doesNotMatch(page, /按 CEFR 能力等级整理的 Worttag 精选词书/);
+  assert.doesNotMatch(page, /到期复习始终按紧急程度排序/);
+  assert.doesNotMatch(page, /恢复默认设置只调整学习偏好/);
+  assert.doesNotMatch(page, /这是按当前每日目标连续学习的估算/);
   assert.doesNotMatch(
     page,
     /meaning:\s*expandedMeaning\(term,\s*meaning,\s*typeCode\)/u,

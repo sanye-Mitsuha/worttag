@@ -18,11 +18,6 @@ import {
   matchesLibrarySearch,
   tokenizeLibraryQuery,
 } from "./library-search";
-import { buildDictionaryLinks } from "./dictionary-links";
-import {
-  parseDictionaryEvidencePayload,
-  type DictionaryEvidence,
-} from "./dictionary-evidence";
 
 type RecallStatus = "unknown" | "fuzzy" | "known";
 type View = "learn" | "review" | "library" | "settings";
@@ -32,8 +27,6 @@ type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1";
 type WordOrder = "sequential" | "random";
 type StudyMode = "mastery" | "speed";
 type SpeechSpeed = "0.5" | "0.75" | "1" | "1.25";
-type DictionaryEvidenceStatus = "idle" | "loading" | "success" | "error";
-
 type WordCard = {
   id: string;
   level: CEFRLevel;
@@ -183,8 +176,8 @@ type BoardMessage = {
   createdAt: number;
 };
 
-const APP_VERSION = "beta3.7";
-const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.7";
+const APP_VERSION = "beta3.8";
+const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.8";
 const BILIBILI_URL = "https://space.bilibili.com/96625971";
 const GITHUB_URL = "https://github.com/mitsuha";
 
@@ -1477,9 +1470,6 @@ export default function Home() {
   const [libraryVisibleCount, setLibraryVisibleCount] = useState(LIBRARY_PAGE_SIZE);
   const [reviewVisibleCount, setReviewVisibleCount] = useState(REVIEW_PAGE_SIZE);
   const [dictionaryWord, setDictionaryWord] = useState<WordCard | null>(null);
-  const [dictionaryEvidence, setDictionaryEvidence] = useState<DictionaryEvidence | null>(null);
-  const [dictionaryEvidenceStatus, setDictionaryEvidenceStatus] = useState<DictionaryEvidenceStatus>("idle");
-  const [dictionaryEvidenceReload, setDictionaryEvidenceReload] = useState(0);
   const [boardOpen, setBoardOpen] = useState(false);
   const [boardMessages, setBoardMessages] = useState<BoardMessage[]>([]);
   const [boardLoading, setBoardLoading] = useState(false);
@@ -2246,11 +2236,6 @@ export default function Home() {
     () => libraryWordsSource.filter((word) => isMasteredRecord(learning.records[word.id])),
     [libraryWordsSource, learning.records],
   );
-  const dictionaryLinks = useMemo(
-    () => dictionaryWord ? buildDictionaryLinks(dictionaryWord.term) : [],
-    [dictionaryWord],
-  );
-
   useEffect(() => {
     if (view !== "library" || libraryVisibleCount >= libraryWords.length) return;
     const target = libraryLoadMoreRef.current;
@@ -2330,15 +2315,6 @@ export default function Home() {
       ? sessionUniqueIds.filter((id) => (masteryPointsById.get(id) ?? 0) >= 3).length
       : masteredInSession;
   const sessionUniqueTotal = sessionUniqueIds.length;
-  const todayWordGoal = settings.wordsPerQueue * activeQueueGoal;
-  const activeDailyMastery = queueSource === "daily" && !sessionCompletionCommitted
-    ? sessionCompletedCount
-    : 0;
-  const todayWordsCompleted = Math.min(
-    todayWordGoal,
-    learning.todayQueuesCompleted * settings.wordsPerQueue + activeDailyMastery,
-  );
-  const todayWordsRemaining = Math.max(0, todayWordGoal - todayWordsCompleted);
   const currentMasteryPoints = currentWord ? masteryPointsById.get(currentWord.id) ?? 0 : 0;
   const currentPromptMode: "choice" | "example" | "direct" = currentMasteryPoints <= 0
     ? "choice"
@@ -2892,19 +2868,11 @@ export default function Home() {
 
   function openDictionary(word: WordCard, trigger?: HTMLElement | null) {
     dictionaryTriggerRef.current = trigger ?? null;
-    setDictionaryEvidence(null);
-    setDictionaryEvidenceStatus("loading");
     setDictionaryWord(word);
   }
 
   function closeDictionary() {
     setDictionaryWord(null);
-  }
-
-  function retryDictionaryEvidence() {
-    setDictionaryEvidence(null);
-    setDictionaryEvidenceStatus("loading");
-    setDictionaryEvidenceReload((revision) => revision + 1);
   }
 
   async function loadBoardMessages() {
@@ -3336,36 +3304,6 @@ export default function Home() {
     };
   }, [dictionaryWord]);
 
-  useEffect(() => {
-    if (!dictionaryWord) return;
-    const controller = new AbortController();
-    const term = dictionaryWord.term;
-
-    void (async () => {
-      try {
-        const response = await fetch(
-          `/api/dictionary?term=${encodeURIComponent(term)}`,
-          {
-            headers: { Accept: "application/json" },
-            signal: controller.signal,
-          },
-        );
-        if (!response.ok) throw new Error("Dictionary evidence unavailable.");
-        const evidence = parseDictionaryEvidencePayload(await response.json());
-        if (!evidence) throw new Error("Dictionary evidence was invalid.");
-        setDictionaryEvidence(evidence);
-        setDictionaryEvidenceStatus("success");
-      } catch (error) {
-        if (controller.signal.aborted) return;
-        console.error("Dictionary evidence could not be loaded.", error);
-        setDictionaryEvidence(null);
-        setDictionaryEvidenceStatus("error");
-      }
-    })();
-
-    return () => controller.abort();
-  }, [dictionaryEvidenceReload, dictionaryWord]);
-
   if (!ready) {
     return (
       <main className="loading-page">
@@ -3414,10 +3352,6 @@ export default function Home() {
             </button>
           ))}
         </nav>
-        <div className="streak" aria-label={`连续学习 ${learning.streakDays} 天`}>
-          <span className="streak-flame">✦</span>
-          <span><strong>{learning.streakDays}</strong> 天连续学习</span>
-        </div>
       </header>
 
       <main className="main-content">
@@ -3811,17 +3745,6 @@ export default function Home() {
                       <span><kbd>G</kbd> <span className="sound-rings" aria-hidden="true">◖))</span> 按 G 播放例句</span>
                     </div>
                   </section>
-                  <section className="plan-card paper-panel">
-                    <div className="panel-heading compact">
-                      <span className="folio">02</span>
-                      <div><p className="kicker">Heute</p><h2>{queueSource === "daily" ? "今日计划" : queueSource === "review" ? "到期复习" : "单独学习"}</h2></div>
-                    </div>
-                    <div className="plan-stats">
-                      <div><strong>{queueSource === "daily" ? dueWords.length : sessionUniqueTotal}</strong><span>{queueSource === "daily" ? "到期复习" : "本队词数"}</span></div>
-                      <div><strong>{queueSource === "daily" ? todayWordsRemaining : dueWords.length}</strong><span>{queueSource === "daily" ? "今日剩余" : "到期总数"}</span></div>
-                      <div><strong>{Math.max(2, Math.round((queueSource === "daily" ? settings.wordsPerQueue : sessionUniqueTotal) * 1.1))}</strong><span>约分钟</span></div>
-                    </div>
-                  </section>
                 </aside>
               </div>
             ) : queueUnavailable && !dailyComplete ? (
@@ -4151,13 +4074,11 @@ export default function Home() {
                     <span>已学习 <strong>{targetLearnedWords}</strong> / {bookWords.length}</span>
                     <span>剩余 <strong>{targetRemainingWords}</strong> 词</span>
                   </div>
-                  <p>这是按当前每日目标连续学习的估算；到期复习较多时，实际完成时间可能稍有延后。</p>
                 </section>
               </div>
 
               <fieldset className="settings-card wordbook-settings">
                 <legend><span className="settings-index">03</span><span><small>CEFR wordbooks</small>选择单词书</span></legend>
-                <p className="settings-help">按 CEFR 能力等级整理的 Worttag 精选词书。切换词书不会丢失已经学过的记录。</p>
                 <div className="level-options">
                   {(["A1", "A2", "B1", "B2", "C1"] as const).map((level) => {
                     const levelWords = WORDS.filter((word) => isWordInBook(word, level));
@@ -4191,7 +4112,6 @@ export default function Home() {
                     </label>
                   ))}
                 </div>
-                <p className="settings-help compact-help">到期复习始终按紧急程度排序，不会被乱序设置打散。</p>
                 <div className="board-launcher">
                   <button
                     className="board-launch-button"
@@ -4277,9 +4197,6 @@ export default function Home() {
                   <span className="cloud-status-mark" aria-hidden="true">{cloudStatus === "synced" ? "✓" : cloudStatus === "offline" ? "↯" : cloudStatus === "signed-out" ? "⌑" : "↻"}</span>
                   <span><strong>{CLOUD_STATUS_META[cloudStatus].label}</strong><small>{CLOUD_STATUS_META[cloudStatus].detail}</small></span>
                 </div>
-                <div className="device-row" aria-label="支持的同步设备">
-                  <span>Mac</span><i aria-hidden="true" /><span>iPad</span><i aria-hidden="true" /><span>iPhone</span>
-                </div>
                 <p>使用同一 ChatGPT 账户打开 Worttag，即可同步 A1–C1 的掌握状态、复习排期和每日计划。外观、刷词模式、朗读与译文显示偏好仍由每台设备单独决定。</p>
                 <div className="cloud-account-row">
                   <span>{cloudDisplayName ? `账户 · ${cloudDisplayName}` : "ChatGPT 安全账户"}<small>{lastSyncedAt ? `上次同步 ${new Date(lastSyncedAt).toLocaleString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}` : "首次连接后会自动建立云存档"}</small></span>
@@ -4293,7 +4210,6 @@ export default function Home() {
 
               <section className="settings-card data-settings">
                 <div className="data-heading"><span className="settings-index">07</span><span><small>Data controls</small><strong>学习数据</strong></span></div>
-                <p>恢复默认设置只调整学习偏好，不删除背词记录。清空进度会同步至使用同一账户的所有设备。</p>
                 <div className="data-actions">
                   <button className="secondary-action" onClick={restoreDefaultSettings}>恢复默认设置</button>
                   <button
@@ -4459,7 +4375,7 @@ export default function Home() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="dictionary-word-title"
-            aria-describedby="dictionary-word-summary dictionary-source-note"
+            aria-describedby="dictionary-word-summary"
           >
             <button
               ref={dictionaryCloseRef}
@@ -4496,77 +4412,6 @@ export default function Home() {
               <p id="dictionary-word-summary">{dictionaryWord.meaning}</p>
             </section>
 
-            <section
-              className={`dictionary-evidence evidence-${dictionaryEvidenceStatus}`}
-              aria-labelledby="dictionary-evidence-title"
-              aria-live="polite"
-              aria-busy={dictionaryEvidenceStatus === "loading"}
-            >
-              <div className="dictionary-evidence-heading">
-                <div>
-                  <p className="dictionary-section-label">本地词典证据</p>
-                  <h3 id="dictionary-evidence-title">杜登—牛津德英对应</h3>
-                </div>
-                {dictionaryEvidenceStatus === "success" && <span className="evidence-state">证据已载入</span>}
-              </div>
-
-              {dictionaryEvidenceStatus === "loading" && (
-                <div className="dictionary-evidence-loading" role="status">
-                  <span aria-hidden="true" />
-                  <span aria-hidden="true" />
-                  <p>正在查询杜登—牛津德英词典…</p>
-                </div>
-              )}
-
-              {dictionaryEvidenceStatus === "error" && (
-                <div className="dictionary-evidence-message evidence-error" role="status">
-                  <span aria-hidden="true">↻</span>
-                  <div>
-                    <strong>暂时无法载入本地词典证据</strong>
-                    <p>Worttag 的课程释义仍可正常使用，你也可以稍后重试。</p>
-                  </div>
-                  <button type="button" onClick={retryDictionaryEvidence}>重新查询</button>
-                </div>
-              )}
-
-              {dictionaryEvidenceStatus === "success" && dictionaryEvidence && (
-                <div className="dictionary-evidence-grid">
-                  <article className="duden-oxford-evidence">
-                    <div className="evidence-card-heading">
-                      <div>
-                        <strong>杜登—牛津英德大词典</strong>
-                        <span>{dictionaryEvidence.dudenOxford.direction}</span>
-                      </div>
-                      <span className={dictionaryEvidence.dudenOxford.found ? "evidence-found" : "evidence-empty"}>
-                        {dictionaryEvidence.dudenOxford.found ? "有对应" : "未找到"}
-                      </span>
-                    </div>
-                    {dictionaryEvidence.dudenOxford.found ? (
-                      <ol className="duden-sense-list">
-                        {dictionaryEvidence.dudenOxford.matches.map((match, index) => (
-                          <li key={`${match.english}-${index}`}>
-                            <p className="duden-english" lang="en">{match.english}</p>
-                            <blockquote lang="de">
-                              {match.german}
-                              {match.match === "compound" && <small>含目标词的复合词对应</small>}
-                            </blockquote>
-                          </li>
-                        ))}
-                      </ol>
-                    ) : (
-                      <p className="dictionary-evidence-empty">
-                        杜登—牛津词典暂未返回“{dictionaryEvidence.headword}”的明确英文对应。
-                      </p>
-                    )}
-                    <p className="dictionary-license">
-                      {dictionaryEvidence.dudenOxford.source}。本站按德语词条建立反向查询，仅展示与当前词相关的英文对应。
-                    </p>
-                  </article>
-
-                </div>
-              )}
-            </section>
-
             {dictionaryWord.example && (
               <div className="dictionary-detail-grid">
                 <section aria-labelledby="dictionary-example-title">
@@ -4580,38 +4425,6 @@ export default function Home() {
               </div>
             )}
 
-            <section className="dictionary-sources" aria-labelledby="dictionary-sources-title">
-              <div className="dictionary-sources-heading">
-                <div>
-                  <p className="dictionary-section-label">权威词典</p>
-                  <h3 id="dictionary-sources-title">打开原始词条进一步核验</h3>
-                </div>
-                <span>外部来源</span>
-              </div>
-              <div className="dictionary-source-list">
-                {dictionaryLinks.map((source) => (
-                  <a
-                    href={source.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    key={source.id}
-                    aria-label={`在 ${source.name} 中查询 ${dictionaryWord.term}（新窗口）`}
-                  >
-                    <span className={`dictionary-source-mark source-${source.id}`} aria-hidden="true">
-                      {source.name.slice(0, 1)}
-                    </span>
-                    <span>
-                      <strong>{source.name}<small>{source.kind}</small></strong>
-                      <em>{source.description}</em>
-                    </span>
-                    <i aria-hidden="true">↗</i>
-                  </a>
-                ))}
-              </div>
-              <p className="dictionary-source-note" id="dictionary-source-note">
-                Worttag 课程义项与本地杜登—牛津德英对应并列展示；完整权威词典内容不在本站复制，当前窗口只显示与所查单词相关的有限证据。
-              </p>
-            </section>
           </section>
         </div>
       )}
