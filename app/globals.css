@@ -4537,7 +4537,7 @@ fieldset.settings-card {
   line-height: 1.35;
 }
 
-.open-sense-list {
+.duden-sense-list {
   display: grid;
   gap: 10px;
   margin: 14px 0 0;
@@ -4545,26 +4545,40 @@ fieldset.settings-card {
   color: var(--brick);
 }
 
-.open-sense-list li {
+.duden-sense-list li {
   padding-left: 3px;
 }
 
-.open-sense-list li::marker {
+.duden-sense-list li::marker {
   font: 700 11px/1 var(--serif);
 }
 
-.open-sense-list p {
+.duden-sense-list p {
   margin: 0;
   color: var(--ink);
   font: 500 15px/1.55 var(--serif);
 }
 
-.open-sense-list blockquote {
+.duden-sense-list blockquote {
   margin: 5px 0 0;
   padding-left: 10px;
   border-left: 2px solid var(--line);
   color: var(--ink-soft);
   font: italic 12px/1.55 var(--serif);
+}
+
+.duden-sense-list .duden-english {
+  color: var(--ink);
+  font: 700 16px/1.4 var(--serif);
+}
+
+.duden-sense-list blockquote small {
+  display: block;
+  margin-top: 4px;
+  color: var(--brick);
+  font: 800 9px/1.4 var(--sans);
+  letter-spacing: 0.05em;
+  font-style: normal;
 }
 
 .dictionary-evidence-empty {

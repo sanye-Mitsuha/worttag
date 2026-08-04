@@ -16,8 +16,6 @@ import {
 } from "../app/dictionary-links.ts";
 import {
   parseDictionaryEvidencePayload,
-  parseDwdsSnippet,
-  parseWiktApiDefinitions,
 } from "../app/dictionary-evidence.ts";
 import { A1_WORDS, A2_WORDS } from "../app/wordbooks-a1-a2.ts";
 import {
@@ -171,54 +169,31 @@ test("builds safe authoritative dictionary lookups from the lexical headword", (
   });
 });
 
-test("parses and sanitizes open dictionary and DWDS evidence", () => {
-  const openDictionary = parseWiktApiDefinitions({
-    definitions: [
-      {
-        pos: "Verb",
-        senses: [
-          {
-            glosses: ["sprechen", "sich mit Worten ausdrücken"],
-            examples: [{ text: "Wir sprechen heute Deutsch." }],
-          },
-        ],
-      },
-    ],
-  });
-  assert.equal(openDictionary.found, true);
-  assert.deepEqual(openDictionary.partsOfSpeech, ["Verb"]);
-  assert.deepEqual(openDictionary.senses, [{
-    gloss: "sich mit Worten ausdrücken",
-    example: "Wir sprechen heute Deutsch.",
-  }]);
-
-  const dwds = parseDwdsSnippet([{
-    lemma: "sprechen",
-    wortart: "Verb",
-    url: "/wb/sprechen",
-  }]);
-  assert.equal(dwds.found, true);
-  assert.equal(dwds.sourceUrl, "https://www.dwds.de/wb/sprechen");
-
+test("parses and sanitizes local Duden-Oxford evidence", () => {
   const evidencePayload = {
     headword: "sprechen",
     reviewedAt: "2026-07-28T10:00:00.000Z",
-    openDictionary: {
-      ...openDictionary,
-      sourceUrl: "https://de.wiktionary.org/wiki/sprechen",
-    },
-    dwds: {
-      ...dwds,
-      wordClass: dwds.wordClass,
-      sourceUrl: dwds.sourceUrl,
+    dudenOxford: {
+      headword: "sprechen",
+      found: true,
+      direction: "德语查询 → 英文对应",
+      source: "杜登—牛津英德大词典（用户提供文件）",
+      matches: [{
+        english: "speak",
+        german: "sprechen; sich unterhalten",
+        match: "exact",
+      }],
     },
   };
   const evidence = parseDictionaryEvidencePayload(evidencePayload);
-  assert.equal(evidence?.openDictionary.senses.length, 1);
-  assert.equal(evidence?.dwds.lemma, "sprechen");
+  assert.equal(evidence?.dudenOxford.matches.length, 1);
+  assert.equal(evidence?.dudenOxford.matches[0]?.english, "speak");
 
   assert.equal(parseDictionaryEvidencePayload({
     ...evidencePayload,
-    dwds: { ...evidencePayload.dwds, sourceUrl: "https://example.com/phishing" },
+    dudenOxford: {
+      ...evidencePayload.dudenOxford,
+      source: "",
+    },
   }), null);
 });

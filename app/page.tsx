@@ -4508,8 +4508,8 @@ export default function Home() {
             >
               <div className="dictionary-evidence-heading">
                 <div>
-                  <p className="dictionary-section-label">德语原文证据</p>
-                  <h3 id="dictionary-evidence-title">开放词典德语释义</h3>
+                  <p className="dictionary-section-label">本地词典证据</p>
+                  <h3 id="dictionary-evidence-title">杜登—牛津德英对应</h3>
                 </div>
                 {dictionaryEvidenceStatus === "success" && <span className="evidence-state">证据已载入</span>}
               </div>
@@ -4518,7 +4518,7 @@ export default function Home() {
                 <div className="dictionary-evidence-loading" role="status">
                   <span aria-hidden="true" />
                   <span aria-hidden="true" />
-                  <p>正在查询开放德语词典释义…</p>
+                  <p>正在查询杜登—牛津德英词典…</p>
                 </div>
               )}
 
@@ -4526,7 +4526,7 @@ export default function Home() {
                 <div className="dictionary-evidence-message evidence-error" role="status">
                   <span aria-hidden="true">↻</span>
                   <div>
-                    <strong>暂时无法载入外部词典证据</strong>
+                    <strong>暂时无法载入本地词典证据</strong>
                     <p>Worttag 的课程释义仍可正常使用，你也可以稍后重试。</p>
                   </div>
                   <button type="button" onClick={retryDictionaryEvidence}>重新查询</button>
@@ -4535,34 +4535,35 @@ export default function Home() {
 
               {dictionaryEvidenceStatus === "success" && dictionaryEvidence && (
                 <div className="dictionary-evidence-grid">
-                  <article className="open-dictionary-evidence">
+                  <article className="duden-oxford-evidence">
                     <div className="evidence-card-heading">
                       <div>
-                        <strong>德语 Wiktionary</strong>
-                        <span>{dictionaryEvidence.openDictionary.partsOfSpeech.join(" · ") || "开放德语词典"}</span>
+                        <strong>杜登—牛津英德大词典</strong>
+                        <span>{dictionaryEvidence.dudenOxford.direction}</span>
                       </div>
-                      <span className={dictionaryEvidence.openDictionary.found ? "evidence-found" : "evidence-empty"}>
-                        {dictionaryEvidence.openDictionary.found ? "有释义" : "未找到"}
+                      <span className={dictionaryEvidence.dudenOxford.found ? "evidence-found" : "evidence-empty"}>
+                        {dictionaryEvidence.dudenOxford.found ? "有对应" : "未找到"}
                       </span>
                     </div>
-                    {dictionaryEvidence.openDictionary.found ? (
-                      <ol className="open-sense-list" lang="de">
-                        {dictionaryEvidence.openDictionary.senses.map((sense, index) => (
-                          <li key={`${sense.gloss}-${index}`}>
-                            <p>{sense.gloss}</p>
-                            {sense.example && <blockquote>{sense.example}</blockquote>}
+                    {dictionaryEvidence.dudenOxford.found ? (
+                      <ol className="duden-sense-list">
+                        {dictionaryEvidence.dudenOxford.matches.map((match, index) => (
+                          <li key={`${match.english}-${index}`}>
+                            <p className="duden-english" lang="en">{match.english}</p>
+                            <blockquote lang="de">
+                              {match.german}
+                              {match.match === "compound" && <small>含目标词的复合词对应</small>}
+                            </blockquote>
                           </li>
                         ))}
                       </ol>
                     ) : (
                       <p className="dictionary-evidence-empty">
-                        开放词典暂未返回“{dictionaryEvidence.headword}”的独立德语释义。
+                        杜登—牛津词典暂未返回“{dictionaryEvidence.headword}”的明确英文对应。
                       </p>
                     )}
                     <p className="dictionary-license">
-                      开放内容 · 德语 Wiktionary · CC BY-SA 4.0，经 WiktApi 提供。
-                      {" "}
-                      <a href={dictionaryEvidence.openDictionary.sourceUrl} target="_blank" rel="noreferrer">查看原词条 ↗</a>
+                      {dictionaryEvidence.dudenOxford.source}。本站按德语词条建立反向查询，仅展示与当前词相关的英文对应。
                     </p>
                   </article>
 
@@ -4611,7 +4612,7 @@ export default function Home() {
                 ))}
               </div>
               <p className="dictionary-source-note" id="dictionary-source-note">
-                Worttag 课程义项经过开放词典交叉检查；开放德语释义保留来源与许可标记。Duden、DWDS、PONS 与 Langenscheidt 的完整权威内容不在本站复制，是否提供独立词条以原站实际收录为准。
+                Worttag 课程义项与本地杜登—牛津德英对应并列展示；完整权威词典内容不在本站复制，当前窗口只显示与所查单词相关的有限证据。
               </p>
             </section>
           </section>
