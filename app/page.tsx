@@ -4442,7 +4442,7 @@ export default function Home() {
             <p className="kicker">Achtung · 不可撤销</p>
             <h2 id="reset-progress-title">确定重置所有学习进度？</h2>
             <p id="reset-progress-description">
-              这会清空 A1–C1 的掌握状态、艾宾浩斯复习排期、连续学习天数和今日短文，并把这次清空同步到 Mac、iPad 与 iPhone。
+              这会清空 A1–C1 的掌握状态、艾宾浩斯复习排期、连续学习天数和今日短文，并把这次清空同步到电脑、平板与手机。
             </p>
             <div className="warning-note"><span aria-hidden="true">✓</span>你的外观、词书与学习设置会保留。</div>
             <div className="warning-actions">
@@ -4455,7 +4455,7 @@ export default function Home() {
 
       <footer className="site-footer">
         <span>Wort für Wort, Tag für Tag.</span>
-        <span>{cloudStatus === "synced" ? "云存档已同步 · Mac · iPad · iPhone" : cloudStatus === "signed-out" ? "登录 ChatGPT 后可跨设备同步" : "进度已保存在本机，云端会自动重试"}</span>
+        <span>{cloudStatus === "synced" ? "云存档已同步 · 电脑 · 平板 · 手机" : cloudStatus === "signed-out" ? "登录 ChatGPT 后可跨设备同步" : "进度已保存在本机，云端会自动重试"}</span>
       </footer>
     </div>
   );
