@@ -7231,10 +7231,26 @@ html[data-layout="mobile"] kbd {
    is desktop. This keeps a phone or small tablet usable after a mode switch. */
 @media (max-width: 900px) {
   html[data-layout] .topbar {
-    min-height: 70px;
+    min-height: 58px;
     grid-template-columns: 1fr;
     gap: 0;
-    padding: 12px 14px;
+    padding: 8px 12px;
+  }
+
+  html[data-layout] .brand-word {
+    font-size: 20px;
+    letter-spacing: 0.1em;
+  }
+
+  html[data-layout] .brand-seal {
+    width: 24px;
+    height: 24px;
+    font-size: 13px;
+  }
+
+  html[data-layout] .brand-version {
+    margin-bottom: 1px;
+    font-size: 9px;
   }
 
   html[data-layout] .main-nav {

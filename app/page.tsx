@@ -23,7 +23,7 @@ type RecallStatus = "unknown" | "fuzzy" | "known";
 type View = "learn" | "review" | "library" | "stats" | "settings";
 type ThemeMode = "light" | "dark" | "system";
 type SkinMode = "parchment" | "mist" | "forest" | "wine" | "graphite";
-type LayoutMode = "auto" | "mobile" | "desktop";
+type LayoutMode = "auto" | "desktop";
 type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1";
 type WordbookCategory = CEFRLevel | "SPECIAL";
 type LibraryBookFilter = "all" | WordbookCategory;
@@ -225,8 +225,8 @@ type BoardMessage = {
   createdAt: number;
 };
 
-const APP_VERSION = "4.0";
-const VERSION_NOTICE_KEY = "worttag-version-notice-4.0";
+const APP_VERSION = "beta1.0";
+const VERSION_NOTICE_KEY = "worttag-version-notice-beta1.0";
 const BILIBILI_URL = "https://space.bilibili.com/96625971";
 const GITHUB_URL = "https://github.com/mitsuha";
 
@@ -1352,7 +1352,9 @@ function prepareSavedSettings(value: unknown): AppSettings {
   const saved = value as Partial<AppSettings>;
   const themes: ThemeMode[] = ["light", "dark", "system"];
   const skins: SkinMode[] = ["parchment", "mist", "forest", "wine", "graphite"];
-  const layoutModes: LayoutMode[] = ["auto", "mobile", "desktop"];
+  const layoutModes: LayoutMode[] = ["auto", "desktop"];
+  const rawLayoutMode = (value as { layoutMode?: unknown }).layoutMode;
+  const savedLayoutMode = rawLayoutMode === "mobile" ? "auto" : rawLayoutMode;
   const levels: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
   const orders: WordOrder[] = ["sequential", "random"];
   const studyModes: StudyMode[] = ["mastery", "speed"];
@@ -1370,7 +1372,7 @@ function prepareSavedSettings(value: unknown): AppSettings {
   return {
     theme: themes.includes(saved.theme as ThemeMode) ? saved.theme! : DEFAULT_SETTINGS.theme,
     skin: skins.includes(saved.skin as SkinMode) ? saved.skin! : DEFAULT_SETTINGS.skin,
-    layoutMode: layoutModes.includes(saved.layoutMode as LayoutMode) ? saved.layoutMode! : DEFAULT_SETTINGS.layoutMode,
+    layoutMode: layoutModes.includes(savedLayoutMode as LayoutMode) ? savedLayoutMode as LayoutMode : DEFAULT_SETTINGS.layoutMode,
     wordsPerQueue: queueSizes.includes(saved.wordsPerQueue ?? -1)
       ? saved.wordsPerQueue!
       : DEFAULT_SETTINGS.wordsPerQueue,
@@ -4477,17 +4479,16 @@ export default function Home() {
                 <div className="layout-mode-setting">
                   <div className="layout-mode-copy">
                     <strong>界面布局</strong>
-                    <small>自动适配最省心；也可以在本设备固定为移动端或桌面端。</small>
+                    <small>自动适配最省心；也可以在本设备固定为桌面端。</small>
                   </div>
                   <div className="layout-mode-options" role="radiogroup" aria-label="界面布局">
                     {([
                       ["auto", "自动适配", "跟随屏幕宽度"],
-                      ["mobile", "移动端", "单列 · 大触控"],
                       ["desktop", "桌面端", "宽布局 · 高信息密度"],
                     ] as const).map(([value, label, description]) => (
                       <label className={settings.layoutMode === value ? "layout-mode-option selected" : "layout-mode-option"} key={value}>
                         <input type="radio" name="layoutMode" checked={settings.layoutMode === value} onChange={() => updateSetting("layoutMode", value)} />
-                        <span className="layout-mode-mark" aria-hidden="true">{value === "auto" ? "◌" : value === "mobile" ? "⌁" : "⌘"}</span>
+                        <span className="layout-mode-mark" aria-hidden="true">{value === "auto" ? "◌" : "⌘"}</span>
                         <span><strong>{label}</strong><small>{description}</small></span>
                         <em>{settings.layoutMode === value ? "✓" : ""}</em>
                       </label>

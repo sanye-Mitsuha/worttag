@@ -51,8 +51,8 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.doesNotMatch(page, /下一个词 →/);
   assert.match(page, /candidate\.schemaVersion !== 3/);
   assert.doesNotMatch(page, /className="library-grammar"/);
-  assert.match(page, /4\.0/);
-  assert.match(page, /const APP_VERSION = "4\.0"/);
+  assert.match(page, /beta1\.0/);
+  assert.match(page, /const APP_VERSION = "beta1\.0"/);
   assert.match(page, /exampleAudioUrl/);
   assert.match(page, /ExampleAudioButton/);
   assert.match(page, /听例句/);
@@ -161,7 +161,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /setSessionLastRatings\(\{\}\)/);
   assert.match(page, /重新拼写/);
   assert.match(page, /预计完成 \{settings\.level\} 词书/);
-  assert.match(page, /type LayoutMode = "auto" \| "mobile" \| "desktop"/);
+  assert.match(page, /type LayoutMode = "auto" \| "desktop"/);
   assert.match(page, /界面布局/);
   assert.match(page, /学习统计/);
   assert.match(page, /learningStatistics/);
