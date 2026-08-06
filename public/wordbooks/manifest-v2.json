@@ -1,0 +1,37 @@
+{
+  "schemaVersion":2,
+  "corpus":"combined-cefr-10000",
+  "source":"combined-15000-cefr-groups.html",
+  "importNote":"按来源 HTML 的 A1-C1 主分组导入；缺少例句的词条保持空白，不补写例句。专项内容没有 CEFR 等级，保留在源文件中但不进入主学习与复习队列。",
+  "wordCounts":{
+    "A1":750,
+    "A2":1000,
+    "B1":1200,
+    "B2":3000,
+    "C1":4050
+  },
+  "cumulativeCourseCounts":{
+    "A1":750,
+    "A2":1750,
+    "B1":2950,
+    "B2":5950,
+    "C1":10000
+  },
+  "total":10000,
+  "specialExcluded":151,
+  "exampleCounts":{
+    "A1":729,
+    "A2":796,
+    "B1":865,
+    "B2":1781,
+    "C1":3330
+  },
+  "exampleTranslationCounts":{
+    "A1":645,
+    "A2":702,
+    "B1":807,
+    "B2":1711,
+    "C1":3003
+  },
+  "legacyIdsReused":1117
+}

@@ -24,7 +24,7 @@ Worttag 希望把“认识一次”变成“真正记住”。每个单词需要
 - **自适应重现**：根据当前光点数将单词插回队列后方，降低连续重复造成的虚假熟悉感。
 - **选择题自动判断**：选对按已知记录；选错按未知记录，并展示正确词义后继续。
 - **拼写测试**：每轮结束后可选择进行听音拼写，不改变已经获得的光点。
-- **A1–C1 词书**：共 6000 个课程词条，支持顺序或乱序学习。
+- **A1–C1 词书**：共 10,000 个 CEFR 课程词条，支持顺序或乱序学习。
 - **中德双语检索**：可按德语原形、变位、复数、中文释义、中德例句与语法说明查词。
 - **词典核验弹窗**：点击学习页或词库中的单词，可查看 Worttag 中文义项、德语 Wiktionary 开放释义、DWDS 收录证据，并直达 Duden、PONS 与 Langenscheidt 原词条。
 - **间隔复习**：根据未知、模糊、已知三档判断自动安排下次出现时间。
@@ -49,13 +49,13 @@ Worttag 将词汇按常见交际场景、频率和课程进度划分为 A1、A2�
 
 | 等级 | 词条数 | 学习侧重 |
 | --- | ---: | --- |
-| A1 | 650 | 自我介绍、家庭与日常动作 |
-| A2 | 650 | 住房、工作、旅行与简单经历 |
-| B1 | 1100 | 叙述经历、处理问题与表达看法 |
-| B2 | 1600 | 复杂讨论、因果关系与抽象主题 |
-| C1 | 2000 | 精确表达、学术与专业语境 |
+| A1 | 750 | 自我介绍、家庭与日常动作 |
+| A2 | 1,000 | 住房、工作、旅行与简单经历 |
+| B1 | 1,200 | 叙述经历、处理问题与表达看法 |
+| B2 | 3,000 | 复杂讨论、因果关系与抽象主题 |
+| C1 | 4,050 | 精确表达、学术与专业语境 |
 
-词书使用 Wiktionary、HanDeDict、Tatoeba、OdeNet、Open English WordNet、Chinese Open Wordnet 与 FrequencyWords 等开放数据，并经过结构、词头、词性、名词性别、中文义项和例句一致性检查。自动证据不能替代逐义项编辑判断；可复现审查脚本、逐项编辑记录与汇总报告保存在 `scripts/`、`data/editorial/` 与 `reports/`。完整来源和许可证见 [`public/wordbooks/ATTRIBUTION.txt`](public/wordbooks/ATTRIBUTION.txt) 与 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
+当前主词库按项目提供的 `combined-15000-cefr-groups.html` 重新导入，保留 A1-C1 五个 CEFR 分组共 10,000 条词条；源文件中的 151 条“专项”词条没有 CEFR 等级，因此不进入主学习和复习队列。源文件已有例句照原样保留，没有例句的条目保持空白，不生成补充例句。可复现导入脚本为 `scripts/import_combined_wordbook.py`，版本清单见 [`public/wordbooks/manifest-v2.json`](public/wordbooks/manifest-v2.json)。旧的 Core 6000 数据仍保留为 v1 历史资源，便于回溯与兼容。
 
 CEFR 是能力描述框架，不规定一份唯一且固定的德语词表。Worttag 的等级归类参考欧洲委员会的 [CEFR 分语言参考级别描述](https://www.coe.int/en/web/common-european-framework-reference-languages/reference-level-descriptions)，并使用 Goethe-Institut 的 [A2](https://www.goethe.de/de/m/spr/prf/ueb/pa2.html) 与 [B1](https://www.goethe.de/de/m/spr/prf/ueb/pb1.html) 考试词汇材料核对级别边界；词条和例句均按本项目的课程目标独立编排，并非复制官方词表。
 

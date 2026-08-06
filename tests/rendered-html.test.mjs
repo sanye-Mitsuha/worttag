@@ -44,15 +44,13 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /刷词模式/);
   assert.match(page, /熟记/);
   assert.match(page, /速刷/);
-  assert.match(page, /先根据德语例句判断，再选择已知、模糊或未知/);
+  assert.match(page, /先根据德语例句判断/);
   assert.match(page, /下一个词/);
   assert.doesNotMatch(page, /下一个词 →/);
-  assert.match(page, /"der\/die See": "湖泊（der）；海洋（die）"/);
-  assert.match(page, /"oft": "常常、时常、多次；经常、时常"/);
-  assert.match(page, /"oft": ""/);
+  assert.match(page, /candidate\.schemaVersion !== 2/);
   assert.doesNotMatch(page, /className="library-grammar"/);
-  assert.match(page, /beta3\.8/);
-  assert.match(page, /const APP_VERSION = "beta3\.8"/);
+  assert.match(page, /beta3\.9/);
+  assert.match(page, /const APP_VERSION = "beta3\.9"/);
   assert.match(page, /exampleAudioUrl/);
   assert.match(page, /ExampleAudioButton/);
   assert.match(page, /听例句/);
@@ -87,7 +85,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /已熟记词库/);
   assert.match(page, /const libraryWordsSource = useMemo/);
   assert.match(page, /libraryWordsSource\.map/);
-  assert.match(page, /Wortschatz · 6000 Wörter/);
+  assert.match(page, /Wortschatz · 10,000 Wörter/);
   assert.doesNotMatch(page, /example-quality-v1\.json|例句质量|例句审核|example-quality-badge|example-quality-icon|library-quality-summary-note/);
   assert.doesNotMatch(css, /example-quality|library-quality-summary|dictionary-example-quality/);
   assert.match(page, /当前 \$\{libraryWordsSource\.length\} 词/);
@@ -119,7 +117,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /className="speed-next-key"/);
   assert.doesNotMatch(page, /<kbd>X<\/kbd> 速刷下一个词/);
   assert.match(css, /\.topbar\s*\{[\s\S]*position: sticky;[\s\S]*top: 0;[\s\S]*z-index: 50;/u);
-  assert.match(page, /速刷 · 先看例句/);
+  assert.match(page, /速刷 · \{currentWord\.example \? "先看例句" : "先看词义"\}/);
   assert.match(page, /已记录；模糊和未知会在本轮结束后重刷/);
   assert.match(page, /remainingIds = sessionUniqueIds\.filter/);
   assert.match(page, /setSessionLastRatings\(\{\}\)/);
@@ -143,7 +141,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /本轮按顺序每词一次；答错会在下一轮再出现/);
   assert.match(page, /确定重置所有学习进度/);
   assert.match(page, /取消，保留进度/);
-  assert.match(page, /云存档已同步 · Mac · iPad · iPhone/);
+  assert.match(page, /云存档已同步 · 电脑 · 平板 · 手机/);
   assert.doesNotMatch(page, /className="streak"/);
   assert.doesNotMatch(page, /className="plan-card paper-panel"/);
   assert.doesNotMatch(page, /className="dictionary-evidence/);

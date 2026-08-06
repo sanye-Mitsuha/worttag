@@ -93,13 +93,25 @@ type PackedWordRow = [
   meaning: string,
   example: string,
   exampleZh: string,
+  grammarTitle: string,
+  grammar: string,
 ];
 
 type PackedWordbook = {
-  schemaVersion: 1;
+  schemaVersion: 2;
   level: CEFRLevel;
   count: number;
-  fields: ["id", "term", "forms", "typeCode", "meaning", "example", "exampleZh"];
+  fields: [
+    "id",
+    "term",
+    "forms",
+    "typeCode",
+    "meaning",
+    "example",
+    "exampleZh",
+    "grammarTitle",
+    "grammar",
+  ];
   words: PackedWordRow[];
 };
 
@@ -177,8 +189,8 @@ type BoardMessage = {
   createdAt: number;
 };
 
-const APP_VERSION = "beta3.8";
-const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.8";
+const APP_VERSION = "beta3.9";
+const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.9";
 const BILIBILI_URL = "https://space.bilibili.com/96625971";
 const GITHUB_URL = "https://github.com/mitsuha";
 
@@ -205,11 +217,11 @@ const REVIEW_FSRS_SCHEDULER = fsrs({
 });
 const CEFR_LEVELS: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
 const COURSE_WORD_COUNTS: Record<CEFRLevel, number> = {
-  A1: 700,
-  A2: 700,
-  B1: 1000,
-  B2: 1600,
-  C1: 2000,
+  A1: 750,
+  A2: 1000,
+  B1: 1200,
+  B2: 3000,
+  C1: 4050,
 };
 const PACKED_WORD_FIELDS: PackedWordbook["fields"] = [
   "id",
@@ -219,6 +231,8 @@ const PACKED_WORD_FIELDS: PackedWordbook["fields"] = [
   "meaning",
   "example",
   "exampleZh",
+  "grammarTitle",
+  "grammar",
 ];
 const PACKED_WORD_TYPES = new Set<PackedWordType>([
   "nm",
@@ -237,14 +251,6 @@ const PACKED_WORD_TYPES = new Set<PackedWordType>([
   "prop",
   "phrase",
 ]);
-const PACKED_MEANING_CORRECTIONS: Record<string, string> = {
-  // See is one spelling with two genders and two distinct meanings.
-  "der/die See": "湖泊（der）；海洋（die）",
-  "oft": "常常、时常、多次；经常、时常",
-};
-const PACKED_GRAMMAR_TITLE_CORRECTIONS: Record<string, string> = {
-  "oft": "",
-};
 const LIBRARY_PAGE_SIZE = 96;
 const REVIEW_PAGE_SIZE = 100;
 
@@ -454,7 +460,7 @@ const B1_BASE_WORDS: WordCard[] = [
   },
 ];
 
-// The active corpus is loaded exclusively from the imported Core 6000 books.
+// The active corpus is loaded exclusively from the combined CEFR 10,000 books.
 // Older in-source cards remain in the repository only as reversible history.
 let WORDS: WordCard[] = [];
 let WORD_BY_ID = new Map<string, WordCard>();
@@ -472,82 +478,82 @@ function packedWordDetails(typeCode: PackedWordType, term: string, forms: string
         type: "名词 · 阳性",
         grammarTitle: forms,
         grammar: "阳性名词单数通常与 der 连用；复数名词使用 die。请把冠词、单数和复数形式作为一个整体记忆。",
-        memory: `先记住 der，再用例句固定 ${noun} 的含义。`,
+        memory: `先记住 der，再把 ${noun} 与它的释义一起回忆。`,
       };
     case "nf":
       return {
         type: "名词 · 阴性",
         grammarTitle: forms,
         grammar: "阴性名词单数通常与 die 连用；复数名词同样使用 die。请把冠词、单数和复数形式作为一个整体记忆。",
-        memory: `先记住 die，再用例句固定 ${noun} 的含义。`,
+        memory: `先记住 die，再把 ${noun} 与它的释义一起回忆。`,
       };
     case "nn":
       return {
         type: "名词 · 中性",
         grammarTitle: forms,
         grammar: "中性名词单数通常与 das 连用；复数名词使用 die。请把冠词、单数和复数形式作为一个整体记忆。",
-        memory: `先记住 das，再用例句固定 ${noun} 的含义。`,
+        memory: `先记住 das，再把 ${noun} 与它的释义一起回忆。`,
       };
     case "v":
       return {
         type: "动词",
         grammarTitle: forms,
-        grammar: "请把动词和例句中的宾语或介词搭配一起记忆；词形栏帮助你识别现在时、过去时和完成时。",
-        memory: `先读完整例句，再用 ${term} 复述同一个动作。`,
+        grammar: "请把动词和常用宾语或介词搭配一起记忆；词形栏帮助你识别现在时、过去时和完成时。",
+        memory: `把 ${term} 与它的常用搭配一起回忆。`,
       };
     case "adj":
       return {
         type: "形容词",
         grammarTitle: `${term} sein / ${term} + Nomen`,
         grammar: "形容词可作表语，也可放在名词前；放在名词前时，词尾会随冠词、性、数和格发生变化。",
-        memory: `把 ${term} 和例句里描述的对象一起记。`,
+        memory: `把 ${term} 和它描述的对象一起记。`,
       };
     case "adv":
       return {
         type: "副词",
-        grammarTitle: `例句中的 ${term}`,
-        grammar: "副词通常不变格，用来补充动作发生的时间、地点、方式或程度；注意它在例句中的位置。",
-        memory: `用例句的语境记住 ${term}，比单独背译义更牢。`,
+        grammarTitle: `${term} 的用法`,
+        grammar: "副词通常不变格，用来补充动作发生的时间、地点、方式或程度；注意它在句子中的位置。",
+        memory: `用时间、地点、方式或程度的语境记住 ${term}。`,
       };
     case "prep":
       return {
         type: "介词",
         grammarTitle: `${term} + 名词短语`,
-        grammar: "介词要和它支配的格及完整搭配一起记忆；请特别观察例句中冠词和名词的形式。",
-        memory: `把 ${term} 连同例句后的名词短语一起朗读。`,
+        grammar: "介词要和它支配的格及完整搭配一起记忆；请特别观察冠词和名词的形式。",
+        memory: `把 ${term} 连同它支配的格和名词短语一起记。`,
       };
     case "conj":
       return {
         type: "连词",
         grammarTitle: `${term} + 句子`,
-        grammar: "连词用来连接词组或句子。请观察例句中谓语的位置，并把整个句型作为一个结构记忆。",
-        memory: `先找出 ${term} 连接的两部分，再复述整句。`,
+        grammar: "连词用来连接词组或句子。请观察谓语的位置，并把整个句型作为一个结构记忆。",
+        memory: `先找出 ${term} 连接的两部分，再回忆句子结构。`,
       };
     case "pron":
       return {
         type: "代词",
-        grammarTitle: `例句中的 ${term}`,
-        grammar: "代词代替已经明确的人或事物；它的形式可能随人称、性、数和格变化，请结合例句判断作用。",
-        memory: `想清楚例句中的 ${term} 指代谁或什么。`,
+        grammarTitle: `${term} 的指代`,
+        grammar: "代词代替已经明确的人或事物；它的形式可能随人称、性、数和格变化，请结合上下文判断作用。",
+        memory: `想清楚 ${term} 指代的人或事物。`,
       };
     case "det":
       return {
         type: "限定词",
         grammarTitle: `${term} + Nomen`,
         grammar: "限定词通常放在名词前，其词尾会受到名词的性、数和格影响；请连同后面的名词一起记忆。",
-        memory: `把 ${term} 和例句中的名词组合成一个整体。`,
+        memory: `把 ${term} 和后面的名词组合成一个整体。`,
       };
     case "num":
       return {
         type: "数词",
-        grammarTitle: `例句中的 ${term}`,
+        grammarTitle: `${term} 的用法`,
         grammar: "数词用来表示数量或顺序。注意基数词和序数词在句子中的不同形式与位置。",
-        memory: `把 ${term} 放回例句的数量情境中记忆。`,
+        memory: `把 ${term} 放回数量或顺序的情境中记忆。`,
       };
     case "part":
       return {
         type: "小品词",
-        grammarTitle: `例句中的 ${term}`,
+        grammarTitle: `${term} 的语气`,
         grammar: "小品词通常不变形，但会改变语气、重点或表达方向；它的准确含义需要结合上下文理解。",
         memory: `对比有无 ${term} 时整句话的语气。`,
       };
@@ -556,14 +562,14 @@ function packedWordDetails(typeCode: PackedWordType, term: string, forms: string
         type: "感叹词",
         grammarTitle: `${term}!`,
         grammar: "感叹词常独立出现，用来表达反应、情绪或呼唤；真实语气和使用场景比逐字翻译更重要。",
-        memory: `想象例句的场景和语气，再说出 ${term}。`,
+        memory: `想象使用场景和语气，再说出 ${term}。`,
       };
     case "prop":
       return {
         type: "专有名词",
-        grammarTitle: `例句中的 ${term}`,
+        grammarTitle: `${term} 的用法`,
         grammar: "德语专有名词通常首字母大写；是否使用冠词取决于名称类别和具体语境。",
-        memory: `把 ${term} 与例句中的地点、人物或机构联系起来。`,
+        memory: `把 ${term} 与它代表的地点、人物或机构联系起来。`,
       };
     case "phrase":
       return {
@@ -593,7 +599,7 @@ function parsePackedWordbook(value: unknown, expectedLevel: CEFRLevel): PackedWo
     candidate.fields.length === PACKED_WORD_FIELDS.length &&
     PACKED_WORD_FIELDS.every((field, index) => candidate.fields?.[index] === field);
   if (
-    candidate.schemaVersion !== 1 ||
+    candidate.schemaVersion !== 2 ||
     candidate.level !== expectedLevel ||
     candidate.count !== COURSE_WORD_COUNTS[expectedLevel] ||
     !validFields ||
@@ -607,24 +613,22 @@ function parsePackedWordbook(value: unknown, expectedLevel: CEFRLevel): PackedWo
 }
 
 function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
-  return resource.words.map(([id, term, forms, typeCode, meaning, example, exampleZh]) => {
+  return resource.words.map(([id, term, forms, typeCode, meaning, example, exampleZh, grammarTitle, grammar]) => {
     const details = packedWordDetails(typeCode, term, forms);
     return {
       id,
       level: resource.level,
       term,
-      audioUrl: FIXED_AUDIO_LEVELS.includes(resource.level)
+      audioUrl: id.startsWith("core6000-") && FIXED_AUDIO_LEVELS.includes(resource.level)
         ? `/audio/${resource.level.toLowerCase()}/anna/${id}.m4a`
         : undefined,
-      exampleAudioUrl: `/audio/examples/${resource.level.toLowerCase()}/anna/${id}.m4a`,
       forms,
       type: details.type,
-      // Imported meanings are preserved except for explicit reviewed corrections.
-      meaning: PACKED_MEANING_CORRECTIONS[term] ?? meaning,
+      meaning,
       example,
       exampleZh,
-      grammarTitle: PACKED_GRAMMAR_TITLE_CORRECTIONS[term] ?? details.grammarTitle,
-      grammar: details.grammar,
+      grammarTitle: grammarTitle || details.grammarTitle,
+      grammar: grammar || details.grammar,
       memory: details.memory,
     };
   });
@@ -633,10 +637,9 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
 function loadExpandedWordbooks() {
   if (expandedWordbooksPromise) return expandedWordbooksPromise;
   expandedWordbooksPromise = Promise.all(CEFR_LEVELS.map(async (level) => {
-      // Include the corpus revision so a browser that still has the previous
-      // 630-entry response cannot make the imported 700/1000/1600/2000 books
-      // appear empty after a release.
-      const response = await fetch(`/wordbooks/${level.toLowerCase()}-v1.json?corpus=core6000`, { cache: "no-store" });
+      // Include the corpus revision so an old cached response cannot make the
+      // expanded 750/1000/1200/3000/4050 books appear empty after a release.
+      const response = await fetch(`/wordbooks/${level.toLowerCase()}-v2.json?corpus=combined-cefr-10000`, { cache: "no-store" });
       if (!response.ok) throw new Error(`${level} wordbook could not be loaded.`);
       return parsePackedWordbook(await response.json(), level);
     })).then((resources) => {
@@ -1139,10 +1142,12 @@ function addPluralUmlaut(value: string) {
 }
 
 function wordFormsForDisplay(word: WordCard) {
-  if (!word.type.startsWith("名词")) return "（词形待补充）";
+  if (!word.type.startsWith("名词")) return word.forms || "（词形待补充）";
   const singular = word.term.trim().replace(/^(der|die|das)\s+/i, "");
   const pluralMarker = /Plural:\s*(.+)$/i.exec(word.forms.trim())?.[1]?.trim();
   if (!pluralMarker) return "（复数待补充）";
+  if (/^(未标注|词典未标注|待补充)$/u.test(pluralMarker)) return "（复数待补充）";
+  if (pluralMarker === "仅单数") return "（通常只有单数）";
   if (pluralMarker === "-" || pluralMarker === "—") return `die ${singular}`;
   if (pluralMarker === "¨") return `die ${addPluralUmlaut(singular)}`;
   if (pluralMarker.startsWith("¨-")) {
@@ -2394,7 +2399,7 @@ export default function Home() {
     [currentWord, nextWord].forEach((word) => {
       if (word?.exampleAudioUrl) getCachedAudio(word.exampleAudioUrl);
     });
-    // Preload only the current and next sentence so the 6000-file library does
+    // Preload only the current and next sentence so the 10,000-word library does
     // not consume memory or network bandwidth all at once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, currentWord?.id, ready, sessionUniqueIds]);
@@ -3526,7 +3531,7 @@ export default function Home() {
                       {currentSessionRating ? (
                         <p className="speed-state-label">速刷 · 已判断</p>
                       ) : (
-                        <div className="ink-divider"><span>速刷 · 先看例句</span></div>
+                        <div className="ink-divider"><span>速刷 · {currentWord.example ? "先看例句" : "先看词义"}</span></div>
                       )}
                       <div className="answer-sheet speed-answer-sheet" aria-live="polite">
                         {currentSessionRating ? (
@@ -3543,11 +3548,13 @@ export default function Home() {
                               </blockquote>
                             )}
                           </>
-                        ) : (
+                        ) : currentWord.example ? (
                           <blockquote>
                             <p lang="de">{currentWord.example}</p>
                             <ExampleAudioButton word={currentWord} onPlay={speakExample} />
                           </blockquote>
+                        ) : (
+                          <div className="example-placeholder" role="note">这条例目没有源例句，请直接回忆词义。</div>
                         )}
                       </div>
                       {currentSessionRating ? (
@@ -3560,7 +3567,7 @@ export default function Home() {
                         </div>
                       ) : (
                         <div className="rating-area speed-rating-area">
-                          <p>先根据德语例句判断，再选择已知、模糊或未知。</p>
+                          <p>{currentWord.example ? "先根据德语例句判断，再选择已知、模糊或未知。" : "没有源例句；请直接回忆词义，再选择已知、模糊或未知。"}</p>
                           <div className="rating-buttons" role="group" aria-label="速刷记忆程度">
                             {(["known", "fuzzy", "unknown"] as const).map((status) => (
                               <button
@@ -3803,7 +3810,7 @@ export default function Home() {
         {view === "library" && (
           <section className="secondary-page">
             <div className="page-heading library-heading">
-              <div><p className="kicker">Wortschatz · 6000 Wörter</p><h1>你的词，分得清才记得住。</h1></div>
+              <div><p className="kicker">Wortschatz · 10,000 Wörter</p><h1>你的词，分得清才记得住。</h1></div>
               <button
                 className={`mastered-library-trigger${masteredDrawerOpen ? " active" : ""}`}
                 type="button"
@@ -3833,7 +3840,7 @@ export default function Home() {
                     }
                   }}
                   placeholder="输入德语单词、变位或中文释义"
-                  aria-label="在完整 6000 词库中进行中德双语检索"
+                  aria-label="在完整 10,000 词库中进行中德双语检索"
                   autoComplete="off"
                   spellCheck={false}
                 />
@@ -3852,7 +3859,7 @@ export default function Home() {
               </div>
               <p className="library-search-meta" aria-live="polite">
                 {libraryQueryTokens.length
-                  ? `在完整 6000 词库中找到 ${libraryWords.length} 个结果`
+                  ? `在完整 10,000 词库中找到 ${libraryWords.length} 个结果`
                   : `支持中文与德语检索 · 当前 ${libraryWordsSource.length} 词`}
               </p>
             </div>
@@ -3921,7 +3928,7 @@ export default function Home() {
                 <aside className="mastered-drawer" role="dialog" aria-modal="true" aria-label="已熟记词库">
                   <div className="mastered-drawer-header">
                     <div>
-                      <p className="kicker">DAS ARCHIV · 6000 WÖRTER</p>
+                      <p className="kicker">DAS ARCHIV · 10,000 WÖRTER</p>
                       <h2>已熟记词库</h2>
                       <p>三颗金色光点代表已经熟记，不再进入自动复习队列。</p>
                     </div>
