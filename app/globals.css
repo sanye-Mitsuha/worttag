@@ -4511,10 +4511,8 @@ fieldset.settings-card {
   letter-spacing: -0.025em;
 }
 
-.dictionary-forms {
-  margin: 9px 0 0;
-  color: var(--ink-soft);
-  font: italic 15px/1.45 var(--serif);
+.conjugation-dialog .dictionary-header {
+  grid-template-columns: 64px minmax(0, 1fr);
 }
 
 .dictionary-speak {
@@ -5934,6 +5932,10 @@ html[data-theme="dark"] .release-notes-close {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 13px;
     padding: 14px 40px 22px 0;
+  }
+
+  .conjugation-dialog .dictionary-header {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .dictionary-seal {

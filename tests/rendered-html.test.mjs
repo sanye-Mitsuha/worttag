@@ -59,6 +59,10 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /来源例句/);
   assert.match(page, /className="dictionary-conjugation"/);
   assert.match(page, /查看变位表/);
+  assert.match(page, /function openConjugation\(/);
+  assert.match(page, /setDictionaryView\("conjugation"\)/);
+  assert.match(page, /dictionaryView === "conjugation"/);
+  assert.doesNotMatch(page, /className="dictionary-forms"/);
   assert.match(page, /className="conjugation-table-wrap"/);
   assert.match(page, /影响德语单词和例句朗读/);
   assert.match(page, /function openReleaseNotes/);

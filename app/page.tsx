@@ -1244,6 +1244,45 @@ function examplesForWord(word: WordCard): WordExample[] {
   }];
 }
 
+function ConjugationPanel({ word }: { word: WordCard }) {
+  if (!word.conjugations?.length) return null;
+  return (
+    <section className="dictionary-conjugation" aria-labelledby="dictionary-conjugation-title">
+      <div className="dictionary-section-heading">
+        <p className="dictionary-section-label" id="dictionary-conjugation-title">变位表 · Konjugation</p>
+        <span>来源词库</span>
+      </div>
+      <div className="conjugation-table-list">
+        {word.conjugations.map((table, index) => (
+          <div className="conjugation-table-wrap" key={`${table.pos}-${index}`}>
+            {table.pos && <strong className="conjugation-pos">{table.pos}</strong>}
+            <table>
+              <thead>
+                <tr><th scope="col">人称</th><th scope="col">现在时</th></tr>
+              </thead>
+              <tbody>
+                {table.rows.map((row, rowIndex) => (
+                  <tr key={`${row.person}-${rowIndex}`}>
+                    <th scope="row" lang="de">{row.person}</th>
+                    <td lang="de">{row.form}</td>
+                  </tr>
+                ))}
+              </tbody>
+              {(table.past || table.participle) && (
+                <tfoot>
+                  {table.past && <tr><th scope="row">过去式</th><td lang="de">{table.past}</td></tr>}
+                  {table.participle && <tr><th scope="row">第二分词</th><td lang="de">{table.participle}</td></tr>}
+                </tfoot>
+              )}
+            </table>
+            {table.infinitive && <small>原形：<span lang="de">{table.infinitive}</span></small>}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function librarySortTerm(value: string) {
   return value
     .replace(/^(der|die|das)\s+/iu, "")
@@ -1571,6 +1610,7 @@ export default function Home() {
   const [libraryVisibleCount, setLibraryVisibleCount] = useState(LIBRARY_PAGE_SIZE);
   const [reviewVisibleCount, setReviewVisibleCount] = useState(REVIEW_PAGE_SIZE);
   const [dictionaryWord, setDictionaryWord] = useState<WordCard | null>(null);
+  const [dictionaryView, setDictionaryView] = useState<"definition" | "conjugation">("definition");
   const [boardOpen, setBoardOpen] = useState(false);
   const [boardMessages, setBoardMessages] = useState<BoardMessage[]>([]);
   const [boardLoading, setBoardLoading] = useState(false);
@@ -2999,11 +3039,19 @@ export default function Home() {
 
   function openDictionary(word: WordCard, trigger?: HTMLElement | null) {
     dictionaryTriggerRef.current = trigger ?? null;
+    setDictionaryView("definition");
+    setDictionaryWord(word);
+  }
+
+  function openConjugation(word: WordCard, trigger?: HTMLElement | null) {
+    dictionaryTriggerRef.current = trigger ?? null;
+    setDictionaryView("conjugation");
     setDictionaryWord(word);
   }
 
   function closeDictionary() {
     setDictionaryWord(null);
+    setDictionaryView("definition");
   }
 
   async function loadBoardMessages() {
@@ -3667,7 +3715,7 @@ export default function Home() {
                       <button
                         className="conjugation-trigger"
                         type="button"
-                        onClick={(event) => openDictionary(currentWord, event.currentTarget)}
+                        onClick={(event) => openConjugation(currentWord, event.currentTarget)}
                         aria-haspopup="dialog"
                         aria-label={`查看 ${currentWord.term} 的变位表`}
                       >
@@ -4603,11 +4651,11 @@ export default function Home() {
         >
           <section
             ref={dictionaryDialogRef}
-            className="dictionary-dialog"
+            className={`dictionary-dialog${dictionaryView === "conjugation" ? " conjugation-dialog" : ""}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="dictionary-word-title"
-            aria-describedby="dictionary-word-summary"
+            aria-describedby={dictionaryView === "definition" ? "dictionary-word-summary" : undefined}
           >
             <button
               ref={dictionaryCloseRef}
@@ -4622,86 +4670,59 @@ export default function Home() {
             <header className="dictionary-header">
               <div className="dictionary-seal" aria-hidden="true">W</div>
               <div>
-                <p className="kicker">Wörterbuch · {dictionaryWord.level} 词条核验</p>
+                <p className="kicker">
+                  {dictionaryView === "conjugation" ? "Konjugation · 变位表" : `Wörterbuch · ${dictionaryWord.level} 词条核验`}
+                </p>
                 <h2 id="dictionary-word-title" lang="de"><ArticleTerm term={dictionaryWord.term} /></h2>
-                <p className="dictionary-forms">{dictionaryWord.type} · {dictionaryWord.forms}</p>
               </div>
-              <button
-                className="dictionary-speak"
-                type="button"
-                onClick={() => speak(dictionaryWord)}
-                aria-label={`朗读 ${dictionaryWord.term}`}
-              >
-                <span aria-hidden="true">◖))</span>
-                发音
-              </button>
+              {dictionaryView === "definition" && (
+                <button
+                  className="dictionary-speak"
+                  type="button"
+                  onClick={() => speak(dictionaryWord)}
+                  aria-label={`朗读 ${dictionaryWord.term}`}
+                >
+                  <span aria-hidden="true">◖))</span>
+                  发音
+                </button>
+              )}
             </header>
 
-            <section className="dictionary-meaning" aria-labelledby="dictionary-meaning-title">
-              <p className="dictionary-section-label" id="dictionary-meaning-title">
-                中文释义 <span>Worttag 课程释义</span>
-              </p>
-              <p id="dictionary-word-summary">{dictionaryWord.meaning}</p>
-            </section>
-
-            {dictionaryWord.conjugations?.length ? (
-              <section className="dictionary-conjugation" aria-labelledby="dictionary-conjugation-title">
-                <div className="dictionary-section-heading">
-                  <p className="dictionary-section-label" id="dictionary-conjugation-title">变位表 · Konjugation</p>
-                  <span>来源词库</span>
-                </div>
-                <div className="conjugation-table-list">
-                  {dictionaryWord.conjugations.map((table, index) => (
-                    <div className="conjugation-table-wrap" key={`${table.pos}-${index}`}>
-                      {table.pos && <strong className="conjugation-pos">{table.pos}</strong>}
-                      <table>
-                        <thead>
-                          <tr><th scope="col">人称</th><th scope="col">现在时</th></tr>
-                        </thead>
-                        <tbody>
-                          {table.rows.map((row, rowIndex) => (
-                            <tr key={`${row.person}-${rowIndex}`}>
-                              <th scope="row" lang="de">{row.person}</th>
-                              <td lang="de">{row.form}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                        {(table.past || table.participle) && (
-                          <tfoot>
-                            {table.past && <tr><th scope="row">过去式</th><td lang="de">{table.past}</td></tr>}
-                            {table.participle && <tr><th scope="row">第二分词</th><td lang="de">{table.participle}</td></tr>}
-                          </tfoot>
-                        )}
-                      </table>
-                      {table.infinitive && <small>原形：<span lang="de">{table.infinitive}</span></small>}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-
-            {examplesForWord(dictionaryWord).length > 0 && (
-              <div className="dictionary-detail-grid">
-                <section aria-labelledby="dictionary-example-title">
-                  <div className="dictionary-section-heading">
-                    <p className="dictionary-section-label" id="dictionary-example-title">例句 · Beispiel</p>
-                    <span>{examplesForWord(dictionaryWord).length} 条来源例句</span>
-                  </div>
-                  <div className="dictionary-example-list">
-                    {examplesForWord(dictionaryWord).map((example, index) => (
-                      <blockquote key={`${example.example}-${index}`}>
-                        <div className="dictionary-example-meaning">
-                          <span>对应释义</span>
-                          <strong>{example.meaning}</strong>
-                        </div>
-                        <p lang="de">{example.example}</p>
-                        {example.exampleZh && <footer>{example.exampleZh}</footer>}
-                        {index === 0 && <ExampleAudioButton word={dictionaryWord} onPlay={speakExample} />}
-                      </blockquote>
-                    ))}
-                  </div>
+            {dictionaryView === "conjugation" ? (
+              <ConjugationPanel word={dictionaryWord} />
+            ) : (
+              <>
+                <section className="dictionary-meaning" aria-labelledby="dictionary-meaning-title">
+                  <p className="dictionary-section-label" id="dictionary-meaning-title">
+                    中文释义 <span>Worttag 课程释义</span>
+                  </p>
+                  <p id="dictionary-word-summary">{dictionaryWord.meaning}</p>
                 </section>
-              </div>
+
+                {examplesForWord(dictionaryWord).length > 0 && (
+                  <div className="dictionary-detail-grid">
+                    <section aria-labelledby="dictionary-example-title">
+                      <div className="dictionary-section-heading">
+                        <p className="dictionary-section-label" id="dictionary-example-title">例句 · Beispiel</p>
+                        <span>{examplesForWord(dictionaryWord).length} 条来源例句</span>
+                      </div>
+                      <div className="dictionary-example-list">
+                        {examplesForWord(dictionaryWord).map((example, index) => (
+                          <blockquote key={`${example.example}-${index}`}>
+                            <div className="dictionary-example-meaning">
+                              <span>对应释义</span>
+                              <strong>{example.meaning}</strong>
+                            </div>
+                            <p lang="de">{example.example}</p>
+                            {example.exampleZh && <footer>{example.exampleZh}</footer>}
+                            {index === 0 && <ExampleAudioButton word={dictionaryWord} onPlay={speakExample} />}
+                          </blockquote>
+                        ))}
+                      </div>
+                    </section>
+                  </div>
+                )}
+              </>
             )}
 
           </section>
