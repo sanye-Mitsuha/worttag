@@ -7079,6 +7079,10 @@ html[data-layout="mobile"] .main-content {
   padding-bottom: calc(104px + env(safe-area-inset-bottom));
 }
 
+html[data-layout="mobile"] .site-footer {
+  display: none;
+}
+
 html[data-layout="mobile"] .word-card {
   padding-bottom: 245px;
 }
@@ -7278,6 +7282,10 @@ html[data-layout="mobile"] kbd {
     width: calc(100% - 22px);
     padding-top: 20px;
     padding-bottom: calc(104px + env(safe-area-inset-bottom));
+  }
+
+  html[data-layout] .site-footer {
+    display: none;
   }
 
   html[data-layout] .word-card {
