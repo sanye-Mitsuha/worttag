@@ -4151,7 +4151,13 @@ export default function Home() {
                       <p className="library-meaning">{firstThreeMeanings(word.meaning)}</p>
                       {expandedLibraryWordId === word.id && (
                         <div className="library-card-details">
-                          <p><span>词形</span>{wordFormsForDisplay(word)}</p>
+                          {word.conjugations?.length ? (
+                            <ConjugationPanel word={word} />
+                          ) : word.type.startsWith("名词") ? (
+                            <p><span>复数</span>{wordFormsForDisplay(word)}</p>
+                          ) : (
+                            <p><span>词形</span>{wordFormsForDisplay(word)}</p>
+                          )}
                           {word.grammarTitle && <p><span>词性 / 用法</span>{word.grammarTitle}</p>}
                           {word.grammar && <p>{word.grammar}</p>}
                           {word.example && (
@@ -4674,6 +4680,19 @@ export default function Home() {
                   {dictionaryView === "conjugation" ? "Konjugation · 变位表" : `Wörterbuch · ${dictionaryWord.level} 词条核验`}
                 </p>
                 <h2 id="dictionary-word-title" lang="de"><ArticleTerm term={dictionaryWord.term} /></h2>
+                {dictionaryView === "definition" && dictionaryWord.conjugations?.length ? (
+                  <button
+                    className="dictionary-conjugation-trigger"
+                    type="button"
+                    onClick={(event) => openConjugation(dictionaryWord, event.currentTarget)}
+                    aria-haspopup="dialog"
+                    aria-label={`查看 ${dictionaryWord.term} 的变位表`}
+                  >
+                    查看变位表 <span aria-hidden="true">→</span>
+                  </button>
+                ) : dictionaryView === "definition" && dictionaryWord.type.startsWith("名词") ? (
+                  <p className="dictionary-noun-plural"><span>复数</span>{wordFormsForDisplay(dictionaryWord)}</p>
+                ) : null}
               </div>
               {dictionaryView === "definition" && (
                 <button

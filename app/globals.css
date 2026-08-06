@@ -916,6 +916,33 @@ kbd {
   outline-offset: 4px;
 }
 
+.dictionary-conjugation-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 6px 10px 7px;
+  border: 1px solid var(--line-dark);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper-deep) 30%, transparent);
+  color: var(--brick-dark);
+  font: 800 10px/1 var(--sans);
+  letter-spacing: 0.08em;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.dictionary-conjugation-trigger:hover {
+  border-color: var(--brick);
+  background: color-mix(in srgb, var(--brick) 10%, transparent);
+  color: var(--brick);
+  transform: translateY(-1px);
+}
+
+.dictionary-conjugation-trigger:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brick) 60%, transparent);
+  outline-offset: 4px;
+}
+
 .word-front.exposure-2 {
   padding-bottom: 26px;
 }
@@ -2212,6 +2239,39 @@ blockquote footer {
 
 .library-card-details blockquote footer {
   font-size: 12px;
+}
+
+.library-card-details > .dictionary-conjugation {
+  padding: 0 0 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.library-card-details > .dictionary-conjugation .conjugation-table-list {
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.library-card-details > .dictionary-conjugation .conjugation-table-wrap {
+  padding: 7px 9px 8px;
+}
+
+.library-card-details > .dictionary-conjugation .conjugation-table-wrap th,
+.library-card-details > .dictionary-conjugation .conjugation-table-wrap td {
+  padding: 5px 6px;
+}
+
+.dictionary-noun-plural {
+  margin: 9px 0 0;
+  color: var(--ink-soft);
+  font: italic 15px/1.45 var(--serif);
+}
+
+.dictionary-noun-plural span {
+  margin-right: 8px;
+  color: var(--brick);
+  font: 800 10px/1 var(--sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .library-grammar {
