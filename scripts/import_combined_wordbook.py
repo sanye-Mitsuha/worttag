@@ -6,9 +6,10 @@ The source page contains two kinds of entries:
 * 10,000 structured entries grouped into A1-C1;
 * 151 ungrouped special entries (numbers, dates, countries, etc.).
 
-Only the five CEFR sections are imported into the learning corpus. The
-importer copies source examples when present and deliberately leaves both
-example fields empty when the source entry has no example.
+The five CEFR sections form the learning corpus. The special entries are
+also imported as a separate library-only wordbook. The importer copies source
+examples when present and deliberately leaves both example fields empty when
+the source entry has no example.
 """
 
 from __future__ import annotations
@@ -119,30 +120,33 @@ def type_code(entry, raw_term: str) -> str:
     pos = tag_text(entry.select_one(".a1-pos-heading")) or tag_text(entry.select_one(".pos-badge"))
     tokens = pos_tokens(pos)
     article = tag_text(entry.select_one(".article-badge")).lower()
-    if article in {"der", "die", "das"} or "n" in tokens:
+    if article in {"der", "die", "das"}:
         return {"der": "nm", "die": "nf", "das": "nn"}.get(article, "phrase")
-    if any(token in {"v", "vt", "vi", "vr", "refl", "v.i"} or token.startswith("v") for token in tokens):
-        return "v"
-    if "adj" in tokens:
-        return "adj"
-    if "adv" in tokens:
-        return "adv"
-    if any(token in {"prä", "präposition", "prep", "praep"} for token in tokens):
-        return "prep"
-    if "konj" in tokens:
-        return "conj"
-    if "pron" in tokens:
-        return "pron"
-    if "art" in tokens or "det" in tokens:
-        return "det"
-    if "num" in tokens:
-        return "num"
-    if "part" in tokens:
-        return "part"
-    if any(token in {"interj", "interjektion"} for token in tokens):
-        return "intj"
-    if any(token in {"prop", "name", "eigenname"} for token in tokens):
-        return "prop"
+    for token in tokens:
+        if token in {"v", "vt", "vi", "vr", "refl", "v.i"} or token.startswith("v"):
+            return "v"
+        if token == "adj":
+            return "adj"
+        if token == "adv":
+            return "adv"
+        if token in {"prä", "präposition", "prep", "praep"}:
+            return "prep"
+        if token == "konj":
+            return "conj"
+        if token == "pron":
+            return "pron"
+        if token in {"art", "det"}:
+            return "det"
+        if token == "num":
+            return "num"
+        if token == "part":
+            return "part"
+        if token in {"interj", "interjektion"}:
+            return "intj"
+        if token in {"prop", "name", "eigenname"}:
+            return "prop"
+        if token in {"n", "noun", "subst"}:
+            return "phrase"
     if " " in raw_term.strip():
         return "phrase"
     return "phrase"
@@ -200,12 +204,21 @@ def forms_for(entry, code: str) -> str:
 
 def meaning_for(entry) -> str:
     meanings: list[str] = []
-    for gloss in entry.select(".a1-gloss"):
-        for level in gloss.select(".sense-level"):
-            level.extract()
-        value = tag_text(gloss)
-        if value:
-            meanings.append(value)
+    groups = entry.select(".a1-pos-group") or [entry]
+    for group_index, group in enumerate(groups):
+        group_meanings: list[str] = []
+        for gloss in group.select(".a1-gloss"):
+            for level in gloss.select(".sense-level"):
+                level.extract()
+            value = tag_text(gloss)
+            if value:
+                group_meanings.append(value)
+        if group_index and group_meanings:
+            pos = tag_text(group.select_one(".a1-pos-heading")) or "其他词性"
+            group_meanings[0] = f"【{pos}】{group_meanings[0]}"
+        meanings.extend(group_meanings)
+    if not meanings:
+        meanings = [tag_text(exp) for exp in entry.select(".exp") if tag_text(exp)]
     if meanings:
         return "；".join(dict.fromkeys(meanings))
     return "释义未标注"
@@ -223,7 +236,9 @@ def examples_for(entry) -> tuple[str, str]:
 
 
 def grammar_for(entry, code: str) -> tuple[str, str]:
-    pos = tag_text(entry.select_one(".a1-pos-heading")) or tag_text(entry.select_one(".pos-badge")) or "词典词条"
+    headings = [tag_text(heading) for heading in entry.select(".a1-pos-heading")]
+    pos = " / ".join(dict.fromkeys(value for value in headings if value))
+    pos = pos or tag_text(entry.select_one(".pos-badge")) or "词典词条"
     notes = [tag_text(note) for note in entry.select(".a1-grammar-note")]
     phrases: list[str] = []
     for phrase in entry.select(".a1-phrase"):
@@ -241,7 +256,9 @@ def import_level(section, level: str, legacy_ids: dict[tuple[str, str], str | No
     stats: Counter = Counter()
     for index, entry in enumerate(section.select("details.entry"), start=1):
         raw_term = clean_text(entry.get("data-term", ""))
-        if not raw_term or raw_term.lower() == "null":
+        if level == "SPECIAL":
+            raw_term = tag_text(entry.select_one("summary .term")) or raw_term
+        if not raw_term or (level != "SPECIAL" and raw_term.lower() == "null"):
             raise ValueError(f"{level} entry {index} has no usable term")
         code = type_code(entry, raw_term)
         if code not in TYPE_CODES:
@@ -253,7 +270,8 @@ def import_level(section, level: str, legacy_ids: dict[tuple[str, str], str | No
             if candidate and candidate not in used_ids:
                 legacy_id = candidate
                 break
-        word_id = legacy_id or f"cefr10k-{level.lower()}-{index:05d}"
+        prefix = "special" if level == "SPECIAL" else f"cefr10k-{level.lower()}"
+        word_id = legacy_id or f"{prefix}-{index:05d}"
         if word_id in used_ids:
             raise ValueError(f"duplicate ID {word_id}")
         used_ids.add(word_id)
@@ -304,7 +322,11 @@ def main() -> None:
         write_json(args.output_root / f"{level.lower()}-v2.json", document)
 
     special_section = soup.select_one('section.level-section[data-level="专项"]')
-    special_count = len(special_section.select("details.entry")) if special_section else 0
+    if special_section is None:
+        raise ValueError("Missing 专项 section")
+    special_document, special_stats = import_level(special_section, "SPECIAL", legacy_ids)
+    write_json(args.output_root / "special-v2.json", special_document)
+    special_count = special_document["count"]
     counts = {level: documents[level]["count"] for level in LEVELS}
     cumulative = {}
     running = 0
@@ -316,11 +338,15 @@ def main() -> None:
         "schemaVersion": 2,
         "corpus": "combined-cefr-10000",
         "source": args.source.name,
-        "importNote": "按来源 HTML 的 A1-C1 主分组导入；缺少例句的词条保持空白，不补写例句。专项内容没有 CEFR 等级，保留在源文件中但不进入主学习与复习队列。",
+        "importNote": "按来源 HTML 的 A1-C1 主分组导入学习词库；专项内容另存为独立词书，仅在词库中浏览，不进入主学习与复习队列。缺少例句的词条保持空白，不补写例句。",
         "wordCounts": counts,
         "cumulativeCourseCounts": cumulative,
         "total": total,
-        "specialExcluded": special_count,
+        "specialIncluded": special_count,
+        "specialLearningExcluded": special_count,
+        "specialWordbook": "special-v2.json",
+        "specialExampleCount": special_stats["examples"],
+        "specialExampleTranslationCount": special_stats["exampleZh"],
         "exampleCounts": {level: level_stats[level]["examples"] for level in LEVELS},
         "exampleTranslationCounts": {level: level_stats[level]["exampleZh"] for level in LEVELS},
         "legacyIdsReused": sum(level_stats[level]["legacyIds"] for level in LEVELS),
@@ -330,7 +356,7 @@ def main() -> None:
     print(json.dumps({
         "counts": counts,
         "total": total,
-        "specialExcluded": special_count,
+        "specialIncluded": special_count,
         "exampleCounts": manifest["exampleCounts"],
         "exampleTranslationCounts": manifest["exampleTranslationCounts"],
         "legacyIdsReused": manifest["legacyIdsReused"],

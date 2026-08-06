@@ -44,7 +44,7 @@ test("combined CEFR import keeps the source split and empty source examples", as
   assert.equal(ids.size, 10000);
 });
 
-test("combined manifest records the CEFR totals and excluded special group", async () => {
+test("combined manifest records the CEFR totals and separate special book", async () => {
   const manifest = JSON.parse(await readFile("public/wordbooks/manifest-v2.json", "utf8"));
   assert.equal(manifest.corpus, "combined-cefr-10000");
   assert.deepEqual(manifest.wordCounts, targets);
@@ -56,7 +56,28 @@ test("combined manifest records the CEFR totals and excluded special group", asy
     C1: 10000,
   });
   assert.equal(manifest.total, 10000);
-  assert.equal(manifest.specialExcluded, 151);
+  assert.equal(manifest.specialIncluded, 151);
+  assert.equal(manifest.specialLearningExcluded, 151);
+  assert.equal(manifest.specialWordbook, "special-v2.json");
+});
+
+test("special entries are available as a separate library-only wordbook", async () => {
+  const book = JSON.parse(await readFile("public/wordbooks/special-v2.json", "utf8"));
+  assert.equal(book.schemaVersion, 2);
+  assert.equal(book.level, "SPECIAL");
+  assert.equal(book.count, 151);
+  assert.equal(book.words.length, 151);
+  assert.match(book.words[0][0], /^special-/u);
+  assert.equal(book.words[0][1], "null");
+  assert.equal(book.words[0][3], "num");
+  assert.ok(book.words.every((row) => typeof row[4] === "string" && row[4].trim()));
+});
+
+test("multi-part-of-speech entries mark later source groups", async () => {
+  const book = JSON.parse(await readFile("public/wordbooks/a2-v2.json", "utf8"));
+  const modern = book.words.find((row) => row[1] === "modern");
+  assert.match(modern?.[4] ?? "", /【Vi\.】/u);
+  assert.match(modern?.[7] ?? "", /Adj\. \/ Vi\./u);
 });
 
 test("combined import does not invent an example for an empty source entry", async () => {

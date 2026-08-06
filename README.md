@@ -25,7 +25,8 @@ Worttag 希望把“认识一次”变成“真正记住”。每个单词需要
 - **选择题自动判断**：选对按已知记录；选错按未知记录，并展示正确词义后继续。
 - **拼写测试**：每轮结束后可选择进行听音拼写，不改变已经获得的光点。
 - **A1–C1 词书**：共 10,000 个 CEFR 课程词条，支持顺序或乱序学习。
-- **词库分类浏览**：在词库中按“全部词书”或 A1、A2、B1、B2、C1 分类筛选，并查看各类词数与已熟记数量。
+- **词库分类浏览**：在词库中按“全部词书”、A1–C1 或独立的“专项词书”筛选，并查看各类词数与已熟记数量。
+- **词库整理**：支持按原词书顺序、德语字母或词性排序；卡片可展开查看词形、用法、语法和源例句。
 - **中德双语检索**：可按德语原形、变位、复数、中文释义、中德例句与语法说明查词。
 - **词典核验弹窗**：点击学习页或词库中的单词，可查看 Worttag 中文义项、德语 Wiktionary 开放释义、DWDS 收录证据，并直达 Duden、PONS 与 Langenscheidt 原词条。
 - **间隔复习**：根据未知、模糊、已知三档判断自动安排下次出现时间。
@@ -56,7 +57,7 @@ Worttag 将词汇按常见交际场景、频率和课程进度划分为 A1、A2�
 | B2 | 3,000 | 复杂讨论、因果关系与抽象主题 |
 | C1 | 4,050 | 精确表达、学术与专业语境 |
 
-当前主词库按项目提供的 `combined-15000-cefr-groups.html` 重新导入，保留 A1-C1 五个 CEFR 分组共 10,000 条词条；源文件中的 151 条“专项”词条没有 CEFR 等级，因此不进入主学习和复习队列。源文件已有例句照原样保留，没有例句的条目保持空白，不生成补充例句。可复现导入脚本为 `scripts/import_combined_wordbook.py`，版本清单见 [`public/wordbooks/manifest-v2.json`](public/wordbooks/manifest-v2.json)。旧的 Core 6000 数据仍保留为 v1 历史资源，便于回溯与兼容。
+当前主词库按项目提供的 `combined-15000-cefr-groups.html` 重新导入，A1-C1 五个 CEFR 分组共 10,000 条词条，另有 151 条独立“专项”词条仅供词库浏览，不进入主学习和复习队列。源文件已有例句照原样保留，没有例句的条目保持空白，不生成补充例句；多词性词条会在后续词性释义前保留来源标记。可复现导入脚本为 `scripts/import_combined_wordbook.py`，版本清单见 [`public/wordbooks/manifest-v2.json`](public/wordbooks/manifest-v2.json)。旧的 Core 6000 数据仍保留为 v1 历史资源，便于回溯与兼容。
 
 CEFR 是能力描述框架，不规定一份唯一且固定的德语词表。Worttag 的等级归类参考欧洲委员会的 [CEFR 分语言参考级别描述](https://www.coe.int/en/web/common-european-framework-reference-languages/reference-level-descriptions)，并使用 Goethe-Institut 的 [A2](https://www.goethe.de/de/m/spr/prf/ueb/pa2.html) 与 [B1](https://www.goethe.de/de/m/spr/prf/ueb/pb1.html) 考试词汇材料核对级别边界；词条和例句均按本项目的课程目标独立编排，并非复制官方词表。
 

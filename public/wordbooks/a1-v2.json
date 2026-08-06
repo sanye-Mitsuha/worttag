@@ -30,7 +30,7 @@
       "sollen",
       "ich soll · du sollst · er/sie/es soll · wir sollen · ihr sollt · sie/Sie sollen · 过去式 sollte · 第二分词 gesollt · 原形：sollen",
       "v",
-      "① 应该,应当要；② 〈表示命令、要求、愿望、劝告等,也表示威胁性的挑衅、咒骂、恼火、冷漠;有时省略动词〉应该,得；③ 〈用第二虚拟式〉本该,本当；④ 〈表示假定、可能,用第二虚拟式〉如果；⑤ 〈表示怀疑,大多用的二虚拟式〉难道；⑥ 〈表示将来意义〉(一定)会；⑦ 〈转述别人的话〉据说,听说；① 应该,可以",
+      "① 应该,应当要；② 〈表示命令、要求、愿望、劝告等,也表示威胁性的挑衅、咒骂、恼火、冷漠;有时省略动词〉应该,得；③ 〈用第二虚拟式〉本该,本当；④ 〈表示假定、可能,用第二虚拟式〉如果；⑤ 〈表示怀疑,大多用的二虚拟式〉难道；⑥ 〈表示将来意义〉(一定)会；⑦ 〈转述别人的话〉据说,听说；【V.】① 应该,可以",
       "Der Kranke soll noch nicht aufstehen.",
       "这个病人还不可以起床。",
       "V.",
@@ -107,7 +107,7 @@
       "die Miete",
       "Plural: -n",
       "nf",
-      "① unz.租，租用(尤指住房)；② (zählb) 租金,租费,房租(等)；① 窖；② (露天的稻草、麦杆、谷物等)堆,垛",
+      "① unz.租，租用(尤指住房)；② (zählb) 租金,租费,房租(等)；【N.】① 窖；② (露天的稻草、麦杆、谷物等)堆,垛",
       "zur Miete wohnen",
       "租房子住",
       "N.",
@@ -294,10 +294,10 @@
       "man",
       "词形未标注",
       "pron",
-      "① 每一个(人)；② 人们,一些人,某些人；③ 某(一个)人,有人；④ 我们;我;你；⑤ 一个正派的(体面的,做事得体的,举动合乎礼仪的)人；① 〈地区〉〈本身无词义,仅用来加强语气并使句子生动〉（参见：mal）,nur",
+      "① 每一个(人)；② 人们,一些人,某些人；③ 某(一个)人,有人；④ 我们;我;你；⑤ 一个正派的(体面的,做事得体的,举动合乎礼仪的)人；【Adv.】① 〈地区〉〈本身无词义,仅用来加强语气并使句子生动〉（参见：mal）,nur",
       "Man muss arbeiten.",
       "每一个人总得工作。",
-      "Pron.",
+      "Pron. / Adv.",
       ""
     ],
     [
@@ -305,7 +305,7 @@
       "der Fuß",
       "Plural: Füße",
       "nm",
-      "① （人，脊椎动物的）脚，足；② (器物、家具的)脚，底座，底盘；③ （建筑物）底座，基座，(墙、柱等的）脚；④ [南德][奥][瑞]腿 （参见：Bein）；① 英尺(各国长度不等，约合三十厘米)",
+      "① （人，脊椎动物的）脚，足；② (器物、家具的)脚，底座，底盘；③ （建筑物）底座，基座，(墙、柱等的）脚；④ [南德][奥][瑞]腿 （参见：Bein）；【N.】① 英尺(各国长度不等，约合三十厘米)",
       "Er hat sich (D) beim Springen einen Fuß gebrochen.",
       "他跳的时候把一只脚扭断了。",
       "N.",
@@ -481,7 +481,7 @@
       "das Beste",
       "Plural: 词典未标注",
       "nn",
-      "① 最好的东西；② 利益，福利；① 最好者，最优秀者，最有名望的人",
+      "① 最好的东西；② 利益，福利；【N./Adj.】① 最好者，最优秀者，最有名望的人",
       "Ein Glas vom Besten!",
       "",
       "N./Adj.",
@@ -558,10 +558,10 @@
       "legen",
       "ich lege · du legst · er/sie/es legt · wir legen · ihr legt · sie/Sie legen · 过去式 — · 第二分词 — · 原形：legen",
       "v",
-      "① 把…（人）平放在/（自己）躺倒/把…（物）摆在；② （管道，地砖）铺垫，敷设，铺；③ (躺下，上床)睡觉/让…上床去睡觉；① （动物做主语）下蛋；① (物主)减弱，缓和，平息",
+      "① 把…（人）平放在/（自己）躺倒/把…（物）摆在；② （管道，地砖）铺垫，敷设，铺；③ (躺下，上床)睡觉/让…上床去睡觉；【Vt./Vi.】① （动物做主语）下蛋；【Vr./Refl.】① (物主)减弱，缓和，平息",
       "Er legte das Messer und die Gabel neben den Teller.",
       "他把刀叉摆在碟子旁。",
-      "Vt.",
+      "Vt. / Vt./Vi. / Vr./Refl.",
       "搭配：etw. legen=verlegen；搭配：sich/j-n schlafen legen；搭配：ein Tier legt(ein Ei/Eier)；搭配：etwas an den Tag legen；搭配：显示出做某事；搭配：auf A legen；搭配：重视；搭配：sich(Akk.) ins Zeug legen；搭配：使劲；搭配：jmdn. aufs Kreuz legen；搭配：欺诈；搭配：sich(Akk.) ins gemachte Bett legen；搭配：坐享其成；搭配：sich(Akk.) mächtig ins Zeug legen；搭配：埋头苦干，再接再厉；搭配：die Hände in den Schoß legen；搭配：无所事事；搭配：Das Huhn, das goldene Eier legt, schlachten.；搭配：竭泽而渔。；搭配：Die Gans, die goldene Eier legt, schlachten."
     ],
     [
@@ -591,10 +591,10 @@
       "französisch",
       "复数 ：词典未标注",
       "adj",
-      "① 法国的，法兰西的；① 法语，法文",
+      "① 法国的，法兰西的；【N.】① 法语，法文",
       "die französische Sprache",
       "法语，法文",
-      "Adj.",
+      "Adj. / N.",
       "复数 ：词典未标注"
     ],
     [
@@ -635,10 +635,10 @@
       "gewinnen",
       "ich gewinne · du gewinnest · er/sie/es gewinnet · wir gewinnen · ihr gewinnet · sie/Sie gewinnen · 过去式 — · 第二分词 — · 原形：gewinnen",
       "v",
-      "① 获得,得到,赚得；② 【军】战胜；③ 争取到;赢得；④ (侥幸)得到(如中彩、得奖等)；⑤ 开采；⑥ 制造出,取得；⑦ [雅]抵达；① 取胜,获胜；② 获得成功;博得好感;博得赞许；③ 增加,提高",
+      "① 获得,得到,赚得；② 【军】战胜；③ 争取到;赢得；④ (侥幸)得到(如中彩、得奖等)；⑤ 开采；⑥ 制造出,取得；⑦ [雅]抵达；【Vi.】① 取胜,获胜；② 获得成功;博得好感;博得赞许；③ 增加,提高",
       "Achtung [Ruhm, Liebe, Vertrauen] gewinnen",
       "赢得尊敬[声誉，爱情，信任]",
-      "Vt.",
+      "Vt. / Vi.",
       ""
     ],
     [
@@ -679,7 +679,7 @@
       "die Hochzeit",
       "Plural: -en",
       "nf",
-      "① 结婚（近义词：Heirat, Trauung, Eheschließung 反义词：Scheidung）；② 婚礼；① （参见：Blütezeit）",
+      "① 结婚（近义词：Heirat, Trauung, Eheschließung 反义词：Scheidung）；② 婚礼；【N.】① （参见：Blütezeit）",
       "Die Hochzeit findet im Mai statt.",
       "婚礼在五月举行。",
       "N.",
@@ -723,10 +723,10 @@
       "ausziehen",
       "ich ausziehe · du ausziehst · er/sie/es auszieht · wir ausziehen · ihr auszieht · sie/Sie ausziehen · 过去式 — · 第二分词 — · 原形：ausziehen",
       "v",
-      "① 拔出，拔掉；② 拉出，抽出；③ 拉长，拉紧；④ 给...脱衣服；⑤ 脱下，脱去；⑥ [转]抢劫，劫掠；⑦ 摘录，摘出，摘引；⑧ （用墨汁等）描绘（或连成线）（使线条清晰）；⑨ 【化】提取（或萃取）...的精华；⑩ 使退色；① 搬出，迁出；② 出发，外出，离去；③ 走失，消失",
+      "① 拔出，拔掉；② 拉出，抽出；③ 拉长，拉紧；④ 给...脱衣服；⑤ 脱下，脱去；⑥ [转]抢劫，劫掠；⑦ 摘录，摘出，摘引；⑧ （用墨汁等）描绘（或连成线）（使线条清晰）；⑨ 【化】提取（或萃取）...的精华；⑩ 使退色；【Vi.】① 搬出，迁出；② 出发，外出，离去；③ 走失，消失",
       "Metall zu Draht ausziehen",
       "把金属拉成丝",
-      "Vt.",
+      "Vt. / Vi.",
       ""
     ],
     [
@@ -734,10 +734,10 @@
       "halten",
       "ich halte · du haltest · er/sie/es haltet · wir halten · ihr haltet · sie/Sie halten · 过去式 — · 第二分词 — · 原形：halten",
       "v",
-      "① 拿着,持,握；② 抓住保持,保持...状态；③ 留住,挽留;阻止；④ 坚守,守住；⑤ 认为,把...视为,把...看作；⑥ 遵守,履行；⑦ 作,举行；⑧ 对待,处理,做；⑨ 同情,偏袒,喜爱；⑩ 抱着,持有 (某种想法,看法)；① 保持;持续；② (Farbe 颜色)经久不褪, (Stoff 衣料)耐用,牢,结实；③ 停,停住,停留；④ 顶住,支持,坚持住；⑤ 注重,重视;遵守；⑥ 抑制,克制,控制；⑦ 忠于,站在...一边,支持；⑧ [海员用语] 朝...驶去,驶往；① 保持，保持不坏；② 保持不变状态;保持…位置；③ （Truppe部队）坚守，守住，顶住；④ 与…交往，向…求助；⑤ 遵守，遵循；⑥ 保持朝…方向",
+      "① 拿着,持,握；② 抓住保持,保持...状态；③ 留住,挽留;阻止；④ 坚守,守住；⑤ 认为,把...视为,把...看作；⑥ 遵守,履行；⑦ 作,举行；⑧ 对待,处理,做；⑨ 同情,偏袒,喜爱；⑩ 抱着,持有 (某种想法,看法)；【Vi.】① 保持;持续；② (Farbe 颜色)经久不褪, (Stoff 衣料)耐用,牢,结实；③ 停,停住,停留；④ 顶住,支持,坚持住；⑤ 注重,重视;遵守；⑥ 抑制,克制,控制；⑦ 忠于,站在...一边,支持；⑧ [海员用语] 朝...驶去,驶往；【Vr.】① 保持，保持不坏；② 保持不变状态;保持…位置；③ （Truppe部队）坚守，守住，顶住；④ 与…交往，向…求助；⑤ 遵守，遵循；⑥ 保持朝…方向",
       "Haltet den Dieb!",
       "抓住小偷!",
-      "Vt.",
+      "Vt. / Vi. / Vr.",
       "搭配：etw. in der Hand halten；搭配：手里拿着某物；搭配：Händchen halten；搭配：牵手，手牵手；搭配：j-d / etw. hält jemanden (irgendwo)；搭配：jmdn./etw. in Zaun halten；搭配：制止；搭配：j-n/sich/etw. für etw. halten；搭配：Halt!；搭配：停！停止！停止前进！；搭配：Einfahrt halten；搭配：进站；搭配：auf etw.(A) halten；搭配：etw. hält sich；搭配：Sich an j-n halten；搭配：Sich an etw.；搭配：seine Zunge nicht im Zaum halten；搭配：口不择言；搭配：jmdn. zum Besten/Narren halten；搭配：戏弄某人；搭配：jmdn./etw. in Schach/Zaun halten；搭配：弹压；搭配：sich(Dat.) vor Lachen den Bauch halten；搭配：捧腹；搭配：sein Pulver trocken halten；搭配：韬光养晦；搭配：sich(Akk.) gerade noch über Wasser halten können；搭配：糊口，谋生；搭配：die Hand auf der Tasche halten；搭配：一毛不拔；搭配：Hoffen und Harren hält manchen zum Narren.；搭配：守株待兔；搭配：ohne mit etwas hinterm Berg zu halten；搭配：磊磊落落；搭配：ohne etwas hinterm Berg zu halten；搭配：光明磊落"
     ],
     [
@@ -756,10 +756,10 @@
       "nehmen",
       "ich nehme · du nimmst · er/sie/es nimmt · wir nehmen · ihr nehmt · sie/Sie nehmen · 过去式 nahm · 第二分词 genommen · 原形：nehmen",
       "v",
-      "① 拿，取，拿起；② 选取，选用，搭乘；③ 采用，收下；④ 收取，索取；⑤ 吞，服（药）；⑥ 越过（障碍）；⑦ 拿…举例，就说…；⑧ 【军】攻占堡垒、城市；⑨ 使用；⑩ 使失去，破坏，妨碍；⑪ 使摆脱，消除，解除；⑫ 保存，保管；⑬ 主动承担，担当；⑭ 随身带着；⑮ 用（吃或喝）；⑯ 收养，收留；⑰ 把…看作，当作；⑱ 对待，理解；⑲ 同...结婚,嫁给,娶；⑳ 知道该怎么对待；21. ㉑ 做功能动词；① 〈用于短语〉",
+      "① 拿，取，拿起；② 选取，选用，搭乘；③ 采用，收下；④ 收取，索取；⑤ 吞，服（药）；⑥ 越过（障碍）；⑦ 拿…举例，就说…；⑧ 【军】攻占堡垒、城市；⑨ 使用；⑩ 使失去，破坏，妨碍；⑪ 使摆脱，消除，解除；⑫ 保存，保管；⑬ 主动承担，担当；⑭ 随身带着；⑮ 用（吃或喝）；⑯ 收养，收留；⑰ 把…看作，当作；⑱ 对待，理解；⑲ 同...结婚,嫁给,娶；⑳ 知道该怎么对待；21. ㉑ 做功能动词；【Adj.】① 〈用于短语〉",
       "Sie nahm den kürzesten Weg nach Hause.",
       "她取最短的路回家。",
-      "Vt.",
+      "Vt. / Adj.",
       "搭配：ein Glas an die Hand nehmen；搭配：伸手拿起一只玻璃杯；搭配：jn/etw. nehmen；搭配：（für etw.）etw. nehmen；搭配：Urlaub nehmen, frei nehmen；搭配：休假，休息；搭配：jm etw. nehmen；搭配：etw. von jm nehmen；搭配：etw. an sich (Akk) nehmen；搭配：etw. auf sich (Akk) nehmen；搭配：jn/etw. mit sich nehmen；搭配：etw. zu sich (Dat.) nehmen；搭配：einen kleinen Imbiss zu sich nehmen；搭配：用点小点心；搭配：jn zu sich nehmen；搭配：jn/etw. für jn/etw. nehmen；搭配：jn/sich/etw. irgendwie nehmen；搭配：ernst nehmen；搭配：当真，重视，介意；搭配：jn zu nehmen wissen；搭配：ein Bad nehmen；搭配：洗澡；搭配：Abschied (von jm) nehmen；搭配：（与某人）告别；搭配：genommen P.Ⅱ；搭配：in ganzen genommen；搭配：一般说来,总的说来,大体上,基本上"
     ],
     [
@@ -822,10 +822,10 @@
       "besser",
       "复数 ：词典未标注",
       "phrase",
-      "① （参见：gut）的比较级；① 较好的,更好的",
+      "① （参见：gut）的比较级；【Adj.】① 较好的,更好的",
       "Heute ist das Wetter besser als gestern.",
       "今天天气比昨天好。",
-      "N.",
+      "N. / Adj.",
       "复数 ：词典未标注；搭配：besser (als j-d / etw.)"
     ],
     [
@@ -899,10 +899,10 @@
       "sitzen",
       "ich sitze · du sitzst · er/sie/es sitzt · wir sitzen · ihr sitzt · sie/Sie sitzen · 过去式 — · 第二分词 — · 原形：sitzen",
       "v",
-      "① 坐，就座；② 住，居住；③ 在(某处)，坐落在；处于；④ 坐牢，坐班房；⑤ 是成员；⑥ 停留，栖息；⑦ 孵卵；⑧ 合身；⑨ 具有正确的位置，得到妥帖的安排；⑩ 击中，打中，命中；⑪ 击中要害；⑫ 圆熟，完善；⑬ 记住，记牢；① 坐着的；② 合适的",
+      "① 坐，就座；② 住，居住；③ 在(某处)，坐落在；处于；④ 坐牢，坐班房；⑤ 是成员；⑥ 停留，栖息；⑦ 孵卵；⑧ 合身；⑨ 具有正确的位置，得到妥帖的安排；⑩ 击中，打中，命中；⑪ 击中要害；⑫ 圆熟，完善；⑬ 记住，记牢；【Adj./Part.】① 坐着的；② 合适的",
       "Mein Bekannter sitzt den ganzen Tag nur zu Hause.",
       "",
-      "Vi.",
+      "Vi. / Adj./Part.",
       "搭配：im Knast sitzen；搭配：坐牢；搭配：zu Gericht sitzen；搭配：审判；搭配：eng am Körper sitzen；搭配：贴身；搭配：beieinander sitzen und ein vertrautes Gespräch führen；搭配：促膝谈心；搭配：auf glühenden Kohlen sitzen；搭配：坐立不安，心急；搭配：in einem Boot sitzen；搭配：同舟共济；搭配：Wer im Rohr sitzt, hat gut Pfeifen schneiden.；搭配：近水楼台先得月。"
     ],
     [
@@ -910,10 +910,10 @@
       "vorstellen",
       "ich vorstelle · du vorstellst · er/sie/es vorstellt · wir vorstellen · ihr vorstellt · sie/Sie vorstellen · 过去式 — · 第二分词 — · 原形：vorstellen",
       "v",
-      "① 把...放在前面,把...往前放,把...往前移;把...(时针)向前拨;把...放在...之前；② 介绍;把...领到...面前；③ 表演,扮演;表现;意味着；④ 使看到,使考虑到；⑤ 想像,设想；① 自我介绍；② (为了找工作、求职业、求医等)前来自荐",
+      "① 把...放在前面,把...往前放,把...往前移;把...(时针)向前拨;把...放在...之前；② 介绍;把...领到...面前；③ 表演,扮演;表现;意味着；④ 使看到,使考虑到；⑤ 想像,设想；【Vr.】① 自我介绍；② (为了找工作、求职业、求医等)前来自荐",
       "Der Autor stellte bei dieser Lesung seinen neuen Roman vor.",
       "作者在朗读会上展示了他的新小说。",
-      "Vt.",
+      "Vt. / Vr.",
       "搭配：j-n / sich (j-m) vorstellen；搭配：sich (D) j-n / etw.(irgendwie) vorstellen；搭配：sich(Akk.) vorstellen；搭配：自我介绍；搭配：jmdn. bei jmdm. vorstellen；搭配：引见；搭配：sich(Dat.) jmdn./etw. vorstellen können；搭配：料到"
     ],
     [
@@ -987,10 +987,10 @@
       "können",
       "ich kann · du kannst · er/sie/es kann · wir können · ihr könnt · sie/Sie können · 过去式 konnte · 第二分词 gekonnt · 原形：können",
       "v",
-      "① 〈表示主观或客观的可能性〉能，能够；会，懂；② 〈表示被准许〉；③ 〈表示说话人不十分有把握的推测〉可能，也许；① 会，掌握，懂得；② 能，能够；① 能,会；① 精湛的，灵巧的；熟练的；① 能力，本领",
+      "① 〈表示主观或客观的可能性〉能，能够；会，懂；② 〈表示被准许〉；③ 〈表示说话人不十分有把握的推测〉可能，也许；【Vt./V.】① 会，掌握，懂得；② 能，能够；【Vi./V.】① 能,会；【Part.】① 精湛的，灵巧的；熟练的；【N.】① 能力，本领",
       "Man kann nie wissen, was noch alles passieren wird.",
       "",
-      "Vt./Vi./Vt./Vi./V.",
+      "Vt./Vi./Vt./Vi./V. / Vt./V. / Vi./V. / Part. / N.",
       "复数 ：词典未标注；搭配：jmdn. in die Augen sehen können；搭配：对得起；搭配：Es muss der Junge lernen, was der Alte können soll.；搭配：少壮不努力，老大徒伤悲；搭配：etw. nicht übers Herz bringen können；搭配：不忍；搭配：nicht über den eigenen Tellerrand hinausschauen können；搭配：坐井观天；搭配：vor lauter Bäumen den Wald nicht mehr sehen können；搭配：舍本逐末；搭配：sich(Dat.) auf jmdn./etw. keinen Reim machen können；搭配：莫名其妙；搭配：Man kann nicht gleichzeitig auf zwei Hochzeiten tanzen.；搭配：一仆不侍二主。；搭配：Der Mohr hat seine Schuldigkeit getan, der Mohr kann gehen.；搭配：过河拆桥。"
     ],
     [
@@ -998,10 +998,10 @@
       "mögen",
       "ich mag · du magst · er/sie/es mag · wir mögen · ihr mögt · sie/Sie mögen · 过去式 mochte · 第二分词 gemocht · 原形：mögen",
       "v",
-      "① 想，愿意；② 可能，也许，大概；③ （人主）居然会，怎么会；④ （人主）（表示间接请求）让，请，要…；⑤ （物主）估计够了；① 喜欢，喜爱；② 爱好，爱（听、吃、看…）；③ （用于直陈式或第二虚拟式）想要得到，想要有；① 想要，想去；② 有兴致，有情趣，乐意",
+      "① 想，愿意；② 可能，也许，大概；③ （人主）居然会，怎么会；④ （人主）（表示间接请求）让，请，要…；⑤ （物主）估计够了；【Vt.】① 喜欢，喜爱；② 爱好，爱（听、吃、看…）；③ （用于直陈式或第二虚拟式）想要得到，想要有；【Vi.】① 想要，想去；② 有兴致，有情趣，乐意",
       "Sie möchte nach dem Abitur studieren.",
       "她高中毕业后想上大学。",
-      "V.",
+      "V. / Vt. / Vi.",
       "搭配：Infinitiv+ mögen；搭配：疑问词+ mag jd./etw.…+过去分词+sein/haben；搭配：jd. möge/möchte + Infinitiv；搭配：etw. mag/möge genügen；搭配：jmdn. heimlich mögen；搭配：心仪某人；搭配：sich(Akk.) gegenseitig mögen und bemitleiden；搭配：惺惺相惜；搭配：Mögen zehntausend Wünsche in Erfüllung gehen.；搭配：万事如意。；搭配：Möge alles gelingen!；搭配：万事大吉！；搭配：Möge alles werden, wie erhofft!；搭配：万事如意！；搭配：Möge Wohlstand reichlich eintreten!；搭配：财源广进！"
     ],
     [
@@ -1053,10 +1053,10 @@
       "groß",
       "词形未标注",
       "adj",
-      "① 大的;大笔的;大宗的,大量的;大段的,长时间的；② 较年长的,成年的；③ 厉害的,非常的；④ 伟大的;重要的;著名的;上流的,高贵的；① 非常,十分,特别；② 〈用于文句、感叹句,表示加强语气〉",
+      "① 大的;大笔的;大宗的,大量的;大段的,长时间的；② 较年长的,成年的；③ 厉害的,非常的；④ 伟大的;重要的;著名的;上流的,高贵的；【Adv.】① 非常,十分,特别；② 〈用于文句、感叹句,表示加强语气〉",
       "Das Schwimmbecken ist 250m² groß.",
       "泳池有250平米大。",
-      "Adj.",
+      "Adj. / Adv.",
       ""
     ],
     [
@@ -1075,10 +1075,10 @@
       "abgeben",
       "ich abgebe · du abgebst · er/sie/es abgebt · wir abgeben · ihr abgebt · sie/Sie abgeben · 过去式 — · 第二分词 — · 原形：abgeben",
       "v",
-      "① 交给，交还，交出；② 分给；③ 说出，发表；④ (廉价)出卖，出售；出租；⑤ 传；⑥ 发射，开；⑦ 放出；⑧ 装扮，扮演；适宜于充当；⑨ 是；① 〈常作[贬]〉忙于，从事于；交往；① 衰老",
+      "① 交给，交还，交出；② 分给；③ 说出，发表；④ (廉价)出卖，出售；出租；⑤ 传；⑥ 发射，开；⑦ 放出；⑧ 装扮，扮演；适宜于充当；⑨ 是；【Vr.】① 〈常作[贬]〉忙于，从事于；交往；【Vi.】① 衰老",
       "Willst du mir nicht ein Stück von deiner Schokolade abgeben?",
       "你愿不愿意把你的巧克力分给我一块？",
-      "Vt.",
+      "Vt. / Vr. / Vi.",
       "搭配：etw. bei jmdm. abgeben；搭配：die Schularbeiten beim Lehrer abgeben；搭配：把作业交给老师；搭配：eine Ware billig abgeben；搭配：廉价出售一商品；搭配：Wärme,Energie,Strahlen abgeben；搭配：散发热量，能量，光芒；搭配：sich mit jmdm./etwa.(Dat.) abgeben；搭配：Schüsse abgeben；搭配：鸣枪；搭配：ein Angebot abgeben；搭配：投标；搭配：leeres Prüfungsblatt abgeben；搭配：交白卷；搭配：den Löffel abgeben；搭配：一命呜呼"
     ],
     [
@@ -1141,10 +1141,10 @@
       "verboten",
       "复数 ：词典未标注",
       "phrase",
-      "① verbieten的过去分词；② 禁止的；① 难看的，可笑的，丑的",
+      "① verbieten的过去分词；② 禁止的；【Adj./N.】① 难看的，可笑的，丑的",
       "Er sieht verboten aus.",
       "他长得难看。",
-      "N.",
+      "N. / Adj./N.",
       "复数 ：词典未标注"
     ],
     [
@@ -1163,10 +1163,10 @@
       "kümmern",
       "ich kümmere · du kümmerst · er/sie/es kümmert · wir kümmern · ihr kümmert · sie/Sie kümmern · 过去式 — · 第二分词 — · 原形：kümmern",
       "v",
-      "① 关心，照顾，照料；① 与...有关，使操心；① 发育不好，生长得不好；② 过贫困的生活",
+      "① 关心，照顾，照料；【Vt.】① 与...有关，使操心；【Vi.】① 发育不好，生长得不好；② 过贫困的生活",
       "Mach dir keine Sorgen, ich kümmere mich um ihn.",
       "",
-      "Refl.",
+      "Refl. / Vt. / Vi.",
       ""
     ],
     [
@@ -1218,10 +1218,10 @@
       "erlauben",
       "ich erlaube · du erlaubst · er/sie/es erlaubt · wir erlauben · ihr erlaubt · sie/Sie erlauben · 过去式 — · 第二分词 — · 原形：erlauben",
       "v",
-      "① 允许,同意；② 敢于,擅自,冒昧,随意,负担得起...的费用,容许自己享用；③ 使有可能；④ 允许,容许；① 被允许的,被许可的",
+      "① 允许,同意；② 敢于,擅自,冒昧,随意,负担得起...的费用,容许自己享用；③ 使有可能；④ 允许,容许；【Part.】① 被允许的,被许可的",
       "Wer hat dir erlaubt wegzugehen?",
       "谁同意你离开的？",
-      "Vt.",
+      "Vt. / Part.",
       ""
     ],
     [
@@ -1328,10 +1328,10 @@
       "riechen",
       "ich rieche · du riechst · er/sie/es riecht · wir riechen · ihr riecht · sie/Sie riechen · 过去式 — · 第二分词 — · 原形：riechen",
       "v",
-      "① 闻;嗅到；① 预料；② 有气味，发出气味；③ 闻，嗅；④ (物作主语)有...之嫌",
+      "① 闻;嗅到；【Vt.】① 预料；② 有气味，发出气味；③ 闻，嗅；④ (物作主语)有...之嫌",
       "Man riecht, dass du Schnaps getrunken hast.",
       "闻得出来,你喝过白酒.",
-      "Vt./Vi.",
+      "Vt./Vi. / Vt.",
       "搭配：nach etw.riechen；搭配：an etw.(D)riechen；搭配：an einer Blume riechen；搭配：闻花味儿；搭配：etwas riecht nach etwas"
     ],
     [
@@ -1350,7 +1350,7 @@
       "das Glas",
       "Plural: -en",
       "nn",
-      "① [海员用语]沙漏时,半个小时(从早上八点开始,每隔半小时敲一次钟,如八点半敲一下,九点敲两下,余类推);半小时钟鸣一下；① （Nur Sg）玻璃；② 玻璃杯；③ （几）杯；④ 玻璃杯，玻璃容器等；⑤ （多用复数）眼镜片",
+      "① [海员用语]沙漏时,半个小时(从早上八点开始,每隔半小时敲一次钟,如八点半敲一下,九点敲两下,余类推);半小时钟鸣一下；【N.】① （Nur Sg）玻璃；② 玻璃杯；③ （几）杯；④ 玻璃杯，玻璃容器等；⑤ （多用复数）眼镜片",
       "Er hat schon drei Gläser Wein getrunken.",
       "他已经喝了三杯葡萄酒了。 [谚]zu tief ins Glas geschaut haben [谚][口][诙]ein Glas über den Durst getrunken haben 多喝了些酒，喝酒过量",
       "N.",
@@ -1372,7 +1372,7 @@
       "die Rechnung",
       "Plural: -en",
       "nf",
-      "① 计算，演算；② （只用单数）预计，估计（近义词： Schätzung）；① 账单；② 账",
+      "① 计算，演算；② （只用单数）预计，估计（近义词： Schätzung）；【N.】① 账单；② 账",
       "Nach meiner Rechnung werden wir in etwa zehn Minuten ankommen.",
       "据估计我们大约十分钟后到达。",
       "N.",
@@ -1394,7 +1394,7 @@
       "der Zoll",
       "Plural: 词典未标注",
       "nm",
-      "① 寸(约2.7至3厘米)；① 税;关税；② （只用单数）海关；③ （桥梁，公路等）建设费",
+      "① 寸(约2.7至3厘米)；【N.】① 税;关税；② （只用单数）海关；③ （桥梁，公路等）建设费",
       "Beim Zoll gibt es Kontrolle des Gepäcks.",
       "在 海关 处需检查行李。",
       "N.",
@@ -1427,7 +1427,7 @@
       "das Gewicht",
       "Plural: 词典未标注",
       "nn",
-      "① -er [猎]雄黄占鹿的角 Gewicht；① 重量；② [物]重力；③ 砝码;秤锤,秤砣；④ (钟表的)摆;锤;平衡重块；⑤ (赛马时骑手和鞍具的)总重量；⑥ 份量;影响,重要性",
+      "① -er [猎]雄黄占鹿的角 Gewicht；【N.】① 重量；② [物]重力；③ 砝码;秤锤,秤砣；④ (钟表的)摆;锤;平衡重块；⑤ (赛马时骑手和鞍具的)总重量；⑥ 份量;影响,重要性",
       "Sein Gewicht steht im Mißverhältnis zu seiner Größe.",
       "他的 体重 同他的身高不相称。",
       "N.",
@@ -1449,10 +1449,10 @@
       "wiederholen",
       "复数 ：词典未标注",
       "phrase",
-      "① （可分动词） (holte wieder, hat wiedergeholt)；① 取回；① （不可分动词） (wiederholte, hat wiederholt)；① 重复,重说,重做;反复讲(或做)；② 复习,温习；① 反复讲（同一件事情）；② 一再出现，反复发生；③ 重现，重演",
+      "① （可分动词） (holte wieder, hat wiedergeholt)；【Vt.】① 取回；【N.】① （不可分动词） (wiederholte, hat wiederholt)；【Vt.】① 重复,重说,重做;反复讲(或做)；② 复习,温习；【Vr.】① 反复讲（同一件事情）；② 一再出现，反复发生；③ 重现，重演",
       "Sie hat den Ball vom Nachbargrundstück wiedergeholt.",
       "她把球从邻居家取了回来。",
-      "N.",
+      "N. / Vt. / Vr.",
       "复数 ：词典未标注；搭配：eine Klasse wiederholen；搭配：留级"
     ],
     [
@@ -1493,7 +1493,7 @@
       "das Geschäft",
       "Plural: -e",
       "nn",
-      "① 销售；② 盈利；① 生意，买卖，交易；② 事，事务，工作；③ （复数）业务；④ 商行，商店，铺子",
+      "① 销售；② 盈利；【N.】① 生意，买卖，交易；② 事，事务，工作；③ （复数）业务；④ 商行，商店，铺子",
       "Sie macht dabei ein Geschäft von zehn Prozent.",
       "",
       "N.",
@@ -1537,7 +1537,7 @@
       "das Schild",
       "Plural: -er",
       "nn",
-      "① 牌,牌子；② 标签,标牌(近义词:Etikett)；① 盾牌，盾；② 护甲，水泥防护板",
+      "① 牌,牌子；② 标签,标牌(近义词:Etikett)；【N.】① 盾牌，盾；② 护甲，水泥防护板",
       "ein Schild aufstellen",
       "竖立一块牌子",
       "N.",
@@ -1570,10 +1570,10 @@
       "anbieten",
       "ich anbiete · du anbietst · er/sie/es anbiett · wir anbieten · ihr anbiett · sie/Sie anbieten · 过去式 — · 第二分词 — · 原形：anbieten",
       "v",
-      "① (通过话语和手势）愿意提供，给予；② 建议，提议；③ 提供，供应，出售；④ 提供（参加）...的机会；① 表示愿意效劳，自愿做；② (机会等的)出现；③ 适合于",
+      "① (通过话语和手势）愿意提供，给予；② 建议，提议；③ 提供，供应，出售；④ 提供（参加）...的机会；【Vr.】① 表示愿意效劳，自愿做；② (机会等的)出现；③ 适合于",
       "Der Vorsitzende bot dem Kommitee seinen Rücktritt an.",
       "主席向委员会提出了辞职。",
-      "Vt.",
+      "Vt. / Vr.",
       "搭配：einem Gast ein Getränk, Mahlzeit, eine Zigarette anbieten；搭配：请客人喝酒，吃饭，抽烟；搭配：sich zu etw.(D)；搭配：Vollpension anbieten；搭配：提供全餐；搭配：einen Dienst anbieten；搭配：提供服务；搭配：ein Remis anbieten；搭配：求和；搭配：seine Dienste anbieten；搭配：效劳；搭配：seinen Rat anbieten；搭配：提供意见；搭配：Verpflegung und Unterkunft anbieten；搭配：管吃管住；搭配：ein glänzendes Bild anbieten；搭配：琳琅满目；搭配：ein Stelle angeboten bekommen；搭配：应聘"
     ],
     [
@@ -1581,7 +1581,7 @@
       "der Kunde",
       "Plural: -n",
       "nm",
-      "① 顾客，客户，用户，老主顾；② 走街串巷的手艺人，流浪汉；③ （贬）家伙；① 消息，音信；② 学科，知识；① 顾客（总称）",
+      "① 顾客，客户，用户，老主顾；② 走街串巷的手艺人，流浪汉；③ （贬）家伙；【N.】① 消息，音信；② 学科，知识；【N.】① 顾客（总称）",
       "Hier ist der Kunde König.",
       "",
       "N.",
@@ -1592,10 +1592,10 @@
       "glücklich",
       "词形未标注",
       "adj",
-      "① （只做定语或状语）幸运的;平安的,顺利的；② 幸福的，美满的；③ 有利的;好的,出色的；① [口]总算,终于,最后",
+      "① （只做定语或状语）幸运的;平安的,顺利的；② 幸福的，美满的；③ 有利的;好的,出色的；【Adv.】① [口]总算,终于,最后",
       "Wir sind noch einmal glücklich davongekommen.",
       "我们又一次幸运地脱身了。",
-      "Adj.",
+      "Adj. / Adv.",
       "搭配：glücklich（über +Akk）；搭配：glückliches Leben；搭配：幸福的生活；搭配：glücklicher Gedanke；搭配：好的想法"
     ],
     [
@@ -1603,10 +1603,10 @@
       "kriegen",
       "ich kriege · du kriegst · er/sie/es kriegt · wir kriegen · ihr kriegt · sie/Sie kriegen · 过去式 — · 第二分词 — · 原形：kriegen",
       "v",
-      "① [口] (无被动态)得到;获得,取得;搞到,弄到（参见：bekommen）；② [旧]作战,打仗；① [口]结婚,成为夫妇",
+      "① [口] (无被动态)得到;获得,取得;搞到,弄到（参见：bekommen）；② [旧]作战,打仗；【Vr.】① [口]结婚,成为夫妇",
       "Hat die Polizei den Einbrecher gekriegt?",
       "警察把窃贼抓住了吗？ [谚][口]sich nicht mehr kreigen(vor Lachen)",
-      "Vt.",
+      "Vt. / Vr.",
       "搭配：[谚][口]sich nicht mehr kreigen(vor Lachen)；搭配：[谚][口]笑得不亦乐乎；搭配：[口]zu viel kriegen；搭配：[口]恼怒，生气，反感"
     ],
     [
@@ -1614,7 +1614,7 @@
       "die Firma",
       "Plural: 词典未标注",
       "nf",
-      "① 商号,公司,企业；② [经]公司或企业的名称；① f. (-,Firmen).公司 Firma f.-,...men商号，公司",
+      "① 商号,公司,企业；② [经]公司或企业的名称；【N.】① f. (-,Firmen).公司 Firma f.-,...men商号，公司",
       "Der Herrscher eines afrikanischen Landes besuchte die Firma.",
       "一位非洲国家的君主参观了 公司。",
       "N.",
@@ -1669,10 +1669,10 @@
       "anrufen",
       "ich anrufe · du anrufst · er/sie/es anruft · wir anrufen · ihr anruft · sie/Sie anrufen · 过去式 — · 第二分词 — · 原形：anrufen",
       "v",
-      "① 喝问；② [雅]呼吁,祈求；③ 向······起诉,向······上诉；① (给...)打电话",
+      "① 喝问；② [雅]呼吁,祈求；③ 向······起诉,向······上诉；【Vt./Vi.】① (给...)打电话",
       "den Schlafenden leise anrufen",
       "轻声地呼唤睡着的人",
-      "Vt.",
+      "Vt. / Vt./Vi.",
       ""
     ],
     [
@@ -1702,10 +1702,10 @@
       "ein",
       "词形未标注",
       "det",
-      "① 〈不定冠词,只有单数;不重读〉一,一个,一位,一种；① 〈不定代词,只有单数〉；② 〈代替jemand,irgendeiner〉某一个,任何一个；③ 〈代替man;不重读〉；④ 〈代替ich,wir;不重读〉；⑤ 〈代替一个通过上下文能理解的名词,不重读〉；⑥ 〈与der andere互相关联;重读〉；① 〈基数词:重读〉一,一个；① 〈只用于短语〉进去,进来",
+      "① 〈不定冠词,只有单数;不重读〉一,一个,一位,一种；【Pron.】① 〈不定代词,只有单数〉；② 〈代替jemand,irgendeiner〉某一个,任何一个；③ 〈代替man;不重读〉；④ 〈代替ich,wir;不重读〉；⑤ 〈代替一个通过上下文能理解的名词,不重读〉；⑥ 〈与der andere互相关联;重读〉；【Num.】① 〈基数词:重读〉一,一个；【Adv.】① 〈只用于短语〉进去,进来",
       "Gestern haben wir einen alten Arbeiter besucht.",
       "昨天我们拜访了一位老工人。",
-      "Art.",
+      "Art. / Pron. / Num. / Adv.",
       ""
     ],
     [
@@ -1735,7 +1735,7 @@
       "die Lösung",
       "Plural: -en",
       "nf",
-      "① 解答，解开；② 解决办法，答案（近义词： Auflösung ）；① 溶液",
+      "① 解答，解开；② 解决办法，答案（近义词： Auflösung ）；【N.】① 溶液",
       "einen Detektiv mit der Lösung eines Falles beauftragen",
       "委托侦探破案",
       "N.",
@@ -1768,10 +1768,10 @@
       "stellen",
       "ich stelle · du stellst · er/sie/es stellt · wir stellen · ihr stellt · sie/Sie stellen · 过去式 — · 第二分词 — · 原形：stellen",
       "v",
-      "① 竖立,竖放,直放；② 置,放,安放；③ 拨，调节；拨准，校准；调整；④ 提供：供给，供应；⑤ 提出；⑥ 布置,设下；⑦ 逮住,捕获;拦住,阻止；⑧ 排演；① 站到,立到；② 准备应战,与...交战；③ 接待,接受；④ 自首,投案；⑤ 集合；⑥ 采取...的态度,有...的看法；⑦ 应召入伍；⑧ 假装,装做...样子；⑨ 价值,值",
+      "① 竖立,竖放,直放；② 置,放,安放；③ 拨，调节；拨准，校准；调整；④ 提供：供给，供应；⑤ 提出；⑥ 布置,设下；⑦ 逮住,捕获;拦住,阻止；⑧ 排演；【Vr.】① 站到,立到；② 准备应战,与...交战；③ 接待,接受；④ 自首,投案；⑤ 集合；⑥ 采取...的态度,有...的看法；⑦ 应召入伍；⑧ 假装,装做...样子；⑨ 价值,值",
       "Er stellte die Vase auf den Tisch.",
       "",
-      "Vt.",
+      "Vt. / Vr.",
       "搭配：einen Antrag stellen；搭配：申请；搭配：unter Beweis stellen；搭配：证实；搭配：zur Schau stellen；搭配：陈列；搭配：jmdn./etw. zur Schau stellen；搭配：展出；搭配：Forderungen stellen；搭配：提出条件，提出要求；搭配：eine Kaution stellen；搭配：担保；搭配：etw. nebeneinander stellen；搭配：平列；搭配：论证；搭配：sich(Akk.) dahinter stellen；搭配：退后站；搭配：sich(Akk.) dumm stellen；搭配：打马虎眼，装聋作哑；搭配：sich(Akk.) Herausforderungen stellen；搭配：迎接挑战；搭配：unter Quarantäne stellen；搭配：隔离；搭配：jmdm. Suggestivfragen stellen；搭配：诱供某人；搭配：sich(Akk.) taub stellen；搭配：充耳不闻，听而不闻；搭配：jmdm. etw. in Aussicht stellen；搭配：许愿；搭配：etw. zur Verfügung stellen；搭配：供给某事；搭配：an den Pranger stellen；搭配：谴责；搭配：ein Pulsdiagnose stellen；搭配：号脉"
     ],
     [
@@ -1779,7 +1779,7 @@
       "der Pass",
       "Plural: Pässe",
       "nm",
-      "① 护照；② (山上或山间的)隘口,通路,山口,关口；③ [猎]野兽走的小道；④ (哥特式建筑物拱形窗上的)四分之三圆弧形曲线花纹；① （参见：Passgang）",
+      "① 护照；② (山上或山间的)隘口,通路,山口,关口；③ [猎]野兽走的小道；④ (哥特式建筑物拱形窗上的)四分之三圆弧形曲线花纹；【N.】① （参见：Passgang）",
       "Mein Pass ist abgelaufen/ungültig.",
       "我的护照期满/失效了。",
       "N.",
@@ -1845,7 +1845,7 @@
       "das Doppelzimmer",
       "Plural: 词典未标注",
       "nn",
-      "① (旅馆的)双铺房间；① pl.Doppelzimmern 双人房。标准间。",
+      "① (旅馆的)双铺房间；【N.】① pl.Doppelzimmern 双人房。标准间。",
       "Wir reservieren ein Doppelzimmer.",
       "我们预订一间双人间。",
       "N.",
@@ -1922,10 +1922,10 @@
       "fühlen",
       "ich fühle · du fühlst · er/sie/es fühlt · wir fühlen · ihr fühlt · sie/Sie fühlen · 过去式 — · 第二分词 — · 原形：fühlen",
       "v",
-      "① (通过触觉，神经)感觉到，感到；② （在内心，心灵上）感觉到，感知，意识到；③ （给…）号脉，问脉；① 摸索；① 感到，觉得（对自己的身体状况）；② 感到，觉得（对自己的精神状况）；③ 感到，觉得（对自身的处境）；④ [口][贬]自命不凡，自负",
+      "① (通过触觉，神经)感觉到，感到；② （在内心，心灵上）感觉到，感知，意识到；③ （给…）号脉，问脉；【Vi.】① 摸索；【Vr.】① 感到，觉得（对自己的身体状况）；② 感到，觉得（对自己的精神状况）；③ 感到，觉得（对自身的处境）；④ [口][贬]自命不凡，自负",
       "Der Artz fühlte den Patienten den Puls.",
       "医生给病人诊脉。",
-      "Vt.",
+      "Vt. / Vi. / Vr.",
       "搭配：einen Schmerz/die Wärme der Sonne auf der Haut fühlen；搭配：感到痛/太阳晒在皮肤上的温暖；搭配：Mitleid mit j-m fühlen；搭配：同情某人；搭配：(j-m) den Puls fühlen；搭配：nach etw. fühlen；搭配：sich irgendwie fühlen；搭配：sich allein, unwohl fühlen；搭配：感到孤单，不舒服；搭配：sich bedroht fühlen；搭配：感觉自己受威胁；搭配：sich(Akk.) benachteiligt fühlen；搭配：委屈；搭配：den Puls fühlen；搭配：号脉，切脉；搭配：sich(Akk.) sehr fremd fühlen；搭配：人生地不熟；搭配：sich(Akk.) durch gleiche Leiden verbunden fühlen；搭配：同病相怜"
     ],
     [
@@ -1966,7 +1966,7 @@
       "der Service",
       "Plural: 词典未标注",
       "nm",
-      "① 服务性行业；② 修理服务部门,服务处；① - [法]全套食具",
+      "① 服务性行业；② 修理服务部门,服务处；【N.】① - [法]全套食具",
       "Er bietet den Kunden stets einen guten Service.",
       "他始终为顾客提供优质的 服务。",
       "N.",
@@ -1988,10 +1988,10 @@
       "freuen",
       "ich freue · du freust · er/sie/es freut · wir freuen · ihr freut · sie/Sie freuen · 过去式 — · 第二分词 — · 原形：freuen",
       "v",
-      "① 感到高兴，感到愉快；② 期待，期待…的到来；① (物主)使高兴，使愉快(无被动态)",
+      "① 感到高兴，感到愉快；② 期待，期待…的到来；【Vt.】① (物主)使高兴，使愉快(无被动态)",
       "Das Fräulein freute sich über das Geschenk.",
       "小姐对这件礼物感到高兴。",
-      "Vr.",
+      "Vr. / Vt.",
       "搭配：sich über etw. freuen；搭配：sich auf etw. freuen；搭配：etw. freut jn."
     ],
     [
@@ -2175,10 +2175,10 @@
       "verletzen",
       "ich verletze · du verletzst · er/sie/es verletzt · wir verletzen · ihr verletzt · sie/Sie verletzen · 过去式 — · 第二分词 — · 原形：verletzen",
       "v",
-      "① 使受伤,损害；② (感情上)伤害,使受委屈,损伤；③ 违反,违背,违犯；④ 侵犯；① 伤害感情的,伤人的,尖刻的；① 受委屈的,感情上受伤害的",
+      "① 使受伤,损害；② (感情上)伤害,使受委屈,损伤；③ 违反,违背,违犯；④ 侵犯；【Part.】① 伤害感情的,伤人的,尖刻的；【Part.】① 受委屈的,感情上受伤害的",
       "Ich habe ihn an der Hand verletzt.",
       "我伤了他的手。",
-      "Vt.",
+      "Vt. / Part.",
       ""
     ],
     [
@@ -2208,10 +2208,10 @@
       "verschieben",
       "ich verschiebe · du verschiebst · er/sie/es verschiebt · wir verschieben · ihr verschiebt · sie/Sie verschieben · 过去式 — · 第二分词 — · 原形：verschieben",
       "v",
-      "① 移动,挪动；② 使延期,推延,推迟；③ 转手卖出,倒卖,倒手卖；① 移动,滑动；② 延期,推迟",
+      "① 移动,挪动；② 使延期,推延,推迟；③ 转手卖出,倒卖,倒手卖；【Vr.】① 移动,滑动；② 延期,推迟",
       "Die Diskussion wurde verschoben.",
       "",
-      "Vt.",
+      "Vt. / Vr.",
       ""
     ],
     [
@@ -2263,10 +2263,10 @@
       "weinen",
       "ich weine · du weinst · er/sie/es weint · wir weinen · ihr weint · sie/Sie weinen · 过去式 — · 第二分词 — · 原形：weinen",
       "v",
-      "① 哭，流泪；① 哭，哭泣，流泪",
+      "① 哭，流泪；【Vi.】① 哭，哭泣，流泪",
       "Sie hat das Kissen nass geweint.",
       "",
-      "Vt.",
+      "Vt. / Vi.",
       "搭配：sich (Dat.) die Augen rot (或 aus dem Kopf) weinen；搭配：哭的很厉害，哭红（或哭肿）了眼睛；搭配：dicke (或 heisse 或 blutige 或 bittere) Tränen weinen；搭配：痛哭；搭配：über jn. /etw. weinen；搭配：为某人、某事而哭；搭配：um den Toten weinen；搭配：为死者而哭；搭配：leise vor sich hin weinen；搭配：轻声呜咽；搭配：vor Freude (Angst, Schmerz, Wut) weinen；搭配：因高兴（害怕，疼痛，愤怒）而流泪；搭配：jn. zum Weinen bringen；搭配：使某人流泪；搭配：leise weinend；搭配：无言以答地，变得收敛地，无可奈何地，小声小气地；搭配：jm. weinend in die Arme sinken；搭配：哭泣着倒在某人怀里"
     ],
     [
@@ -2274,7 +2274,7 @@
       "das Zentrum",
       "Plural: Zentren",
       "nn",
-      "① 中央，中枢，中心；② (德国天主教的)中央党；③ 〈邮政缩写：C〉市中心；① （表示公共机构的名称）…的中心；（表示业余活动场所的名称）…的活动中心",
+      "① 中央，中枢，中心；② (德国天主教的)中央党；③ 〈邮政缩写：C〉市中心；【N.】① （表示公共机构的名称）…的中心；（表示业余活动场所的名称）…的活动中心",
       "Er steht in Zentrum der Aufmerksamkeit.",
       "他是公众注意的焦点。",
       "N.",
@@ -2296,10 +2296,10 @@
       "trainieren",
       "ich trainiere · du trainierst · er/sie/es trainiert · wir trainieren · ihr trainiert · sie/Sie trainieren · 过去式 — · 第二分词 — · 原形：trainieren",
       "v",
-      "① 锻炼,训练；① 锻炼,训练,练习；② 训练,对...进行教练,做...的教练",
+      "① 锻炼,训练；【Vt.】① 锻炼,训练,练习；② 训练,对...进行教练,做...的教练",
       "sein Gedächtnis trainieren",
       "训练自己的记忆力",
-      "Vi.",
+      "Vi. / Vt.",
       ""
     ],
     [
@@ -2318,10 +2318,10 @@
       "wechseln",
       "ich wechsle · du wechselst · er/sie/es wechselt · wir wechseln · ihr wechselt · sie/Sie wechseln · 过去式 — · 第二分词 — · 原形：wechseln",
       "v",
-      "① 换，更换，替换；变动，变更；② 交换；③ 兑换；换开，换成（零钱）；① 更换，交替，变化，变迁；② 换位置，换地方，调动 (s.)；③ [猎](已经在某一路径)出没,行走,走过 (s.)",
+      "① 换，更换，替换；变动，变更；② 交换；③ 兑换；换开，换成（零钱）；【Vi.】① 更换，交替，变化，变迁；② 换位置，换地方，调动 (s.)；③ [猎](已经在某一路径)出没,行走,走过 (s.)",
       "Kannst du mir 50 Euro wechseln?",
       "能帮我换开50欧元吗？",
-      "Vt.",
+      "Vt. / Vi.",
       "搭配：den Beruf / den Platz / den Namen / den Wohnsitz wechseln；搭配：更换职业/位子/名字/住处；搭配：den Reifen wechseln 换轮胎；搭配：die Kleidung wechseln 换衣服；搭配：mit jm. Briefe/Blicke wechseln 和某人交换信件/眼色；搭配：mit jm. ein paar Worte / einen Händedruck wechseln 和某人交谈几句/握手；搭配：Geld wechseln 换零钱；换外汇；搭配：etw. in etw. (Akk.) wechseln 把...兑换成（外币）；搭配：Euro gegen Dollar wechseln 把欧元换成美元"
     ],
     [
@@ -2329,10 +2329,10 @@
       "bezahlen",
       "ich bezahle · du bezahlst · er/sie/es bezahlt · wir bezahlen · ihr bezahlt · sie/Sie bezahlen · 过去式 — · 第二分词 — · 原形：bezahlen",
       "v",
-      "① 支付…的款，付钱买…；② 偿还，付钱抵偿，交付；① 付给…报酬，支付…的工钱；② 替…付…的钱；③ 用钱收买；① 有报酬的,付钱的,有代价的",
+      "① 支付…的款，付钱买…；② 偿还，付钱抵偿，交付；【Vt.】① 付给…报酬，支付…的工钱；② 替…付…的钱；③ 用钱收买；【Adj.】① 有报酬的,付钱的,有代价的",
       "Er bezahlte das neue Auto in Raten.",
       "他用分期付款的方式买了这辆新汽车。",
-      "Vt./Vi.",
+      "Vt./Vi. / Vt. / Adj.",
       "搭配：eine Rechnung,die Schulden bezahlen；搭配：付账，还债；搭配：jn. (für etw.) bezahlen；搭配：einen Handwerker bezahlen；搭配：付给手工工人工钱；搭配：jm. etwas bezahlen；搭配：einen Angenten,einen Killer bezahlen；搭配：收买间谍、杀手；搭配：bezahlt (P.Ⅱ)"
     ],
     [
@@ -2340,7 +2340,7 @@
       "der Finne",
       "Plural: 词典未标注",
       "nm",
-      "① 芬兰人 Finn；① 锤头 peen；② 鳍 fin；③ 囊尾幼虫(Bandwurmlarve) bladder worm；④ 丘疹。脓疱(Pustel) pimple",
+      "① 芬兰人 Finn；【N.】① 锤头 peen；② 鳍 fin；③ 囊尾幼虫(Bandwurmlarve) bladder worm；④ 丘疹。脓疱(Pustel) pimple",
       "Mein Lehrer Herr Lukas ist Finne.",
       "我的老师卢卡斯是 芬兰人。",
       "N.",
@@ -2362,10 +2362,10 @@
       "wünschen",
       "ich wünsche · du wünschst · er/sie/es wünscht · wir wünschen · ihr wünscht · sie/Sie wünschen · 过去式 — · 第二分词 — · 原形：wünschen",
       "v",
-      "① 祝愿;希望;要求；① 向往，希望",
+      "① 祝愿;希望;要求；【Vi.】① 向往，希望",
       "j-m zum Geburtstag alles Gute wünschen",
       "祝愿某人生日快乐",
-      "Vt.",
+      "Vt. / Vi.",
       "搭配：j-m etw.(A) wünschen 祝愿某人某事；搭配：sich.(D) etw.(A) wünschen 要求某物,想要某物"
     ],
     [
@@ -2406,10 +2406,10 @@
       "raten",
       "ich rate · du ratst · er/sie/es ratt · wir raten · ihr ratt · sie/Sie raten · 过去式 — · 第二分词 — · 原形：raten",
       "v",
-      "① 给...出主意，劝告，建议；① 猜，猜测(近义词：schätzen)",
+      "① 给...出主意，劝告，建议；【Vt.】① 猜，猜测(近义词：schätzen)",
       "Der Arzt hat ihr zu einer Kur geraten.",
       "医生曾建议她去疗养。",
-      "Vi.",
+      "Vi. / Vt.",
       "搭配：j-m zu etw. raten （参见：j-m） etw. empfehlen, vorschlagen"
     ],
     [
@@ -2505,10 +2505,10 @@
       "erinnern",
       "ich erinnere · du erinnerst · er/sie/es erinnert · wir erinnern · ihr erinnert · sie/Sie erinnern · 过去式 — · 第二分词 — · 原形：erinnern",
       "v",
-      "① 提醒；① (人/物做主语)使想起，使回忆起；① 想起，忆起，回忆起",
+      "① 提醒；【Vt./Vi.】① (人/物做主语)使想起，使回忆起；【Vr.】① 想起，忆起，回忆起",
       "Seine Art zu lächeln erinnerte mich an seinen Vater.",
       "他微笑的神情让我想起了他的父亲。",
-      "Vt.",
+      "Vt. / Vt./Vi. / Vr.",
       "搭配：jn an etw.(Akk) erinnern；搭配：jn an einen Termin, an sein Versprechen erinnern；搭配：提醒某人别忘记约会，别忘记自己的许诺；搭配：jn/etw. erinnerte (jn) an jn/etw.；搭配：sich an (jn/etw.) erinnern；搭配：sich(Akk.) sein Leben lang an jmdn./etw. erinnern；搭配：没齿不忘；搭配：sich(Akk.) angesichts ihrer Spuren und Überreste an historische Ereignisse erinnern；搭配：凭吊"
     ],
     [
@@ -2527,7 +2527,7 @@
       "die Bar",
       "Plural: -s",
       "nf",
-      "① 酒吧；② 卖酒柜台；① 【物】(气压单位)巴(与数词连用时, 复数不加s)",
+      "① 酒吧；② 卖酒柜台；【N.】① 【物】(气压单位)巴(与数词连用时, 复数不加s)",
       "",
       "",
       "N.",
@@ -2692,7 +2692,7 @@
       "der Mexikaner",
       "Plural: 词典未标注",
       "nm",
-      "① 墨西哥人。女：Mexikanerin；① - 墨西哥人",
+      "① 墨西哥人。女：Mexikanerin；【N.】① - 墨西哥人",
       "Der Mexikaner kocht gern.",
       "这位墨西哥人喜欢做饭。",
       "N.",
@@ -2813,10 +2813,10 @@
       "schwer",
       "词形未标注",
       "adj",
-      "① 有...重量的,重量为...的；② 重量大的,分量重的,沉的,重的;笨重的;庞大的,粗壮的;重型的;厚实的；③ 要花很大体力的;繁重的;难度大的,困难的,难的;艰难的;使人为难的,难解决的,棘手的；④ 程度高的,规模大的;强烈的,猛烈;汹涌的;酷烈的,严酷的;沉重的;巨大的;重大的;严重的,严厉的；⑤ 含量高的,浓度大的;难消化的;浓烈的;浓郁的；⑥ 悲伤的,忧郁的；⑦ 潮湿而变得浓重的；⑧ 可观的,很多的；① 很,非常",
+      "① 有...重量的,重量为...的；② 重量大的,分量重的,沉的,重的;笨重的;庞大的,粗壮的;重型的;厚实的；③ 要花很大体力的;繁重的;难度大的,困难的,难的;艰难的;使人为难的,难解决的,棘手的；④ 程度高的,规模大的;强烈的,猛烈;汹涌的;酷烈的,严酷的;沉重的;巨大的;重大的;严重的,严厉的；⑤ 含量高的,浓度大的;难消化的;浓烈的;浓郁的；⑥ 悲伤的,忧郁的；⑦ 潮湿而变得浓重的；⑧ 可观的,很多的；【Adv.】① 很,非常",
       "20/30 kg schwer sein",
       "重20/30 kg",
-      "Adj.",
+      "Adj. / Adv.",
       ""
     ],
     [
@@ -2857,7 +2857,7 @@
       "nachmittags",
       "词形未标注",
       "adv",
-      "① 在下午，在午后 nachmittags；① 在下午，每天下午",
+      "① 在下午，在午后 nachmittags；【Adv.】① 在下午，每天下午",
       "Wegen der Hitze bekamen die Kinder nachmittags frei.",
       "因为天热，孩子们 下午 停课。",
       "Adv.",
@@ -2890,10 +2890,10 @@
       "echt",
       "词形未标注",
       "adj",
-      "① （不作状语）真的（反义词： imitiert, falsch）；② （不作状语）真实的,真诚的，真心实意的（近义词： wahr , wirklich 反义词： unecht）；③ （只作定语，不作状语） 典型的,地地道道的，名副其实的，货真价实的（近义词：typisch）；① （重读）（用来加强形容词，副词或动词的语气）真个，实在，确实，着实，果真（近义词：wirklich）；② （重读）(表示意外惊喜，激动)真的",
+      "① （不作状语）真的（反义词： imitiert, falsch）；② （不作状语）真实的,真诚的，真心实意的（近义词： wahr , wirklich 反义词： unecht）；③ （只作定语，不作状语） 典型的,地地道道的，名副其实的，货真价实的（近义词：typisch）；【Part.】① （重读）（用来加强形容词，副词或动词的语气）真个，实在，确实，着实，果真（近义词：wirklich）；② （重读）(表示意外惊喜，激动)真的",
       "ein Armband aus echtem Gold",
       "一只真金手镯",
-      "Adj.",
+      "Adj. / Part.",
       ""
     ],
     [
@@ -2901,10 +2901,10 @@
       "setzen",
       "ich setze · du setzst · er/sie/es setzt · wir setzen · ihr setzt · sie/Sie setzen · 过去式 — · 第二分词 — · 原形：setzen",
       "v",
-      "① 放,安放,置,放置,摆；② 树,立碑,支,安装,把...堆起来；③ 规定,确定,确立；④ 栽,种；⑤ 标上,写上；⑥ 升,扬；⑦ 把...作赌注,用...打赌；⑧ [印]植(字),排(字),为...排版；⑨ [猎]产；⑩ 假定；⑪ ⑿ 揍,挨(揍)；① 坐下,就座；② 沉淀；③ 下陷,下沉；④ 渗入,渗透；① 跳过,越过",
+      "① 放,安放,置,放置,摆；② 树,立碑,支,安装,把...堆起来；③ 规定,确定,确立；④ 栽,种；⑤ 标上,写上；⑥ 升,扬；⑦ 把...作赌注,用...打赌；⑧ [印]植(字),排(字),为...排版；⑨ [猎]产；⑩ 假定；⑪ ⑿ 揍,挨(揍)；【Vr.】① 坐下,就座；② 沉淀；③ 下陷,下沉；④ 渗入,渗透；【Vi.】① 跳过,越过",
       "Er setzte sich zu mir / neben mich unter den Baum, in den Schatten .",
       "他坐到我身边/挨着我坐到树下、树荫下。",
-      "Vt.",
+      "Vt. / Vr. / Vi.",
       "搭配：ein Baby aufs Töpfchen/auf seinen Schoß setzen 把婴儿放在便盆上坐好/把婴儿抱在怀里坐着；搭配：einen Gast an den besten Platz setzen 把客人安排到最好的位子上；搭配：etw. auf die Rechnung setzen 把...计入账单；搭配：zehn Mark im ersten Rennen auf Nummer drei setzen 第一轮在三号马上下注10马克；搭配：über den Ärmelkanal setzen 渡过英吉利海峡"
     ],
     [
@@ -2923,10 +2923,10 @@
       "das sein",
       "Plural: 仅单数",
       "nn",
-      "① (只用单数)[书]存在，生存；① 〈物主代词〉他的;它的；② 〈人称代词er的第二格〉[旧,诗]他;它；① (人/物主)是；② （人/物主）在；③ (物主)发生；④ （物主）必须，应该；⑤ （物主）可能，可以；⑥ （人主）（正）在；⑦ (人/物主)来自，出生于，产自；⑧ （物主）是…写的，出自…之手；⑨ 赞成，反对；⑩ [渐旧](人主)，故去，不在人世；⑪ 我觉得，似乎…；⑫ （人主）是谁；⑬ （物主）就是它；⑭ 现在是（钟点）；⑮ [口]罢手，撂下，不干；① 多用于构成许多不及物动词和动向动词的现在完成时和过去完成时；② 用来构成状态被动态或表示行为结果的状态语态；① (当前)存在的；② (P.Ⅱ) 过去的,从前的,过去存在的",
+      "① (只用单数)[书]存在，生存；【Pron.】① 〈物主代词〉他的;它的；② 〈人称代词er的第二格〉[旧,诗]他;它；【Vi.】① (人/物主)是；② （人/物主）在；③ (物主)发生；④ （物主）必须，应该；⑤ （物主）可能，可以；⑥ （人主）（正）在；⑦ (人/物主)来自，出生于，产自；⑧ （物主）是…写的，出自…之手；⑨ 赞成，反对；⑩ [渐旧](人主)，故去，不在人世；⑪ 我觉得，似乎…；⑫ （人主）是谁；⑬ （物主）就是它；⑭ 现在是（钟点）；⑮ [口]罢手，撂下，不干；【V./Aux.】① 多用于构成许多不及物动词和动向动词的现在完成时和过去完成时；② 用来构成状态被动态或表示行为结果的状态语态；【Adj.】① (当前)存在的；② (P.Ⅱ) 过去的,从前的,过去存在的",
       "Er denkt über das menschliche Sein nach.",
       "他对人类的存在进行思考。",
-      "N.",
+      "N. / Pron. / Vi. / V./Aux. / Adj.",
       "复数 ：仅单数；搭配：j-d/etw. ist etwas；搭配：j-d/etw. ist irgendwo；搭配：etw. ist irgendwann/irgendwo；搭配：etwas ist +zu+Infinitiv；搭配：j-d ist（grade）bei etwas/+名词化不定式；搭配：j-d/etw. ist irgendwoher；搭配：etw. ist von j-m；搭配：für/gegen j-n /etw. sein；搭配：j-d ist nicht mehr；搭配：mir ist, als ob +konjuktivⅡ；搭配：j-d ist es；搭配：etw. ist es；搭配：es ist +Zeitangabe；搭配：etw. sein lassen；搭配：sein (verwandte)；搭配：过去分词+sein(verwandet)；搭配：seiend (P.Ⅰ)"
     ],
     [
@@ -2978,10 +2978,10 @@
       "prüfen",
       "ich prüfe · du prüfst · er/sie/es prüft · wir prüfen · ihr prüft · sie/Sie prüfen · 过去式 — · 第二分词 — · 原形：prüfen",
       "v",
-      "① 检查,检验,试验；② 审查,审核；③ 考验,磨练;折磨；① 对...进行考试,考查",
+      "① 检查,检验,试验；② 审查,审核；③ 考验,磨练;折磨；【Vt./Vi./Vt.】① 对...进行考试,考查",
       "prüfen, ob eine Rechnung stimmt",
       "查验账单是否正确",
-      "Vt.",
+      "Vt. / Vt./Vi./Vt.",
       ""
     ],
     [
@@ -3022,7 +3022,7 @@
       "die Schiffe",
       "Plural: 词典未标注",
       "nf",
-      "① （口语）尿 Urin；② （复数形式）船。船队 ships；① unz. 屎",
+      "① （口语）尿 Urin；② （复数形式）船。船队 ships；【N.】① unz. 屎",
       "Der Kohle wird auf Schiffe umgeladen und zum Kraftwerk geschwommen.",
       "煤转运到 船上 再由水路运到发电厂。",
       "N.",
@@ -3044,10 +3044,10 @@
       "gehören",
       "ich gehöre · du gehörst · er/sie/es gehört · wir gehören · ihr gehört · sie/Sie gehören · 过去式 — · 第二分词 — · 原形：gehören",
       "v",
-      "① （etw. gehört jm. )属于，从属，归属；② （zu jm. /etw. gehören) 属于（某一类），是一个成员；③ 该放在，该在，该得到；④ (etw. gehört zu etw. ) 属于，归属；需要，需求；① 理应，适当，相宜",
+      "① （etw. gehört jm. )属于，从属，归属；② （zu jm. /etw. gehören) 属于（某一类），是一个成员；③ 该放在，该在，该得到；④ (etw. gehört zu etw. ) 属于，归属；需要，需求；【Refl.】① 理应，适当，相宜",
       "Das Buch gehört mir( der Bibliothek).",
       "",
-      "Vi.",
+      "Vi. / Refl.",
       ""
     ],
     [
@@ -3055,10 +3055,10 @@
       "spielen",
       "ich spiele · du spielst · er/sie/es spielt · wir spielen · ihr spielt · sie/Sie spielen · 过去式 — · 第二分词 — · 原形：spielen",
       "v",
-      "① 玩，做(游戏)；② 赌；打(牌)，(出)牌，下(棋)；③ 玩，打，踢；④ 奏，演奏；⑤ 表演，扮演；上演，演出；放映；⑥ 假装，装出...的样子；① 玩，玩耍，游戏；② 赌博；下赌注；③ 同...比赛,进行体育比赛；④ 演奏，奏乐，弹奏；⑤ 表演，演出；⑥ (故事)发生；⑦ 飘动，飞舞；闪动；浮现；⑧ 闪耀，闪光，闪烁；⑨ 玩弄，戏弄，开玩笑，不严肃地对待，轻率地对待；① 1)玩得(直至某种程度)；② 2)上升(到某一等级)；③ 玩起来(具有某种效果)；④ 〈奥〉 1)当儿戏 2)轻而易举地做",
+      "① 玩，做(游戏)；② 赌；打(牌)，(出)牌，下(棋)；③ 玩，打，踢；④ 奏，演奏；⑤ 表演，扮演；上演，演出；放映；⑥ 假装，装出...的样子；【Vi.】① 玩，玩耍，游戏；② 赌博；下赌注；③ 同...比赛,进行体育比赛；④ 演奏，奏乐，弹奏；⑤ 表演，演出；⑥ (故事)发生；⑦ 飘动，飞舞；闪动；浮现；⑧ 闪耀，闪光，闪烁；⑨ 玩弄，戏弄，开玩笑，不严肃地对待，轻率地对待；【Vr.】① 1)玩得(直至某种程度)；② 2)上升(到某一等级)；③ 玩起来(具有某种效果)；④ 〈奥〉 1)当儿戏 2)轻而易举地做",
       "Der Stürmer ist verletzt und kann heute nicht spielen.",
       "前锋受伤了，他今天不能打了。",
-      "Vt.",
+      "Vt. / Vi. / Vr.",
       "搭配：Ball spielen；搭配：打球；搭配：mit den Kindern im Garten Federball spielen；搭配：和孩子们在园子里打羽毛球；搭配：Beethoven spielen；搭配：演奏贝多芬的乐曲；搭配：den Beleidigten spielen；搭配：装出一副受侮辱者的样子；搭配：mit Puppen spielen；搭配：玩娃娃；搭配：in Goethes ,,Faust\" den Mephisto spielen；搭配：在歌剧中扮演浮士德；搭配：mit j-m spielen；搭配：sich müde spielen；搭配：玩的累了；搭配：sich in den Vordergrund spielen；搭配：挤入前列"
     ],
     [
@@ -3088,10 +3088,10 @@
       "basteln",
       "ich bastle · du bastelst · er/sie/es bastelt · wir basteln · ihr bastelt · sie/Sie basteln · 过去式 — · 第二分词 — · 原形：basteln",
       "v",
-      "① (业余)做些(手工)制作；① 潜心制作，敲打；② 修补,修理，捣鼓，拨弄",
+      "① (业余)做些(手工)制作；【Vi.】① 潜心制作，敲打；② 修补,修理，捣鼓，拨弄",
       "ein Mobile, ein Modellflugzeug basteln",
       "制作家具，飞机模型",
-      "Vt./Vi./Vt.",
+      "Vt./Vi./Vt. / Vi.",
       "搭配：an etw. (D) basteln；搭配：an etw.(D) basteln"
     ],
     [
@@ -3176,10 +3176,10 @@
       "schwimmen",
       "ich schwimme · du schwimmest · er/sie/es schwimmet · wir schwimmen · ihr schwimmet · sie/Sie schwimmen · 过去式 — · 第二分词 — · 原形：schwimmen",
       "v",
-      "① 游,游泳；② (物主)浮,漂浮；③ （物主）湿淋淋，水汪汪；④ 沉浸,充满，多如牛毛；⑤ 模模糊糊,(使看)不清楚；⑥ 失去把握,不知所措,迷惘,茫然；① (游泳比赛中)游出(某种成绩);游完(某段距离)；② (水路)运(输)；① 有浮力的,(漂)浮的；② 不固定的；③ 在水运中的",
+      "① 游,游泳；② (物主)浮,漂浮；③ （物主）湿淋淋，水汪汪；④ 沉浸,充满，多如牛毛；⑤ 模模糊糊,(使看)不清楚；⑥ 失去把握,不知所措,迷惘,茫然；【Vt.】① (游泳比赛中)游出(某种成绩);游完(某段距离)；② (水路)运(输)；【Part.】① 有浮力的,(漂)浮的；② 不固定的；③ 在水运中的",
       "Er hat/ist früher viel geschwommen.",
       "他游了好长时间。",
-      "Vi.",
+      "Vi. / Vt. / Part.",
       "搭配：ans Ufer schwimmen 游到岸边 auf dem Rücken schwimmen 仰泳 über den See schwimmen 游到湖的对面 mit/gegen den Strom schwimmen 顺水/逆水游泳，顺应/反潮流；搭配：ins Geld schwimmen；搭配：多得是钱；搭配：es schwimmt j-m vor den Augen [转]某天感到头晕眼花/某人眼前一片模糊；搭配：ins Schwimmen kommen/geraten 失去把握，茫然不知所措；搭配：neue Bestzeit schwimmen 游出新的最好成绩 eine Strecke schwimmen 游完一段距离；搭配：schwimmend；搭配：schwimmendes Hotel 水上饭店；搭配：schwimmend Waren 在水运中的货物"
     ],
     [
@@ -3198,7 +3198,7 @@
       "schneien",
       "ich schneie · du schneist · er/sie/es schneit · wir schneien · ihr schneit · sie/Sie schneien · 过去式 — · 第二分词 — · 原形：schneien",
       "v",
-      "① （无人称动词，主语为es） 下雪；① 纷纷落下；② 突然出现",
+      "① （无人称动词，主语为es） 下雪；【Vi.】① 纷纷落下；② 突然出现",
       "Es schneit in dichten Flocken.",
       "大雪纷飞。",
       "Vi.",
@@ -3220,10 +3220,10 @@
       "das beendet",
       "Plural: 词典未标注",
       "nn",
-      "① （表语）结束。完成。如：；① Angebot ist beendet.",
+      "① （表语）结束。完成。如：；【N.】① Angebot ist beendet.",
       "Sie beendete den Tanz mit einem wilden Wirbel.",
       "她用急速旋转 结束 了这支舞。",
-      "Adj.",
+      "Adj. / N.",
       "复数 ：词典未标注"
     ],
     [
@@ -3286,10 +3286,10 @@
       "herstellen",
       "ich herstelle · du herstellst · er/sie/es herstellt · wir herstellen · ihr herstellt · sie/Sie herstellen · 过去式 — · 第二分词 — · 原形：herstellen",
       "v",
-      "① [口]把...放过来,把...放到这儿来；② 做，制作，制造，生产；③ 建立,确立；④ 恢复；① (物主)产生，形成；② [口]sich herstellen 站,站起来",
+      "① [口]把...放过来,把...放到这儿来；② 做，制作，制造，生产；③ 建立,确立；④ 恢复；【Vr.】① (物主)产生，形成；② [口]sich herstellen 站,站起来",
       "Stell den Koffer zu mir her!",
       "把箱子放到我这儿来！",
-      "Vt.",
+      "Vt. / Vr.",
       "搭配：etw. stellt sich her；搭配：das Gleichgewicht/ die Ordnung stellt sich her；搭配：平衡/秩序形成"
     ],
     [
@@ -3330,10 +3330,10 @@
       "aufmachen",
       "ich aufmache · du aufmachst · er/sie/es aufmacht · wir aufmachen · ihr aufmacht · sie/Sie aufmachen · 过去式 — · 第二分词 — · 原形：aufmachen",
       "v",
-      "① 打开,推开;解开;睁开,张开；② [口,转]开,开设；③ 〈地区〉挂上；④ 装饰,装潢；① 给...开门；② 开门,开张,开设；③ 〈报刊〉用(醒目的)大字排印；① 出发,动身,启程；② 准备(做某事)；③ 吹起",
+      "① 打开,推开;解开;睁开,张开；② [口,转]开,开设；③ 〈地区〉挂上；④ 装饰,装潢；【Vi.】① 给...开门；② 开门,开张,开设；③ 〈报刊〉用(醒目的)大字排印；【Vr.】① 出发,动身,启程；② 准备(做某事)；③ 吹起",
       "eine Filiale aufmachen",
       "开设分号",
-      "Vt.",
+      "Vt. / Vi. / Vr.",
       "搭配：j-m aufmachen；搭配：sich früh aufmachen；搭配：sich aufmachen + zu + Infinitiv"
     ],
     [
@@ -3352,10 +3352,10 @@
       "stören",
       "ich störe · du störst · er/sie/es stört · wir stören · ihr stört · sie/Sie stören · 过去式 — · 第二分词 — · 原形：stören",
       "v",
-      "① 干扰，打扰，扰乱；② 阻碍，妨碍，干扰；① 打扰，妨害；② 〈地区,奥,瑞〉在(或去)雇主家干活；① [口] 对……反感",
+      "① 干扰，打扰，扰乱；② 阻碍，妨碍，干扰；【Vi.】① 打扰，妨害；② 〈地区,奥,瑞〉在(或去)雇主家干活；【Vr.】① [口] 对……反感",
       "Störe ich (dich) gerade?",
       "我打扰你了么？",
-      "Vt.",
+      "Vt. / Vi. / Vr.",
       "搭配：j-n bei etw. stören；搭配：j-n beim Lesen stören；搭配：打搅某人看书；搭配：sich an j-m/etwa. stören"
     ],
     [
@@ -3473,7 +3473,7 @@
       "der Club",
       "Plural: 词典未标注",
       "nm",
-      "① -s （参见：Klub）；① 俱乐部。棒子。棍棒。；① 参阅 Klub",
+      "① -s （参见：Klub）；【N.】① 俱乐部。棒子。棍棒。；【N.】① 参阅 Klub",
       "Er spielt Fußball für einen spanischen Club.",
       "他为一家西班牙 俱乐部 踢足球。",
       "N.",
@@ -3528,10 +3528,10 @@
       "lieben",
       "ich liebe · du liebst · er/sie/es liebt · wir lieben · ihr liebt · sie/Sie lieben · 过去式 — · 第二分词 — · 原形：lieben",
       "v",
-      "① 爱；② 喜欢；③ 作爱；④ 慢慢地爱上，渐渐开始喜爱上；① 很喜欢，很爱",
+      "① 爱；② 喜欢；③ 作爱；④ 慢慢地爱上，渐渐开始喜爱上；【Adv.】① 很喜欢，很爱",
       "Ich liebe dich.",
       "我爱你。",
-      "Vt.",
+      "Vt. / Adv.",
       "搭配：jn/etw. lieben lernen；搭配：(仅用于)liebend gern"
     ],
     [
@@ -3550,10 +3550,10 @@
       "übersetzen",
       "ich übersetze · du übersetzst · er/sie/es übersetzt · wir übersetzen · ihr übersetzt · sie/Sie übersetzen · 过去式 — · 第二分词 — · 原形：übersetzen",
       "v",
-      "① 翻译；① 摆渡，将...渡过河，把...运载过河",
+      "① 翻译；【Vi.】① 摆渡，将...渡过河，把...运载过河",
       "einen Roman vom Deutschen ins Englische übersetzen",
       "把一部长篇小说从德文译成英文",
-      "Vt.",
+      "Vt. / Vi.",
       ""
     ],
     [
@@ -3682,10 +3682,10 @@
       "ankommen",
       "ich ankomme · du ankommest · er/sie/es ankommet · wir ankommen · ihr ankommet · sie/Sie ankommen · 过去式 — · 第二分词 — · 原形：ankommen",
       "v",
-      "① 到，到达，来到；② 成功，受欢迎、喜爱；③ 战胜，胜过；④ [口]来麻烦人；① 对...感到棘手；② 视...而定；③ 对...关键的是，重要的是...",
+      "① 到，到达，来到；② 成功，受欢迎、喜爱；③ 战胜，胜过；④ [口]来麻烦人；【Vt.】① 对...感到棘手；② 视...而定；③ 对...关键的是，重要的是...",
       "Ist mein Paket schon bei dir angekommen?",
       "我的包裹已经到了么？",
-      "Vi.",
+      "Vi. / Vt.",
       "搭配：gegen etw.(A)/j-n (nicht) （多用否定）；搭配：etw. kommt j-n hart/schwer an.；搭配：es kommt auf j-n/etw.(A) an；搭配：j-m kommt es auf etw. an；搭配：es auf etw.(A) ankommen lassen；搭配：倒要看看；搭配：wenn es darauf ankommt；搭配：在关键时候；搭配：neu ankommen；搭配：初来乍到；搭配：rechtzeitig ankommen；搭配：赶到；搭配：auf jmdn./etw. ankommen；搭配：取决于某人；搭配：beim Publikum ankommen；搭配：卖座；搭配：neu angekommen sein；搭配：刚刚来到"
     ],
     [
@@ -3792,10 +3792,10 @@
       "aufräumen",
       "ich aufräume · du aufräumst · er/sie/es aufräumt · wir aufräumen · ihr aufräumt · sie/Sie aufräumen · 过去式 — · 第二分词 — · 原形：aufräumen",
       "v",
-      "① 整理,清理,把...收拾干净；② 清除,扫除,排除；① 猖獗,造成浩劫；② 决裂;消灭,清除",
+      "① 整理,清理,把...收拾干净；② 清除,扫除,排除；【Vi.】① 猖獗,造成浩劫；② 决裂;消灭,清除",
       "Er räumt seinen Schreibtisch auf.",
       "他整理自己的办公桌。",
-      "Vt.",
+      "Vt. / Vi.",
       ""
     ],
     [
@@ -3869,10 +3869,10 @@
       "zeichnen",
       "ich zeichne · du zeichnest · er/sie/es zeichnet · wir zeichnen · ihr zeichnet · sie/Sie zeichnen · 过去式 — · 第二分词 — · 原形：zeichnen",
       "v",
-      "① 画；绘制；② 在...上作标记(或作记号)；③ 签署，签名；④ [转]描绘，描写，刻划；⑤ [商人用语]认捐，认购；① 画画，绘画，制图；② 签名，署名，签字；③ 对...负责；④ 【猎】(受伤的野兽)留下踪迹；① 由...签(名)的，签字的；② 作...记号的；③ 作了...描绘的；④ 有...(天然)花纹的",
+      "① 画；绘制；② 在...上作标记(或作记号)；③ 签署，签名；④ [转]描绘，描写，刻划；⑤ [商人用语]认捐，认购；【Vi.】① 画画，绘画，制图；② 签名，署名，签字；③ 对...负责；④ 【猎】(受伤的野兽)留下踪迹；【Part.】① 由...签(名)的，签字的；② 作...记号的；③ 作了...描绘的；④ 有...(天然)花纹的",
       "etwa. in Umrissen zeichnen",
       "画出某物的轮廓",
-      "Vt.",
+      "Vt. / Vi. / Part.",
       ""
     ],
     [
@@ -3979,10 +3979,10 @@
       "einpacken",
       "ich einpacke · du einpackst · er/sie/es einpackt · wir einpacken · ihr einpackt · sie/Sie einpacken · 过去式 — · 第二分词 — · 原形：einpacken",
       "v",
-      "① 把...包起来;把...包入；② 将...穿的暖暖的；① 收拾行李,打行李",
+      "① 把...包起来;把...包入；② 将...穿的暖暖的；【Vi.】① 收拾行李,打行李",
       "den Anzug in den Koffer einpacken",
       "把西服放入行李箱",
-      "Vt.",
+      "Vt. / Vi.",
       ""
     ],
     [
@@ -4166,10 +4166,10 @@
       "direkt",
       "词形未标注",
       "adj",
-      "① 直接的,直通的；② 直截了当的,直率的；③ 十足的,地地道道的；① 直接(地)；② 简直",
+      "① 直接的,直通的；② 直截了当的,直率的；③ 十足的,地地道道的；【Adv.】① 直接(地)；② 简直",
       "Deine Erlebnisse sind ja direkt ein Roman.",
       "你的经历 简直 象一部小说。",
-      "Adj.",
+      "Adj. / Adv.",
       ""
     ],
     [
@@ -4188,7 +4188,7 @@
       "vermieten",
       "ich vermiete · du vermietst · er/sie/es vermiett · wir vermieten · ihr vermiett · sie/Sie vermieten · 过去式 — · 第二分词 — · 原形：vermieten",
       "v",
-      "① 出租 vermieten；① 出租（房屋）",
+      "① 出租 vermieten；【Vt.】① 出租（房屋）",
       "Carla vermietete einige Zimmer ihres Hauses.",
       "卡拉 出租 了她家的一些房间。",
       "Vt.",
@@ -4221,7 +4221,7 @@
       "das Schiff",
       "Plural: -e",
       "nn",
-      "① 船,舰；① （教堂）堂，厅",
+      "① 船,舰；【N.】① （教堂）堂，厅",
       "ein Schiff bauen",
       "建一艘船",
       "N.",
@@ -4320,10 +4320,10 @@
       "rund",
       "词形未标注",
       "adj",
-      "① 圆的；② 丰满的,滚圆的,胖乎乎的；③ [口]整整的,足足的；④ [转]满满的,完整的；① 大约,大概；② 在周围,(环)绕着",
+      "① 圆的；② 丰满的,滚圆的,胖乎乎的；③ [口]整整的,足足的；④ [转]满满的,完整的；【Adv.】① 大约,大概；② 在周围,(环)绕着",
       "Die Kinder machten runde Augen.",
       "孩子惊讶地把眼睛瞪得圆圆的。",
-      "Adj.",
+      "Adj. / Adv.",
       ""
     ],
     [
@@ -4364,10 +4364,10 @@
       "singen",
       "ich singe · du singst · er/sie/es singt · wir singen · ihr singt · sie/Sie singen · 过去式 — · 第二分词 — · 原形：singen",
       "v",
-      "① 唱,唱歌,歌唱,演唱；② 鸣响,呼呼作声；③ [旧,诗]歌颂,吟唱；④ 供认,出卖；① 唱,演唱；① 唱得...；② (唱起来)上口",
+      "① 唱,唱歌,歌唱,演唱；② 鸣响,呼呼作声；③ [旧,诗]歌颂,吟唱；④ 供认,出卖；【Vt.】① 唱,演唱；【Vr.】① 唱得...；② (唱起来)上口",
       "am Theater singen",
       "在剧院唱歌",
-      "Vi.",
+      "Vi. / Vt. / Vr.",
       ""
     ],
     [
@@ -4397,10 +4397,10 @@
       "bleiben",
       "ich bleibe · du bleibst · er/sie/es bleibt · wir bleiben · ihr bleibt · sie/Sie bleiben · 过去式 — · 第二分词 — · 原形：bleiben",
       "v",
-      "① 停留,逗留；② 保持,继续存在,保持不变,仍然是；③ 留下,余下,剩下；④ 坚持,不改变,不放弃；⑤ [婉,雅]死亡,阵亡；① 永久的,持久的",
+      "① 停留,逗留；② 保持,继续存在,保持不变,仍然是；③ 留下,余下,剩下；④ 坚持,不改变,不放弃；⑤ [婉,雅]死亡,阵亡；【Part.】① 永久的,持久的",
       "eine Zeitlang bleiben",
       "停留一段时间",
-      "Vi.",
+      "Vi. / Part.",
       ""
     ],
     [
@@ -4496,10 +4496,10 @@
       "das nass",
       "Plural: 仅单数",
       "nn",
-      "① 饮用水或可供游泳的清水；① 湿的,潮湿的 (反义词：trocken)；② 多雨的 (近义词：verregnet 反义词：trocken)；③ 湿透的",
+      "① 饮用水或可供游泳的清水；【Adj.】① 湿的,潮湿的 (反义词：trocken)；② 多雨的 (近义词：verregnet 反义词：trocken)；③ 湿透的",
       "Er erfrischte sich durch einen Sprung ins kühle Nass.",
       "他跃入清凉水中，精神为之一振。",
-      "N.",
+      "N. / Adj.",
       "复数 ：仅单数；搭配：die nassen Haare mit einem Föhn trocknen 用吹风机吹干湿法"
     ],
     [
@@ -4529,10 +4529,10 @@
       "feiern",
       "ich feiere · du feierst · er/sie/es feiert · wir feiern · ihr feiert · sie/Sie feiern · 过去式 — · 第二分词 — · 原形：feiern",
       "v",
-      "① 欢庆,庆祝,纪念；② 祝贺;颂扬,赞美；① 休息;停工；② 欢聚",
+      "① 欢庆,庆祝,纪念；② 祝贺;颂扬,赞美；【Vi.】① 休息;停工；② 欢聚",
       "Wiedersehen feiern",
       "欢庆团圆",
-      "Vt.",
+      "Vt. / Vi.",
       ""
     ],
     [
@@ -4540,7 +4540,7 @@
       "die Rezeption",
       "Plural: -en",
       "nf",
-      "① 前台,服务处 (近义词:Empfang )；① （对艺术品）理解接受",
+      "① 前台,服务处 (近义词:Empfang )；【N.】① （对艺术品）理解接受",
       "Bitte geben Sie Ihren Schlüssel an der Rezeption ab!",
       "请把您的钥匙交给服务台。",
       "N.",
@@ -4562,10 +4562,10 @@
       "bewerben",
       "ich bewerbe · du bewerbst · er/sie/es bewerbt · wir bewerben · ihr bewerbt · sie/Sie bewerben · 过去式 — · 第二分词 — · 原形：bewerben",
       "v",
-      "① （通过申请）谋求（职位）；② （渐旧）求婚；① （商人用语）为...做广告",
+      "① （通过申请）谋求（职位）；② （渐旧）求婚；【Vt.】① （商人用语）为...做广告",
       "Ich bewerbe mich bei einer Firma als Buchhalter.",
       "",
-      "V./Refl.",
+      "V./Refl. / Vt.",
       "搭配：Bücher bewerben；搭配：为书籍做广告；搭配：sich(Akk.) um eine Stelle bewerben；搭配：应征求职"
     ],
     [
@@ -4650,10 +4650,10 @@
       "bestätigen",
       "ich bestätige · du bestätigst · er/sie/es bestätigt · wir bestätigen · ihr bestätigt · sie/Sie bestätigen · 过去式 — · 第二分词 — · 原形：bestätigen",
       "v",
-      "① 证实,确认；② 证实收到(来信等)；③ 批准,认可；④ [猎]认出,发现(野兽的存在)；⑤ （物主）证实…的猜测；① （物主）得到证实",
+      "① 证实,确认；② 证实收到(来信等)；③ 批准,认可；④ [猎]认出,发现(野兽的存在)；⑤ （物主）证实…的猜测；【Vr.】① （物主）得到证实",
       "Die Katastrophe bestätigte ihn in seiner Skepsis gegenüber der Technik.",
       "这次灾难证实了他对该项技术的疑虑。",
-      "Vt.",
+      "Vt. / Vr.",
       "搭配：j-s Aussage bestätigen 证实某人的证词；搭配：den Eingang eines Schreibens bestätigen；搭配：来文收悉；搭配：einen Vertrag bestätigen 批准一项条约；搭配：etw. bestätigt jn in etw.(Dat.)"
     ],
     [
@@ -4694,10 +4694,10 @@
       "ausgeben",
       "ich ausgebe · du ausgebst · er/sie/es ausgebt · wir ausgeben · ihr ausgebt · sie/Sie ausgeben · 过去式 — · 第二分词 — · 原形：ausgeben",
       "v",
-      "① 支付,付出,花费；② 发,分发,发放；③ 发行,发售；④ 发布；⑤ 把...冒充(或假装)为；⑥ [计]打印出；⑦ (慷慨)为...付账；⑧ 在外加工,让(别人)做；① 耗尽精力；② 冒充,假装；① 〈地区〉出数儿,出产量",
+      "① 支付,付出,花费；② 发,分发,发放；③ 发行,发售；④ 发布；⑤ 把...冒充(或假装)为；⑥ [计]打印出；⑦ (慷慨)为...付账；⑧ 在外加工,让(别人)做；【Vr.】① 耗尽精力；② 冒充,假装；【Vi.】① 〈地区〉出数儿,出产量",
       "Er gibt im Monat 100 Mark für sein Hobby aus.",
       "他每月花费100 用于业余爱好。",
-      "Vt.",
+      "Vt. / Vr. / Vi.",
       "搭配：etwas gibt etwas aus；搭配：etwas ausgeben；搭配：jemanden / etwas für / als etwas；搭配：(j-m) etw.ausgeben；搭配：sich als / für etwas ausgeben"
     ],
     [
@@ -4716,10 +4716,10 @@
       "wollen",
       "词形未标注",
       "adj",
-      "① 羊毛的；① 〈情态助动词〉 (1) 〈表示意志、愿望、企图、打算〉 要，想，愿意，打算；② (2) 〈表示命令、请求、威吓〉；③ 〈现在时第一人称复数，表示语气缓和的命令或请求〉 让；④ 〈用于第二、第三人称,表示特别客气的请求〉；⑤ 〈表示严厉的命令或轻度的威吓〉 要；⑥ (3) 〈表示即将发生的行动〉即将；⑦ (4) 〈与过去分词 + sein(或werden)连用〉 必须；⑧ (5) 〈与现在完成时不定式连用,表示对其真实性有所怀疑〉 声称；⑨ (6) 〈起修饰作用〉；① 〈独立动词〉；② 想,要,愿意；③ 要求,需要；④ 〈表示不现实的愿望,用第二虚拟式〉；③ 〈表示让步,用第一虚拟式〉；④ 〈起修饰作用〉",
+      "① 羊毛的；【Vt./Vi./Vt./Vi.】① 〈情态助动词〉 (1) 〈表示意志、愿望、企图、打算〉 要，想，愿意，打算；② (2) 〈表示命令、请求、威吓〉；③ 〈现在时第一人称复数，表示语气缓和的命令或请求〉 让；④ 〈用于第二、第三人称,表示特别客气的请求〉；⑤ 〈表示严厉的命令或轻度的威吓〉 要；⑥ (3) 〈表示即将发生的行动〉即将；⑦ (4) 〈与过去分词 + sein(或werden)连用〉 必须；⑧ (5) 〈与现在完成时不定式连用,表示对其真实性有所怀疑〉 声称；⑨ (6) 〈起修饰作用〉；【Vt.】① 〈独立动词〉；② 想,要,愿意；③ 要求,需要；④ 〈表示不现实的愿望,用第二虚拟式〉；【Vi.】① 〈独立动词〉；③ 〈表示让步,用第一虚拟式〉；④ 〈起修饰作用〉",
       "Ich will morgen abreisen.",
       "我打算明天动身。",
-      "Adj.",
+      "Adj. / Vt./Vi./Vt./Vi. / Vt. / Vi.",
       ""
     ],
     [
@@ -4837,10 +4837,10 @@
       "buchen",
       "ich buche · du buchst · er/sie/es bucht · wir buchen · ihr bucht · sie/Sie buchen · 过去式 — · 第二分词 — · 原形：buchen",
       "v",
-      "① [商]预订(飞机票、房间等)；① 记账，登入",
+      "① [商]预订(飞机票、房间等)；【Vt.】① 记账，登入",
       "Würden Sie bitte zwei Plätze für uns buchen?",
       "可以帮我们预定两个位子吗?",
-      "Vt./Vi.",
+      "Vt./Vi. / Vt.",
       "搭配：(etw.(für jn)) buchen；搭配：Geld auf ein Konto buchen；搭配：把钱计入账户"
     ],
     [
@@ -4848,10 +4848,10 @@
       "drücken",
       "ich drücke · du drückst · er/sie/es drückt · wir drücken · ihr drückt · sie/Sie drücken · 过去式 — · 第二分词 — · 原形：drücken",
       "v",
-      "① 压,挤,按；② 压低,降低；③ [技]压,型压；④ [牌]打出底牌(无用的牌)；⑤ [转,雅]压制,压迫;使烦恼,使心情沉重；① 紧压；② 挤,压；③ 按；① 挤缩；② 溜走；③ 逃避；① 气馁的,沮丧的,充满忧虑的",
+      "① 压,挤,按；② 压低,降低；③ [技]压,型压；④ [牌]打出底牌(无用的牌)；⑤ [转,雅]压制,压迫;使烦恼,使心情沉重；【Vi.】① 紧压；② 挤,压；③ 按；【Vr.】① 挤缩；② 溜走；③ 逃避；【Part.】① 气馁的,沮丧的,充满忧虑的",
       "Die Schuhe drücken mich.",
       "鞋子挤脚。",
-      "Vt.",
+      "Vt. / Vi. / Vr. / Part.",
       "搭配：j-n drücken (因小或紧)挤疼,挤压；搭配：Es drückt mich, dass... ... 使我心情沉重。；搭配：etw. drückt j-m auf etw.(A) ... 对某人产生不利影响；搭配：sich an/in etw.(A) drücken 蜷缩，躲藏"
     ],
     [
@@ -4870,10 +4870,10 @@
       "schaffen",
       "ich schaffe · du schaffst · er/sie/es schafft · wir schaffen · ihr schafft · sie/Sie schaffen · 过去式 — · 第二分词 — · 原形：schaffen",
       "v",
-      "① 创作，塑造，创立；② 创造，使产生，建立，设立，取得，获得；① 把...带到（送到，搬到）；② （在一定时间内）完成，办到，使实现，达到，设法得到；③ 使精疲力竭；④ 把...交给...（去完成），吩咐（或嘱咐）...要完成；① 劳动，干活，做事，忙碌",
+      "① 创作，塑造，创立；② 创造，使产生，建立，设立，取得，获得；【Vt.】① 把...带到（送到，搬到）；② （在一定时间内）完成，办到，使实现，达到，设法得到；③ 使精疲力竭；④ 把...交给...（去完成），吩咐（或嘱咐）...要完成；【Vi.】① 劳动，干活，做事，忙碌",
       "Er schafft eine unsterbliche Dichtung.",
       "",
-      "Vt.",
+      "Vt. / Vi.",
       "搭配：für jn. /etw. ( 或 zu jm. / etw. ) wie geschaffen sein；搭配：对某人、某物特别合适；搭配：etw. auf die Seite schaffen；搭配：悄悄拿走某物；搭配：jn. bei seite schaffen；搭配：干掉某人（口语）；搭配：etw. aus der Welt schaffen；搭配：排除（或取消）某物；搭配：mit jm. (etw.) zu schaffen haben；搭配：与某人（某事）有关系；搭配：sich (D.) zu schaffen machen；搭配：从事，忙碌于，装模作样的做事；搭配：jm. zu schaffen machen；搭配：给某人制造麻烦，使某人苦恼；搭配：etw. rechtzeitig schaffen；搭配：来得及；搭配：etw. allein schaffen；搭配：独立完成某事；搭配：eine Nation schaffen；搭配：建国，立国；搭配：fast nicht mehr schaffen；搭配：临渴掘井；搭配：etw. aus eigener Kraft schaffen；搭配：白手起家，自力更生；搭配：etw. bei aller Kraftanstrengung nicht schaffen；搭配：力不从心；搭配：etw. beim besten Willen nicht schaffen；搭配：aus dem Weg schaffen；搭配：解决；搭配：sich(Dat.) mehr vornehmen, als man schaffen kann；搭配：食多嚼不烂；搭配：etw. zeitlich nicht mehr schaffen können；搭配：来不及"
     ],
     [
@@ -4914,10 +4914,10 @@
       "schlecht",
       "词形未标注",
       "adj",
-      "① （质量上）坏的，次的，劣的，差的( Ware 商品，Leistung 成绩）；② 不正确的(Aussprache 发音），不理想的，有缺陷的，可指摘的；③ 功能不正常的，不健全的，有病的(Magen 胃， Herz 心脏）差的（Gehör 听觉，Gedächtnis 记忆力）；④ 与预期效果不符合的，价值不高的（Film 影片）；⑤ （数量，强度，规模上）有限的，不多的，不足的(Belieferung 供应），少的，低的（Gehalt 薪资），歉收的(Ernte 年成）；⑥ （后果）有害的（Rat 建议），不利的（Aussichten 前景），不详的（Omen 征兆），令人不愉快的（或不舒服的）（Nachricht 消息，Stimmung 气氛， Kritik 批评， Geschmack 味道）；⑦ 使人（身体）感到不适的；⑧ 怀有敌意的（Nachbar 邻居），仇视的；⑨ 变质了的，腐败了的（Lebensmittel 食品）；⑩ （道德上，道义上）不是无可非议的，恶劣的，坏的（Angewohnheit 习惯，Tat 行为，Vorbild 榜样，Gesinnung 思想品质）；⑪ 普普通通的，朴素的，简单的；① 很难，几乎不能，好不容易",
+      "① （质量上）坏的，次的，劣的，差的( Ware 商品，Leistung 成绩）；② 不正确的(Aussprache 发音），不理想的，有缺陷的，可指摘的；③ 功能不正常的，不健全的，有病的(Magen 胃， Herz 心脏）差的（Gehör 听觉，Gedächtnis 记忆力）；④ 与预期效果不符合的，价值不高的（Film 影片）；⑤ （数量，强度，规模上）有限的，不多的，不足的(Belieferung 供应），少的，低的（Gehalt 薪资），歉收的(Ernte 年成）；⑥ （后果）有害的（Rat 建议），不利的（Aussichten 前景），不详的（Omen 征兆），令人不愉快的（或不舒服的）（Nachricht 消息，Stimmung 气氛， Kritik 批评， Geschmack 味道）；⑦ 使人（身体）感到不适的；⑧ 怀有敌意的（Nachbar 邻居），仇视的；⑨ 变质了的，腐败了的（Lebensmittel 食品）；⑩ （道德上，道义上）不是无可非议的，恶劣的，坏的（Angewohnheit 习惯，Tat 行为，Vorbild 榜样，Gesinnung 思想品质）；⑪ 普普通通的，朴素的，简单的；【Adv.】① 很难，几乎不能，好不容易",
       "Das macht einen schlechten Eindruck.",
       "",
-      "Adj.",
+      "Adj. / Adv.",
       "搭配：nicht schlecht；搭配：极其，十分"
     ],
     [
@@ -4958,10 +4958,10 @@
       "reifen",
       "ich reife · du reifst · er/sie/es reift · wir reifen · ihr reift · sie/Sie reifen · 过去式 — · 第二分词 — · 原形：reifen",
       "v",
-      "① （物作主语）成熟 （Obst, Getreide, Käse, Wein 水果，粮食，奶酪，葡萄酒）；② （人作主语）成熟；③ 在头脑里酝酿的...趋于成熟；④ 霜降；① 使（人或物）成熟；② 箍（桶）",
+      "① （物作主语）成熟 （Obst, Getreide, Käse, Wein 水果，粮食，奶酪，葡萄酒）；② （人作主语）成熟；③ 在头脑里酝酿的...趋于成熟；④ 霜降；【Vt.】① 使（人或物）成熟；② 箍（桶）",
       "Hans ist in den letzten Jahren sehr gereift.",
       "汉斯在近几年已经很成熟了。",
-      "Vi.",
+      "Vi. / Vt.",
       "搭配：ein Entschluß/ein Plan reift in j-m 一个决定/计划在某人酝酿成熟（或逐渐形成）"
     ],
     [
@@ -5002,10 +5002,10 @@
       "beschweren",
       "ich beschwere · du beschwerst · er/sie/es beschwert · wir beschweren · ihr beschwert · sie/Sie beschweren · 过去式 — · 第二分词 — · 原形：beschweren",
       "v",
-      "① 加重量于,重压,压；② 使(心情)沉重,使加重负担,使烦恼；① 诉苦,提意见,申诉",
+      "① 加重量于,重压,压；② 使(心情)沉重,使加重负担,使烦恼；【Vr.】① 诉苦,提意见,申诉",
       "Briefe mit einem Stein beschweren",
       "用石块把信件镇住",
-      "Vt.",
+      "Vt. / Vr.",
       "搭配：sich bei j-m über etw. (A) beschweren 就某事向某人诉苦"
     ],
     [
@@ -5024,7 +5024,7 @@
       "der Mensch",
       "Plural: -en",
       "nm",
-      "① （只用单数）（生物）人类；② （社会）人（近义词：Person）；① （表示生气，高兴或惊讶）啊，哎呀，好，哈，好家伙",
+      "① （只用单数）（生物）人类；② （社会）人（近义词：Person）；【N.】① （表示生气，高兴或惊讶）啊，哎呀，好，哈，好家伙",
       "Biologisch gesehen gehört der Mensch zu den Säugetieren.",
       "从生物学角度看，人属于哺乳动物。",
       "N.",
@@ -5123,10 +5123,10 @@
       "ausmachen",
       "ich ausmache · du ausmachst · er/sie/es ausmacht · wir ausmachen · ihr ausmacht · sie/Sie ausmachen · 过去式 — · 第二分词 — · 原形：ausmachen",
       "v",
-      "① 关掉；熄灭；② 商定，约定；③ 澄清，解决，了结；④ 认出，识别，发现；⑤ 具有重要性，是要紧的；⑥ 困扰，妨碍；⑦ 构成，形成，是；⑧ 共计；⑨ 〈地区〉从地里挖出，刨出；① 拉屎，撒尿",
+      "① 关掉；熄灭；② 商定，约定；③ 澄清，解决，了结；④ 认出，识别，发现；⑤ 具有重要性，是要紧的；⑥ 困扰，妨碍；⑦ 构成，形成，是；⑧ 共计；⑨ 〈地区〉从地里挖出，刨出；【Vr.】① 拉屎，撒尿",
       "Hast du mit dem Zahnarzt schon einen Termin ausgemacht?",
       "你和牙医大夫约定好日期了么？",
-      "Vt.",
+      "Vt. / Vr.",
       "搭配：das Licht ausmachen 关灯；搭配：das Gas / das Feuer ausmachen 关掉煤气/把火灭掉；搭配：etw. mit jm. miteinander ausmachen；搭配：einen Streit vor Gericht ausmachen 在法庭上解决一起纠纷"
     ],
     [
@@ -5156,10 +5156,10 @@
       "berichten",
       "ich berichte · du berichtest · er/sie/es berichtet · wir berichten · ihr berichtet · sie/Sie berichten · 过去式 — · 第二分词 — · 原形：berichten",
       "v",
-      "① 报告,告知；① 报道,做关于...的报告",
+      "① 报告,告知；【Vi.】① 报道,做关于...的报告",
       "j-m etw. berichten",
       "向某人告知某事",
-      "Vt.",
+      "Vt. / Vi.",
       ""
     ],
     [
@@ -5255,7 +5255,7 @@
       "das Geschirr",
       "Plural: 仅单数",
       "nn",
-      "① 厨房器皿,炊具,餐具；① 挽具，马具",
+      "① 厨房器皿,炊具,餐具；【N.】① 挽具，马具",
       "Ich will rasch noch das Geschirr wegspülen.",
       "(口)我还得赶快冲洗 餐具。",
       "N.",
@@ -5321,10 +5321,10 @@
       "begründen",
       "ich begründe · du begründest · er/sie/es begründet · wir begründen · ihr begründet · sie/Sie begründen · 过去式 — · 第二分词 — · 原形：begründen",
       "v",
-      "① 建立,奠定,创办,创立,创始,为...奠定基础；② 把...建筑在...基础之上；③ 对...提出根据,对...说明理由；① 有理由的,有根据的",
+      "① 建立,奠定,创办,创立,创始,为...奠定基础；② 把...建筑在...基础之上；③ 对...提出根据,对...说明理由；【Part.】① 有理由的,有根据的",
       "Marx und Engels begründeten die Theorie des wissenschaftlichen Sozialismus.",
       "马克思和恩格斯创立了科学社会主义的理论。",
-      "Vt.",
+      "Vt. / Part.",
       "搭配：etwa. auf etwa.(A.) begründen；搭配：begründet；搭配：etwa. ist (或 liegt) in etwa.(D.) begründet；搭配：某事是由某事引起的"
     ],
     [
@@ -5332,10 +5332,10 @@
       "unterhalten",
       "复数 ：词典未标注",
       "phrase",
-      "① starkes Verb 强变化动词 可分或者不可分：ich halte unter / unterhalte; PARTIZIP II: untergehalten或者unterhalten；① 供养，赡养；② 维持；经营；③ 保养；维护；④ 保持；⑤ 使得到消遣，为...助兴，为...解闷；① 谈话，聊天；② 消遣，派遣；① (unterhält, unterhielt, hat untergehalten)；① 把...放在下面，使在下面支着(或接着,托着)",
+      "① starkes Verb 强变化动词 可分或者不可分：ich halte unter / unterhalte; PARTIZIP II: untergehalten或者unterhalten；【Vt.】① 供养，赡养；② 维持；经营；③ 保养；维护；④ 保持；⑤ 使得到消遣，为...助兴，为...解闷；【Vr.】① 谈话，聊天；② 消遣，派遣；【N.】① (unterhält, unterhielt, hat untergehalten)；【Vt./N.】① 把...放在下面，使在下面支着(或接着,托着)",
       "Das Auto muss unterhalten werden.",
       "汽车必须保养。",
-      "N.",
+      "N. / Vt. / Vr. / Vt./N.",
       "复数 ：词典未标注；搭配：eine große Familie zu unterhalten haben 必须供养一个大家庭；搭配：ein Geschäft, einen Kindergarten, eine Omnibuslinie unterhalten 开商店，经营幼儿园，经营一条公共汽车线路；搭配：sich mit j-m. gut unterhalten 与某人聊天的很开心；搭配：sich stundenlang mit einem Freund am Telefon unterhalten 和一个朋友电话聊天很久；搭配：beim Essen einen Teller unterhalten, damit keine Krümel auf den Boden fallen 吃饭时把盘子放在下面,不让碎屑掉在地上；搭配：sich(Akk.) fröhlich unterhalten；搭配：说笑；搭配：sich(Akk.) beim Essen unterhalten；搭配：边吃边谈；搭配：den Haushalt unterhalten；搭配：养家；搭配：sich(Akk.) offen und aufrichtig unterhalten；搭配：促膝长谈；搭配：sich(Akk.) über alles Mögliche unterhalten；搭配：谈天说地；搭配：sich(Akk.) über Gott und die Welt unterhalten；搭配：聊天"
     ],
     [
@@ -5343,7 +5343,7 @@
       "die Kette",
       "Plural: 词典未标注",
       "nf",
-      "① 链(条)；② [化]链；③ 项圈,项链；④ 链；⑤ [纺]经纱；⑥ 一连串,一系列；⑦ [转](铁)锁链,镣铐,桎梏,枷锁；⑧ 连锁店 Kette；① [猎](野鸡、野鸭等飞禽的)群；② [军]编队飞行的空军小队",
+      "① 链(条)；② [化]链；③ 项圈,项链；④ 链；⑤ [纺]经纱；⑥ 一连串,一系列；⑦ [转](铁)锁链,镣铐,桎梏,枷锁；⑧ 连锁店 Kette；【N.】① [猎](野鸡、野鸭等飞禽的)群；② [军]编队飞行的空军小队",
       "Die Kette von Ursache und Wirkung lässt sich kaum überblicken.",
       "一系列 的原因和影响是不可掌握的。",
       "N.",
@@ -5519,10 +5519,10 @@
       "kosten",
       "复数 ：词典未标注",
       "phrase",
-      "① schwaches Verb 弱变化动词；① 价值，价格为；① 花费，使付出...的代价；② 使失去，使失掉；① 品尝，尝昧（近义词：probieren）；① 尝味（...味道）",
+      "① schwaches Verb 弱变化动词；【Vi.】① 价值，价格为；【Vt.】① 花费，使付出...的代价；② 使失去，使失掉；【Vt.】① 品尝，尝昧（近义词：probieren）；【Vi.】① 尝味（...味道）",
       "Wie viel kostet es?",
       "这要多少钱？",
-      "N.",
+      "N. / Vi. / Vt.",
       "复数 ：词典未标注；搭配：etw. kostet j-n etw.(A)；搭配：eine Speise kosten；搭配：品尝一种食物；搭配：einen Löffel Suppe kosten；搭配：尝一勺汤；搭配：von der Suppe kosten；搭配：尝尝汤的味道"
     ],
     [
@@ -5541,10 +5541,10 @@
       "regnen",
       "ich regne · du regnest · er/sie/es regnet · wir regnen · ihr regnet · sie/Sie regnen · 过去式 — · 第二分词 — · 原形：regnen",
       "v",
-      "① （无人称动词，主语为es）；② 下雨；① [口，转]密密麻麻地落下；接连不断地到来；② 下(雨)；③ [转，口]密密麻麻地落下；接连不断地到来",
+      "① （无人称动词，主语为es）；② 下雨；【Vi.】① [口，转]密密麻麻地落下；接连不断地到来；【Vt.】① （无人称动词，主语为es）；② 下(雨)；③ [转，口]密密麻麻地落下；接连不断地到来",
       "Es regnet in Strömen.",
       "大雨如注。",
-      "Vi.",
+      "Vi. / Vt.",
       "搭配：es regnet"
     ],
     [
@@ -5607,10 +5607,10 @@
       "mengen",
       "ich menge · du mengst · er/sie/es mengt · wir mengen · ihr mengt · sie/Sie mengen · 过去式 — · 第二分词 — · 原形：mengen",
       "v",
-      "① 使混合，拌和，掺和，搅和；① 混合着，混杂着；② 干涉，干预，参与，插手",
+      "① 使混合，拌和，掺和，搅和；【Vr.】① 混合着，混杂着；② 干涉，干预，参与，插手",
       "Mehl und Wasser zu einem Teig mengen",
       "把面粉和水和成面团",
-      "Vt.",
+      "Vt. / Vr.",
       "搭配：etwa. mengt sich mit etwa.(D)；搭配：sich in etwa.(A) mengen"
     ],
     [
@@ -5739,7 +5739,7 @@
       "das Gerät",
       "Plural: -e",
       "nn",
-      "① 工具；② 器具,用具(Ackergerät农具,Hausgerät家用器具)；③ 器械(Turngerät体育器械)；④ 机器装置,技术设备,仪器(Radiogerät无线电收音机)；① （整套的）用具，器具",
+      "① 工具；② 器具,用具(Ackergerät农具,Hausgerät家用器具)；③ 器械(Turngerät体育器械)；④ 机器装置,技术设备,仪器(Radiogerät无线电收音机)；【N.】① （整套的）用具，器具",
       "Der Werkzeugschrank ist voll mit Geräten aller Art.",
       "",
       "N.",
@@ -5750,7 +5750,7 @@
       "das Wort",
       "Plural: Wörter",
       "nn",
-      "① 词，单词，字；① 话，词语，言辞，言语，词句；② 名句，名言，语录，格言；③ （口头的）允诺，诺言，誓言，保证；④ 发言，讲话；⑤ （歌）词，文字",
+      "① 词，单词，字；【N.】① 话，词语，言辞，言语，词句；② 名句，名言，语录，格言；③ （口头的）允诺，诺言，誓言，保证；④ 发言，讲话；⑤ （歌）词，文字",
       "Ich habe das Wort auf der Zunge .(或 Das Wort liegt mir auf der Zunge.)",
       "",
       "N.",
@@ -5783,7 +5783,7 @@
       "die Kultur",
       "Plural: -en",
       "nf",
-      "① 文化；② [农,林]农作物,经济作物；① 文明,教养,文化修养；② 开垦;种植,栽培,培植",
+      "① 文化；② [农,林]农作物,经济作物；【N.】① 文明,教养,文化修养；② 开垦;种植,栽培,培植",
       "die antiken Kulturen",
       "古希腊文化",
       "N.",
@@ -5805,10 +5805,10 @@
       "seit",
       "词形未标注",
       "phrase",
-      "① 〈支配第三格〉 自从，从...起，从...以来；① 〈时间从句连词，较常用seitdem〉自从...以来，从...以后(起)",
+      "① 〈支配第三格〉 自从，从...起，从...以来；【Konj.】① 〈时间从句连词，较常用seitdem〉自从...以来，从...以后(起)",
       "Diese Regelung ist erst seit kurzem in Kraft.",
       "这项规定最近才生效。",
-      "Präp.",
+      "Präp. / Konj.",
       "搭配：seit der Geburt；搭配：生平；搭配：seit alten Zeiten；搭配：自古以来；搭配：seit eh und je；搭配：向来"
     ],
     [
@@ -5937,7 +5937,7 @@
       "die Messe",
       "Plural: -n",
       "nf",
-      "① 弥撒（近义词：Gottesdienst ）；② 弥撒曲；① 博览会,商品交易会；① (船上)餐厅",
+      "① 弥撒（近义词：Gottesdienst ）；② 弥撒曲；【N.】① 博览会,商品交易会；【N.】① (船上)餐厅",
       "zur Messe gehen",
       "去参加弥撒",
       "N.",
@@ -5970,10 +5970,10 @@
       "üben",
       "ich übe · du übst · er/sie/es übt · wir üben · ihr übt · sie/Sie üben · 过去式 — · 第二分词 — · 原形：üben",
       "v",
-      "① 练习；② 训练,锻炼；③ [雅,转]作,干,从事；① 经过训练的,训练有素的,熟练的",
+      "① 练习；② 训练,锻炼；③ [雅,转]作,干,从事；【Vr.】① 练习；【Part.】① 经过训练的,训练有素的,熟练的",
       "Er übt jeden Tag eine Stunde Klavier.",
       "他每天练习弹琴一小时。",
-      "Vt./Vi./Vt./Vi.",
+      "Vt./Vi./Vt./Vi. / Vr. / Part.",
       ""
     ],
     [
@@ -6002,7 +6002,7 @@
       "cefr10k-a1-00545",
       "unterwegs",
       "词形未标注",
-      "adj",
+      "adv",
       "① 途中，中途，路上",
       "Unterwegs traf sie ihren Bruder.",
       "她在路上遇到了她的兄弟。",
@@ -6091,10 +6091,10 @@
       "lang",
       "词形未标注",
       "adj",
-      "① 长的(Schnur 绳子，Mantel 大衣);长的，远的（Strecke 距离，Weg 道路）（跟kurz相对）；② (指内容)长的，详细的；③ [口](个子)高的；④ (时间)长的,长久的,长期的,长时间的（跟kurz相对）；⑤ 【烹】稀薄的,用水冲淡的；① （参见：lange）；② [口]沿着,顺着；③ [口]在边沿,在边上；① 〈支配第四格,置于名词之后〉[口]沿着,顺着",
+      "① 长的(Schnur 绳子，Mantel 大衣);长的，远的（Strecke 距离，Weg 道路）（跟kurz相对）；② (指内容)长的，详细的；③ [口](个子)高的；④ (时间)长的,长久的,长期的,长时间的（跟kurz相对）；⑤ 【烹】稀薄的,用水冲淡的；【Adv.】① （参见：lange）；② [口]沿着,顺着；③ [口]在边沿,在边上；【Präp.】① 〈支配第四格,置于名词之后〉[口]沿着,顺着",
       "Er ist hager und lang.",
       "他身材瘦长。",
-      "Adj.",
+      "Adj. / Adv. / Präp.",
       "搭配：langes Haar tragen；搭配：蓄着长发；搭配：jmdm. eine lange Nase machen；搭配：嘲笑某人；搭配：etwa. lang und breit ([雅]des Langen und Breiten) erzählen 详详细细地叙述某事 ③ [口](个子)高的 Er ist hager und lang. 他身材瘦长。 ④ (时间)长的,长久的,长期的,长时间的（跟kurz相对） Er zögerte nur einen Augenblick lang. 他只犹豫了片刻。 etwa. auf die lange Bank schieben [口]拖延某事 jmdm. wird die Zeit lang 某人等得不耐烦了；某人感到无聊"
     ],
     [
@@ -6146,10 +6146,10 @@
       "aussprechen",
       "ich ausspreche · du aussprechst · er/sie/es aussprecht · wir aussprechen · ihr aussprecht · sie/Sie aussprechen · 过去式 — · 第二分词 — · 原形：aussprechen",
       "v",
-      "① 发...的音；② （口头或书面）说出，表达，表示；① 说完；① 倾诉，全部说出（对…的看法）；② [书]道出，表明对…的评价；③ [书]表示赞成或反对；④ （人主）与…谈心；彼此说心里话（多为争吵之后）",
+      "① 发...的音；② （口头或书面）说出，表达，表示；【Vi.】① 说完；【Vr.】① 倾诉，全部说出（对…的看法）；② [书]道出，表明对…的评价；③ [书]表示赞成或反对；④ （人主）与…谈心；彼此说心里话（多为争吵之后）",
       "Wie spricht man dieses Wort aus?",
       "这个单词怎么发音？",
-      "Vt.",
+      "Vt. / Vi. / Vr.",
       "搭配：einen Wunsch offen aussprechen；搭配：公开地表达愿望；搭配：sich (über Akk) aussprechen；搭配：[书]sich irgendwie über jn/etw. aussprechen；搭配：sich für/gegen jn/etw. aussprechen；搭配：jd spricht sich mit jm aus"
     ],
     [
@@ -6168,7 +6168,7 @@
       "vorher",
       "词形未标注",
       "adv",
-      "① 以前，预先，事先 vorher；① 以前，事先",
+      "① 以前，预先，事先 vorher；【Adv.】① 以前，事先",
       "Denken Sie daran, das Päckchen zwei Wochen vorher aufzugeben.",
       "确保 提前 两周寄出包裹。",
       "Adv.",
@@ -6179,7 +6179,7 @@
       "das Festival",
       "Plural: 词典未标注",
       "nn",
-      "① 节日,喜庆；② 欢宴；③ 祭祀；① 文艺会演；② 联欢节",
+      "① 节日,喜庆；② 欢宴；③ 祭祀；【N.】① 文艺会演；② 联欢节",
       "Am Wochenende gehen wir zu einem Festival.",
       "周末我们去参加一个节日活动。",
       "N.",
@@ -6278,10 +6278,10 @@
       "passieren",
       "ich passiere · du passierst · er/sie/es passiert · wir passieren · ihr passiert · sie/Sie passieren · 过去式 — · 第二分词 — · 原形：passieren",
       "v",
-      "① 开过，走过，飞过，越过，经过，通过；② 过滤，筛；① 发生，遭遇",
+      "① 开过，走过，飞过，越过，经过，通过；② 过滤，筛；【Vi./V.】① 发生，遭遇",
       "Das Auto hatte die Grenze passiert.",
       "",
-      "Vt.",
+      "Vt. / Vi./V.",
       "搭配：gleichzeitig passieren；搭配：并发，同时发生；搭配：unerwartet passieren；搭配：偶然发生，偶发；搭配：Glücksfälle kommen nie zu zweit, Katastrophen passieren nie allein.；搭配：福无双至，祸不单行。；搭配：Nichts passiert!；搭配：没事儿！"
     ],
     [
@@ -6300,10 +6300,10 @@
       "ziehen",
       "ich ziehe · du ziehst · er/sie/es zieht · wir ziehen · ihr zieht · sie/Sie ziehen · 过去式 — · 第二分词 — · 原形：ziehen",
       "v",
-      "① zog, hat / ist gezogen；① 拉,拖,牵；② 抽出,拔出;拔去,拔掉；③ 划,绘；④ 拉长,使延长,绷紧；⑤ [技]压延,拉长；⑥ 培植,培育；⑦ 饲养；⑧ [罕]培育,教育；⑨ 吸入,吸取；⑩ (棋戏中的)走(棋)；① (s) 迁移,转移,迁往;行进,移动；② (弈棋时)走棋；③ 通风,通气；④ 泡,泡开；⑤ (s) 渗入,透入,穿入；⑥ [转,口]有吸引力,引人注目的,发生影响,起作用；⑦ 吸,抽；⑧ 拉,扯；① 延伸；② 拖延",
+      "① zog, hat / ist gezogen；【Vt.】① 拉,拖,牵；② 抽出,拔出;拔去,拔掉；③ 划,绘；④ 拉长,使延长,绷紧；⑤ [技]压延,拉长；⑥ 培植,培育；⑦ 饲养；⑧ [罕]培育,教育；⑨ 吸入,吸取；⑩ (棋戏中的)走(棋)；【Vi.】① (s) 迁移,转移,迁往;行进,移动；② (弈棋时)走棋；③ 通风,通气；④ 泡,泡开；⑤ (s) 渗入,透入,穿入；⑥ [转,口]有吸引力,引人注目的,发生影响,起作用；⑦ 吸,抽；⑧ 拉,扯；【Vr.】① 延伸；② 拖延",
       "Die Retter zogen den Verletzten aus dem brennenden Auto.",
       "营救人员将受伤者拖出燃烧着的汽车.",
-      "V.",
+      "V. / Vt. / Vi. / Vr.",
       "搭配：j-d / etw. zieht (j-n / etw.)；搭配：an etw. ziehen"
     ],
     [
@@ -6333,7 +6333,7 @@
       "der Gast",
       "Plural: Gäste",
       "nm",
-      "① 客人，宾客；② （饮食店，饭店等）顾客；③ 旅客；④ 客串演员；① （专职）船员，海员,(Signalgast 信号员）",
+      "① 客人，宾客；② （饮食店，饭店等）顾客；③ 旅客；④ 客串演员；【N.】① （专职）船员，海员,(Signalgast 信号员）",
       "Wir haben heute abend Gäste.",
       "",
       "N.",
@@ -6388,7 +6388,7 @@
       "die Daten",
       "Plural: 词典未标注",
       "nf",
-      "① Datum的复数；① 统计资料，数据（近义词：Angaben）",
+      "① Datum的复数；【N.】① 统计资料，数据（近义词：Angaben）",
       "die neuesten Daten zur Arbeitslosigkeit",
       "最新失业问题统计数据",
       "N.",
@@ -6432,10 +6432,10 @@
       "hart",
       "词形未标注",
       "adj",
-      "① 硬的（近义词：fest, steif 反义词： weich）；② 冷酷无情的；严厉的（近义词：streng, grausam 反义词： mild, freundlich ）；③ 困难的，费力的，艰难的（近义词：schwer 反义词：leicht ）；④ 艰难的，难耐的，艰难的；⑤ 剧烈的，猛烈的（近义词：heftig 反义词： sanft）；⑥ （不作状语）烈性的；⑦ 上瘾的（Drogen 毒品）；⑧ (身心上)有抵抗力，坚强的，坚定的（近义词：robust）；⑨ 反差强的，清晰的（近义词：deutlich, scharf）；⑩ 生硬的，艰涩的(反义词：weich)（ein Akzent, eine Aussprche ）；⑪ ⑾汇率稳定的，坚挺的；⑫ ⑿ （不作状语）硬芯，硬（ein Bleistift, eine Mine ）；⑬ ⒀ [南德][奥][口]有困难，吃力的；⑭ ⒁ (多作状语)[口]（青年人用语）够狠的，够绝的；① 贴紧,紧挨着",
+      "① 硬的（近义词：fest, steif 反义词： weich）；② 冷酷无情的；严厉的（近义词：streng, grausam 反义词： mild, freundlich ）；③ 困难的，费力的，艰难的（近义词：schwer 反义词：leicht ）；④ 艰难的，难耐的，艰难的；⑤ 剧烈的，猛烈的（近义词：heftig 反义词： sanft）；⑥ （不作状语）烈性的；⑦ 上瘾的（Drogen 毒品）；⑧ (身心上)有抵抗力，坚强的，坚定的（近义词：robust）；⑨ 反差强的，清晰的（近义词：deutlich, scharf）；⑩ 生硬的，艰涩的(反义词：weich)（ein Akzent, eine Aussprche ）；⑪ ⑾汇率稳定的，坚挺的；⑫ ⑿ （不作状语）硬芯，硬（ein Bleistift, eine Mine ）；⑬ ⒀ [南德][奥][口]有困难，吃力的；⑭ ⒁ (多作状语)[口]（青年人用语）够狠的，够绝的；【Adv.】① 贴紧,紧挨着",
       "Das Brot ist trocken und hart.",
       "面包又干又硬。",
-      "Adj.",
+      "Adj. / Adv.",
       "搭配：hart (für j-n)；搭配：(mit etw.) hart tun；搭配：Es geht hart auf hart [俗][口]硬碰硬，互不相让；搭配：hart im Nehmen sein [俗][口]能经得住（失败）"
     ],
     [
@@ -6564,7 +6564,7 @@
       "die Geldbörse",
       "Plural: 词典未标注",
       "nf",
-      "① （参见：Geldbeutel）；① 钱包。",
+      "① （参见：Geldbeutel）；【N.】① 钱包。",
       "Bei ihr wurden 11 Geldbörsen sowie acht Handys gefunden.",
       "在她那里找到了11个 钱包 以及8部手机。",
       "N.",
@@ -6630,10 +6630,10 @@
       "schmerzen",
       "ich schmerze · du schmerzst · er/sie/es schmerzt · wir schmerzen · ihr schmerzt · sie/Sie schmerzen · 过去式 — · 第二分词 — · 原形：schmerzen",
       "v",
-      "① (物主)使痛苦,使疼痛；① （物作主语）痛，疼痛（近义： etw. tut jemandem weh）",
+      "① (物主)使痛苦,使疼痛；【Vi.】① （物作主语）痛，疼痛（近义： etw. tut jemandem weh）",
       "Es schmerzt mich, dich so leiden zu sehen.",
       "看到你如此难过，使我很痛苦。",
-      "Vt.",
+      "Vt. / Vi.",
       ""
     ],
     [
@@ -6861,7 +6861,7 @@
       "der Gehalt",
       "Plural: Gehälter",
       "nm",
-      "① 工资，薪水 他付了她一个月的工资，然后当场解雇了她。；① 1.内容，含义 2.含量，成份 这种矿山中铁的含量很小。",
+      "① 工资，薪水 他付了她一个月的工资，然后当场解雇了她。；【N.】① 1.内容，含义 2.含量，成份 这种矿山中铁的含量很小。",
       "Er zahlte ihr den Gehalt für einen Monat aus und entließ sie auf der Stelle.",
       "",
       "N.",
@@ -7037,10 +7037,10 @@
       "außer",
       "词形未标注",
       "phrase",
-      "① 除…之外，除了；② 此外，与此同时；③ （与名词连用，不带冠词）在（时间或空间）之外，脱离（参见：außerhalb）；① 除非，除了；② （构成形容词，构词有限）…以外的，非…的",
+      "① 除…之外，除了；② 此外，与此同时；③ （与名词连用，不带冠词）在（时间或空间）之外，脱离（参见：außerhalb）；【Konj.】① 除非，除了；② （构成形容词，构词有限）…以外的，非…的",
       "Der Zug verkehrt täglich außer sonntags.",
       "除了周日，火车每天都开。",
-      "Präp.",
+      "Präp. / Konj.",
       "搭配：außer sich(Dat) sein (vor etw.)；搭配：(因…而)失去自控，忘乎所以；搭配：außerbetrieblich；搭配：利益以外的；搭配：außereuropäisch；搭配：欧洲外的；搭配：außerschulisch；搭配：非教育的"
     ],
     [
@@ -7059,10 +7059,10 @@
       "der Wecken",
       "Plural: 词典未标注",
       "nm",
-      "① 〈地区〉(长形)白面包,小白面包；① 唤醒，叫醒；② 唤起，呼唤，引起",
+      "① 〈地区〉(长形)白面包,小白面包；【Vt.】① 唤醒，叫醒；② 唤起，呼唤，引起",
       "Er wurde durch den Lärm geweckt.",
       "他被噪音惊醒.",
-      "N.",
+      "N. / Vt.",
       "复数 ：词典未标注；搭配：etw. (in/bei jm) wecken；搭配：in/bei jm den Wunsch nach etw. wecken；搭配：激起某人对某物的渴望"
     ],
     [
@@ -7092,10 +7092,10 @@
       "teilen",
       "ich teile · du teilst · er/sie/es teilt · wir teilen · ihr teilt · sie/Sie teilen · 过去式 — · 第二分词 — · 原形：teilen",
       "v",
-      "① 分,把...分开,把...分成部分;平分,等分；② 共有;分担;分享；③ [生,物]分裂;使裂变；④ [数]除；① 分开,分裂；② 分担,分享,分占",
+      "① 分,把...分开,把...分成部分;平分,等分；② 共有;分担;分享；③ [生,物]分裂;使裂变；④ [数]除；【Vr.】① 分开,分裂；② 分担,分享,分占",
       "Wir haben uns die Arbeit geteilt.",
       "我们共同分担工作.",
-      "Vt.",
+      "Vt. / Vr.",
       "搭配：einen Kuchen in zwölf Stücke teilen 把蛋糕等分为12份；搭配：eine Zahl durch zehn teilen 一个数字除10"
     ],
     [
@@ -7235,10 +7235,10 @@
       "interessieren",
       "ich interessiere · du interessierst · er/sie/es interessiert · wir interessieren · ihr interessiert · sie/Sie interessieren · 过去式 — · 第二分词 — · 原形：interessieren",
       "v",
-      "① 感兴趣,注意,关心；② 想要想买;想了解,想知道；① 使发生兴趣;引起...注意(或关心)",
+      "① 感兴趣,注意,关心；② 想要想买;想了解,想知道；【Vt.】① 使发生兴趣;引起...注意(或关心)",
       "Er interessiert sich für alles.",
       "他对什么都感兴趣。",
-      "Vr.",
+      "Vr. / Vt.",
       "搭配：sich für j-n/etw.(A) interessieren 感兴趣,注意,关心；搭配：j-n an etw.(D)/für etw.(A) interessieren 使发生兴趣;引起...注意(或关心)"
     ],
     [
@@ -7345,7 +7345,7 @@
       "das Messer",
       "Plural: 词典未标注",
       "nn",
-      "① 刀；② 刀具；① 先生(意大利喜剧中对贵族、医生等社会地位高的人的尊称)；① 计量器,测量工具；② 测量人员,计量人员",
+      "① 刀；② 刀具；【N.】① 先生(意大利喜剧中对贵族、医生等社会地位高的人的尊称)；【N.】① 计量器,测量工具；② 测量人员,计量人员",
       "ein Messer abziehen",
       "磨刀",
       "N.",
@@ -7378,10 +7378,10 @@
       "sicher",
       "词形未标注",
       "adj",
-      "① 安全的,保险的；② 确定无疑的,一定的；③ 可靠的,可信的,有把握的；④ 稳当的；⑤ 准确无误的；① 当然；② 确实,无疑；③ 大概,谅必,一定",
+      "① 安全的,保险的；② 确定无疑的,一定的；③ 可靠的,可信的,有把握的；④ 稳当的；⑤ 准确无误的；【Adv.】① 当然；② 确实,无疑；③ 大概,谅必,一定",
       "sicheres Geleit",
       "安全护卫；【律】通行许可",
-      "Adj.",
+      "Adj. / Adv.",
       ""
     ],
     [
@@ -7499,10 +7499,10 @@
       "außerhalb",
       "词形未标注",
       "phrase",
-      "① 〈支配第二格〉在...之外；① 在城外,在市郊；② 在外面,在外地",
+      "① 〈支配第二格〉在...之外；【Adv.】① 在城外,在市郊；② 在外面,在外地",
       "Außerhalb der Hochsaison ist es hier sehr ruhig.",
       "除了旺季这都很安静.",
-      "Präp.",
+      "Präp. / Adv.",
       ""
     ],
     [
@@ -7884,10 +7884,10 @@
       "reihen",
       "ich reihe · du reihst · er/sie/es reiht · wir reihen · ihr reiht · sie/Sie reihen · 过去式 — · 第二分词 — · 原形：reihen",
       "v",
-      "① 排列成行，排列；① (物主)紧接着，连接着",
+      "① 排列成行，排列；【Vr.】① (物主)紧接着，连接着",
       "Ein schönes Erlebnis reiht sich an das andere.",
       "好事不断。",
-      "Vt.",
+      "Vt. / Vr.",
       "搭配：Perlen auf eine Schnur reihen；搭配：把珍珠串成串"
     ],
     [
@@ -7928,10 +7928,10 @@
       "schulen",
       "ich schule · du schulst · er/sie/es schult · wir schulen · ihr schult · sie/Sie schulen · 过去式 — · 第二分词 — · 原形：schulen",
       "v",
-      "① 传授,培养,训练；② 训练,使完善；① 〈地区〉斜目而视,瞟",
+      "① 传授,培养,训练；② 训练,使完善；【Vi.】① 〈地区〉斜目而视,瞟",
       "",
       "",
-      "Vt.",
+      "Vt. / Vi.",
       "搭配：schulen j-n. fachliches Wissen. 向某人传授专业知识；搭配：die Augen schulen 训练眼睛"
     ],
     [
@@ -7961,10 +7961,10 @@
       "scheren",
       "ich schere · du scherst · er/sie/es schert · wir scheren · ihr schert · sie/Sie scheren · 过去式 — · 第二分词 — · 原形：scheren",
       "v",
-      "① 剪短,给...剃头,剪毛；② 修剪；① (仅用于否定句或疑问句) （物作主语）与...有关，使牵挂；① [俗]〈大多用于命令或咒骂〉走开,离开;去,到；② [口]〈仅用于否定句〉关心",
+      "① 剪短,给...剃头,剪毛；② 修剪；【Vt.】① (仅用于否定句或疑问句) （物作主语）与...有关，使牵挂；【Vr.】① [俗]〈大多用于命令或咒骂〉走开,离开;去,到；② [口]〈仅用于否定句〉关心",
       "Ich lasse mir den Kopf kahl scheren.",
       "我让人把我剃光头。",
-      "Vt.",
+      "Vt. / Vr.",
       "搭配：eine Hecke scheren 修剪树篱；搭配：sich um j-n / etwas scheren"
     ],
     [
@@ -8071,7 +8071,7 @@
       "der Star",
       "Plural: 词典未标注",
       "nm",
-      "① -e [医]内障眼,白内障 Star；① 明星；② 杰出人物,著名人物,明星；③ 为众人瞩目的对象,明星；④ （参见：Starboot） Star；① -e 椋鸟科(Sturnidä)",
+      "① -e [医]内障眼,白内障 Star；【N.】① 明星；② 杰出人物,著名人物,明星；③ 为众人瞩目的对象,明星；④ （参见：Starboot） Star；【N.】① -e 椋鸟科(Sturnidä)",
       "Es gab Applaus, als die Stars die Bühne betraten.",
       "当 明星 上台时，掌声雷动。",
       "N.",
@@ -8126,7 +8126,7 @@
       "die Krankenkasse",
       "Plural: 词典未标注",
       "nf",
-      "① 健康基金。医疗保险。；① 疾病保险公司",
+      "① 健康基金。医疗保险。；【N.】① 疾病保险公司",
       "Das Bundesversicherungsamt hatte Ende Januar mitgeteilt, keine Hinweise auf eine Preisabsprache der Krankenkassen zu haben.",
       "德国联邦保险局在二月底通知，没有迹象表明 医疗保险 存在价格协商。",
       "N.",
@@ -8137,7 +8137,7 @@
       "das Ding",
       "Plural: -e",
       "nn",
-      "① 物，东西，事物；② （复数）事，事情，事务；③ （复数）情况，局面，事态；① 东西，不值钱的东西；② 举动，行动；③ 小东西，小家伙（指小姑娘）",
+      "① 物，东西，事物；② （复数）事，事情，事务；③ （复数）情况，局面，事态；【N.】① 东西，不值钱的东西；② 举动，行动；③ 小东西，小家伙（指小姑娘）",
       "Das ist ein Ding!",
       "",
       "N.",
@@ -8148,7 +8148,7 @@
       "die Europäerin",
       "Plural: 词典未标注",
       "nf",
-      "① 欧洲女人；① 欧洲人(女)",
+      "① 欧洲女人；【N.】① 欧洲人(女)",
       "Die Europäerin lebt in Deutschland.",
       "这位欧洲女性住在德国。",
       "N.",
@@ -8159,7 +8159,7 @@
       "romantisch",
       "词形未标注",
       "adj",
-      "① 浪漫主义的，富有浪漫色彩的 romantisch；① .浪漫的",
+      "① 浪漫主义的，富有浪漫色彩的 romantisch；【Adj.】① .浪漫的",
       "Die Übernachtung in einer Berghütte ist sicher sehr romantisch.",
       "在山上小屋过夜一定非常 浪漫。",
       "Adj.",
@@ -8247,10 +8247,10 @@
       "die nummern",
       "Plural: 词典未标注",
       "nf",
-      "① Nummern 的复数；② 数字，编号，号码；③ 码，数，数目；④ （口语,方言）性交；① 数，算，给……排队，给……编号",
+      "① Nummern 的复数；② 数字，编号，号码；③ 码，数，数目；④ （口语,方言）性交；【Vt./N.】① 数，算，给……排队，给……编号",
       "Bitte schreiben Sie die Nummern auf.",
       "请把号码写下来。",
-      "N.",
+      "N. / Vt./N.",
       "复数 ：词典未标注"
     ],
     [

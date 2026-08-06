@@ -24,13 +24,15 @@ type View = "learn" | "review" | "library" | "settings";
 type ThemeMode = "light" | "dark" | "system";
 type SkinMode = "parchment" | "mist" | "forest" | "wine" | "graphite";
 type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1";
-type LibraryBookFilter = "all" | CEFRLevel;
+type WordbookCategory = CEFRLevel | "SPECIAL";
+type LibraryBookFilter = "all" | WordbookCategory;
+type LibrarySort = "source" | "alphabetical" | "type";
 type WordOrder = "sequential" | "random";
 type StudyMode = "mastery" | "speed";
 type SpeechSpeed = "0.5" | "0.75" | "1" | "1.25";
 type WordCard = {
   id: string;
-  level: CEFRLevel;
+  level: WordbookCategory;
   term: string;
   audioUrl?: string;
   exampleAudioUrl?: string;
@@ -100,7 +102,7 @@ type PackedWordRow = [
 
 type PackedWordbook = {
   schemaVersion: 2;
-  level: CEFRLevel;
+  level: WordbookCategory;
   count: number;
   fields: [
     "id",
@@ -190,8 +192,8 @@ type BoardMessage = {
   createdAt: number;
 };
 
-const APP_VERSION = "beta3.10";
-const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.10";
+const APP_VERSION = "4.0";
+const VERSION_NOTICE_KEY = "worttag-version-notice-4.0";
 const BILIBILI_URL = "https://space.bilibili.com/96625971";
 const GITHUB_URL = "https://github.com/mitsuha";
 
@@ -217,6 +219,9 @@ const REVIEW_FSRS_SCHEDULER = fsrs({
   enable_fuzz: false,
 });
 const CEFR_LEVELS: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
+const WORDBOOK_CATEGORIES: WordbookCategory[] = [...CEFR_LEVELS, "SPECIAL"];
+const SPECIAL_WORD_COUNT = 151;
+const TOTAL_LIBRARY_WORD_COUNT = 10_000 + SPECIAL_WORD_COUNT;
 const COURSE_WORD_COUNTS: Record<CEFRLevel, number> = {
   A1: 750,
   A2: 1000,
@@ -275,6 +280,10 @@ const LEVEL_META: Record<CEFRLevel, { title: string; description: string }> = {
   B1: { title: "独立", description: "叙述经历、处理问题与表达看法" },
   B2: { title: "进阶", description: "复杂讨论、因果关系与抽象主题" },
   C1: { title: "熟练", description: "精确表达、学术与专业语境" },
+};
+const WORDBOOK_META: Record<WordbookCategory, { title: string; description: string }> = {
+  ...LEVEL_META,
+  SPECIAL: { title: "专项", description: "数字、日期、国家与其他专项词条" },
 };
 
 const SPEECH_SPEED_VALUES: SpeechSpeed[] = ["0.5", "0.75", "1", "1.25"];
@@ -467,8 +476,12 @@ let WORDS: WordCard[] = [];
 let WORD_BY_ID = new Map<string, WordCard>();
 let expandedWordbooksPromise: Promise<void> | null = null;
 
-function isWordInBook(word: WordCard, level: CEFRLevel) {
+function isWordInBook(word: WordCard, level: WordbookCategory) {
   return word.level === level;
+}
+
+function isCEFRLevel(value: unknown): value is CEFRLevel {
+  return typeof value === "string" && CEFR_LEVELS.includes(value as CEFRLevel);
 }
 
 function packedWordDetails(typeCode: PackedWordType, term: string, forms: string) {
@@ -591,7 +604,7 @@ function isPackedWordRow(value: unknown): value is PackedWordRow {
     PACKED_WORD_TYPES.has(value[3] as PackedWordType);
 }
 
-function parsePackedWordbook(value: unknown, expectedLevel: CEFRLevel): PackedWordbook {
+function parsePackedWordbook(value: unknown, expectedLevel: WordbookCategory, expectedCount: number): PackedWordbook {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error(`${expectedLevel} wordbook is not an object.`);
   }
@@ -602,7 +615,7 @@ function parsePackedWordbook(value: unknown, expectedLevel: CEFRLevel): PackedWo
   if (
     candidate.schemaVersion !== 2 ||
     candidate.level !== expectedLevel ||
-    candidate.count !== COURSE_WORD_COUNTS[expectedLevel] ||
+    candidate.count !== expectedCount ||
     !validFields ||
     !Array.isArray(candidate.words) ||
     candidate.words.length !== candidate.count ||
@@ -620,7 +633,9 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
       id,
       level: resource.level,
       term,
-      audioUrl: id.startsWith("core6000-") && FIXED_AUDIO_LEVELS.includes(resource.level)
+      audioUrl: id.startsWith("core6000-")
+        && resource.level !== "SPECIAL"
+        && FIXED_AUDIO_LEVELS.includes(resource.level)
         ? `/audio/${resource.level.toLowerCase()}/anna/${id}.m4a`
         : undefined,
       forms,
@@ -637,18 +652,20 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
 
 function loadExpandedWordbooks() {
   if (expandedWordbooksPromise) return expandedWordbooksPromise;
-  expandedWordbooksPromise = Promise.all(CEFR_LEVELS.map(async (level) => {
+  expandedWordbooksPromise = Promise.all(WORDBOOK_CATEGORIES.map(async (level) => {
       // Include the corpus revision so an old cached response cannot make the
-      // expanded 750/1000/1200/3000/4050 books appear empty after a release.
-      const response = await fetch(`/wordbooks/${level.toLowerCase()}-v2.json?corpus=combined-cefr-10000`, { cache: "no-store" });
+      // expanded books appear empty after a release.
+      const fileName = level === "SPECIAL" ? "special" : level.toLowerCase();
+      const expectedCount = level === "SPECIAL" ? SPECIAL_WORD_COUNT : COURSE_WORD_COUNTS[level];
+      const response = await fetch(`/wordbooks/${fileName}-v2.json?corpus=combined-wordbooks-10151`, { cache: "no-store" });
       if (!response.ok) throw new Error(`${level} wordbook could not be loaded.`);
-      return parsePackedWordbook(await response.json(), level);
+      return parsePackedWordbook(await response.json(), level, expectedCount);
     })).then((resources) => {
     const wordbookByLevel = new Map(
       resources.map((resource) => [resource.level, expandPackedWordbook(resource)]),
     );
     const ids = new Set<string>();
-    const expanded = CEFR_LEVELS.flatMap((level) => wordbookByLevel.get(level) ?? []);
+    const expanded = WORDBOOK_CATEGORIES.flatMap((level) => wordbookByLevel.get(level) ?? []);
     expanded.forEach((word) => {
       if (ids.has(word.id)) throw new Error(`Duplicate word id: ${word.id}`);
       ids.add(word.id);
@@ -743,22 +760,6 @@ function nextLearningStageForRating(current: number, rating: RecallStatus) {
   return Math.min(INTERVAL_DAYS.length - 1, current + 1);
 }
 
-function masteryFeedback(
-  rating: RecallStatus,
-  points: number,
-  dueLabel: string,
-) {
-  if (rating === "known") {
-    return points >= MAX_REVIEW_COUNT
-      ? `答对 · 三个金色光点已集齐，下次 ${dueLabel}`
-      : `答对 · 光点 ${points} / ${MAX_REVIEW_COUNT}，下次 ${dueLabel}`;
-  }
-  if (rating === "fuzzy") {
-    return `模糊 · 光点 ${points} / ${MAX_REVIEW_COUNT}，回到上一阶段，下次 ${dueLabel}`;
-  }
-  return `未知 · 光点清零，回到第一阶段，下次 ${dueLabel}`;
-}
-
 function createInitialState(now = Date.now()): LearningState {
   return {
     records: {},
@@ -815,6 +816,9 @@ function prepareSavedState(
   const normalizedQueueEvents = Array.isArray(saved.todayQueueCompletionIds)
     ? saved.todayQueueCompletionIds.filter((id): id is string => typeof id === "string")
     : legacyQueueEvents;
+  const inferredQueueLevel = savedTodayWordIds
+    .map((id) => WORD_BY_ID.get(id)?.level)
+    .find(isCEFRLevel);
   const normalized: LearningState = {
     records: savedRecords,
     todayKey: saved.todayKey ?? currentDay,
@@ -825,10 +829,9 @@ function prepareSavedState(
     sessionComplete: saved.sessionComplete ?? false,
     todayQueuesCompleted: normalizedQueueEvents.length,
     todayQueueCompletionIds: normalizedQueueEvents,
-    todayQueueLevel:
-      saved.todayQueueLevel ??
-      savedTodayWordIds.map((id) => WORD_BY_ID.get(id)).find((word) => word !== undefined)?.level ??
-      null,
+    todayQueueLevel: isCEFRLevel(saved.todayQueueLevel)
+      ? saved.todayQueueLevel
+      : inferredQueueLevel ?? null,
     todayQueueGoal: savedQueueGoal,
     updatedAt: Math.max(saved.updatedAt ?? 0, recordUpdatedAt),
     resetAt: saved.resetAt ?? 0,
@@ -1161,6 +1164,23 @@ function wordFormsForDisplay(word: WordCard) {
   return `die ${pluralMarker}`;
 }
 
+function firstThreeMeanings(value: string) {
+  const parts = value
+    .split(/[；;]/u)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (parts.length <= 3) return value;
+  return `${parts.slice(0, 3).join("；")}…`;
+}
+
+function librarySortTerm(value: string) {
+  return value
+    .replace(/^(der|die|das)\s+/iu, "")
+    .normalize("NFKD")
+    .toLocaleLowerCase("de-DE")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 function buildDailyQueue(
   state: LearningState,
   settings: AppSettings,
@@ -1454,7 +1474,7 @@ export default function Home() {
   const [sessionMasteryPoints, setSessionMasteryPoints] = useState<Record<string, number>>({});
   const [sessionLastRatings, setSessionLastRatings] = useState<Record<string, RecallStatus>>({});
   const [sessionRound, setSessionRound] = useState(1);
-  const [queueSource, setQueueSource] = useState<"daily" | "review" | "manual">("daily");
+  const [queueSource, setQueueSource] = useState<"daily" | "review">("daily");
   const [returnView, setReturnView] = useState<View>("learn");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
@@ -1475,6 +1495,8 @@ export default function Home() {
   const [masteredDrawerOpen, setMasteredDrawerOpen] = useState(false);
   const [libraryQuery, setLibraryQuery] = useState("");
   const [libraryBookFilter, setLibraryBookFilter] = useState<LibraryBookFilter>("all");
+  const [librarySort, setLibrarySort] = useState<LibrarySort>("source");
+  const [expandedLibraryWordId, setExpandedLibraryWordId] = useState<string | null>(null);
   const [libraryVisibleCount, setLibraryVisibleCount] = useState(LIBRARY_PAGE_SIZE);
   const [reviewVisibleCount, setReviewVisibleCount] = useState(REVIEW_PAGE_SIZE);
   const [dictionaryWord, setDictionaryWord] = useState<WordCard | null>(null);
@@ -1545,7 +1567,7 @@ export default function Home() {
     });
   }
 
-  function resetSessionQueue(ids: string[], source: "daily" | "review" | "manual" = "daily") {
+  function resetSessionQueue(ids: string[], source: "daily" | "review" = "daily") {
     const uniqueIds = Array.from(new Set(ids));
     setSessionQueue(uniqueIds);
     setSessionWordIds(uniqueIds);
@@ -2179,7 +2201,7 @@ export default function Home() {
 
   const currentWordId = sessionQueue[currentIndex];
   const currentWord = WORD_BY_ID.get(currentWordId);
-  const activeStudyMode: StudyMode = queueSource === "manual" ? "speed" : settings.studyMode;
+  const activeStudyMode: StudyMode = settings.studyMode;
   const currentRecord = currentWord ? learning.records[currentWord.id] : undefined;
   const bookWords = useMemo(
     () => {
@@ -2196,8 +2218,8 @@ export default function Home() {
     [wordbookRevision],
   );
   const libraryBookStats = useMemo(() => {
-    const stats = {} as Record<CEFRLevel, { count: number; mastered: number }>;
-    CEFR_LEVELS.forEach((level) => {
+    const stats = {} as Record<WordbookCategory, { count: number; mastered: number }>;
+    WORDBOOK_CATEGORIES.forEach((level) => {
       const words = libraryWordsUniverse.filter((word) => isWordInBook(word, level));
       stats[level] = {
         count: words.length,
@@ -2260,14 +2282,22 @@ export default function Home() {
       .map(({ word }) => word),
     [libraryQueryTokens, librarySearchIndex],
   );
-  const libraryWords = librarySearchMatches;
+  const libraryWords = useMemo(() => {
+    if (librarySort === "source") return librarySearchMatches;
+    return [...librarySearchMatches].sort((left, right) => {
+      const leftKey = librarySort === "alphabetical" ? librarySortTerm(left.term) : left.type;
+      const rightKey = librarySort === "alphabetical" ? librarySortTerm(right.term) : right.type;
+      return leftKey.localeCompare(rightKey, librarySort === "alphabetical" ? "de-DE" : "zh-CN")
+        || librarySortTerm(left.term).localeCompare(librarySortTerm(right.term), "de-DE");
+    });
+  }, [librarySearchMatches, librarySort]);
   const masteredWords = useMemo(
     () => libraryWordsSource.filter((word) => isMasteredRecord(learning.records[word.id])),
     [libraryWordsSource, learning.records],
   );
   const libraryBookLabel = libraryBookFilter === "all"
     ? "全部词书"
-    : `${libraryBookFilter} · ${LEVEL_META[libraryBookFilter].title}`;
+    : `${libraryBookFilter === "SPECIAL" ? "专项" : libraryBookFilter} · ${WORDBOOK_META[libraryBookFilter].title}`;
   useEffect(() => {
     if (view !== "library" || libraryVisibleCount >= libraryWords.length) return;
     const target = libraryLoadMoreRef.current;
@@ -2566,7 +2596,6 @@ export default function Home() {
       allowUnrevealed?: boolean;
       mode?: "choice" | "rating" | "speed";
       transitionDelay?: number;
-      feedbackText?: string;
     } = {},
   ) {
     if (!currentWord || (!revealed && !options.allowUnrevealed) || grading) return;
@@ -2574,7 +2603,7 @@ export default function Home() {
     hasLocalInteractionRef.current = true;
     const now = currentTimestamp();
     const latest = learningRef.current;
-    const { next, dueLabel } = queueSource === "review"
+    const { next } = queueSource === "review"
       ? gradeReviewMemory(latest.records[currentWord.id], rating, now)
       : gradeMemory(latest.records[currentWord.id], rating, now);
     const reviewEvents = [
@@ -2603,7 +2632,7 @@ export default function Home() {
         ...points,
         [currentWord.id]: nextMasteryPoints,
       }));
-      setFeedback(options.feedbackText ?? masteryFeedback(rating, nextMasteryPoints, dueLabel));
+      setFeedback(null);
       setGrading(false);
       return;
     }
@@ -2612,7 +2641,7 @@ export default function Home() {
       const nextRatings = [...sessionRatings];
       nextRatings[currentIndex] = rating;
       setSessionRatings(nextRatings);
-      setFeedback(masteryFeedback(rating, nextMasteryPoints, dueLabel));
+      setFeedback(null);
       setGrading(true);
       if (currentIndex + 1 >= sessionQueue.length) {
         finishSession(nextState);
@@ -2639,7 +2668,7 @@ export default function Home() {
       const nextRatings = [...sessionRatings];
       nextRatings[currentIndex] = rating;
       setSessionRatings(nextRatings);
-      setFeedback(options.feedbackText ?? masteryFeedback(rating, nextMasteryPoints, dueLabel));
+      setFeedback(null);
       setGrading(true);
 
       const roundComplete = currentIndex + 1 >= sessionQueue.length;
@@ -2684,7 +2713,7 @@ export default function Home() {
     }
     setSessionQueue(nextQueue);
     setSessionRatings(nextRatings);
-    setFeedback(options.feedbackText ?? masteryFeedback(rating, nextMasteryPoints, dueLabel));
+    setFeedback(null);
     setGrading(true);
 
     if (currentIndex + 1 >= nextQueue.length) {
@@ -2741,13 +2770,12 @@ export default function Home() {
       allowUnrevealed: true,
       mode: "choice",
       transitionDelay: 1000,
-      feedbackText: correct ? "选择正确 · 光点 +1" : "选择错误 · 光点清零，回到第一阶段",
     });
   }
 
   function startQueue(
     ids: string[],
-    source: "daily" | "review" | "manual" = "manual",
+    source: "daily" | "review",
   ) {
     clearTransitionTimer();
     setMasteredDrawerOpen(false);
@@ -2990,7 +3018,10 @@ export default function Home() {
   function switchView(nextView: View) {
     if (nextView === "library") setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
     if (nextView === "review") setReviewVisibleCount(REVIEW_PAGE_SIZE);
-    if (nextView !== "library") setMasteredDrawerOpen(false);
+    if (nextView !== "library") {
+      setMasteredDrawerOpen(false);
+      setExpandedLibraryWordId(null);
+    }
     const shouldRestoreDaily = nextView === "learn" && (
       queueSource !== "daily" ||
       (view !== "learn" && !sessionQueue.length) ||
@@ -3012,6 +3043,13 @@ export default function Home() {
 
   function selectLibraryBook(filter: LibraryBookFilter) {
     setLibraryBookFilter(filter);
+    setExpandedLibraryWordId(null);
+    setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
+  }
+
+  function selectLibrarySort(sort: LibrarySort) {
+    setLibrarySort(sort);
+    setExpandedLibraryWordId(null);
     setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
   }
 
@@ -3396,12 +3434,12 @@ export default function Home() {
           <>
             <section className="page-heading learn-heading">
               <div className={queueSource === "daily" ? "learn-title daily-library-title" : "learn-title"}>
-                <p className="kicker">{queueSource === "daily" ? new Date().toLocaleDateString("de-DE", { weekday: "long" }) : queueSource === "review" ? "Wiederholen · 到期复习" : "Einzelkarte · 单独学习"}</p>
-                <h1>{queueSource === "daily" ? `${settings.level} 今日词库` : queueSource === "review" ? "到期的词，认真想一次。" : "只学这一张，也算向前一步。"}</h1>
+                <p className="kicker">{queueSource === "daily" ? new Date().toLocaleDateString("de-DE", { weekday: "long" }) : "Wiederholen · 到期复习"}</p>
+                <h1>{queueSource === "daily" ? `${settings.level} 今日词库` : "到期的词，认真想一次。"}</h1>
               </div>
               <div className="heading-progress" aria-label={`今日计划进度 ${sessionProgress}%`}>
                 <div className="progress-copy">
-                  <span>{queueSource === "daily" ? `今日计划 · 第 ${Math.min(learning.todayQueuesCompleted + 1, activeQueueGoal)} / ${activeQueueGoal} 队列` : queueSource === "review" ? "本次复习" : "本次单独学习"}</span>
+                  <span>{queueSource === "daily" ? `今日计划 · 第 ${Math.min(learning.todayQueuesCompleted + 1, activeQueueGoal)} / ${activeQueueGoal} 队列` : "本次复习"}</span>
                   <strong>{queueSource === "daily" && !sessionQueue.length ? `${learning.todayQueuesCompleted} / ${activeQueueGoal}` : `${sessionCompletedCount} / ${sessionUniqueTotal}`}</strong>
                 </div>
                 <div className="progress-track"><span style={{ width: `${sessionProgress}%` }} /></div>
@@ -3437,7 +3475,7 @@ export default function Home() {
                 </div>
                 <div className="spelling-cue">
                   <span>{spellingWord.type}</span>
-                  <h2>{spellingWord.meaning}</h2>
+                  <h2>{firstThreeMeanings(spellingWord.meaning)}</h2>
                   <button className="speak-button" type="button" onClick={() => speak(spellingWord)} aria-label={`朗读 ${spellingWord.term}（快捷键 F）`} aria-keyshortcuts="F">
                     <span className="sound-rings" aria-hidden="true">◖))</span> 听发音
                     <kbd className="feature-shortcut" aria-hidden="true">F</kbd>
@@ -3480,7 +3518,7 @@ export default function Home() {
                 <aside className="session-panel paper-panel" aria-label="今日学习队列">
                   <div className="panel-heading">
                     <span className="folio">01</span>
-                    <div><p className="kicker">Sitzung</p><h2>{queueSource === "daily" ? "今日队列" : queueSource === "review" ? "复习队列" : "单独学习"}</h2></div>
+                    <div><p className="kicker">Sitzung</p><h2>{queueSource === "daily" ? "今日队列" : "复习队列"}</h2></div>
                   </div>
                   <div className="queue-list">
                     {sessionUniqueIds.map((id, index) => {
@@ -3523,7 +3561,7 @@ export default function Home() {
 
                   <section className={`${revealed ? "word-card revealed" : "word-card"}${activeStudyMode === "speed" ? " speed-mode" : ""}`}>
                     <div className="card-topline">
-                    <span className="card-mode">{activeStudyMode === "speed" ? `速刷 · 第 ${sessionRound} 轮` : currentIsRepeat ? `第 ${sessionRound} 轮` : queueSource === "manual" ? "单独学习" : currentRecord ? "复习" : "新词"} · {String(currentIndex + 1).padStart(2, "0")} / {sessionQueue.length}</span>
+                    <span className="card-mode">{activeStudyMode === "speed" ? `速刷 · 第 ${sessionRound} 轮` : currentIsRepeat ? `第 ${sessionRound} 轮` : currentRecord ? "复习" : "新词"} · {String(currentIndex + 1).padStart(2, "0")} / {sessionQueue.length}</span>
                     <button className="speak-button" type="button" onClick={() => speak(currentWord)} aria-label={`朗读 ${currentWord.term}（快捷键 F）`} aria-keyshortcuts="F">
                       <span className="sound-rings" aria-hidden="true">◖))</span> 听发音
                       <kbd className="feature-shortcut" aria-hidden="true">F</kbd>
@@ -3569,7 +3607,7 @@ export default function Home() {
                           <>
                             <div className="meaning-line">
                               <span className="answer-label">释义</span>
-                              <strong>{currentWord.meaning}</strong>
+                              <strong>{firstThreeMeanings(currentWord.meaning)}</strong>
                             </div>
                             {currentWord.example && (
                               <blockquote>
@@ -3590,7 +3628,6 @@ export default function Home() {
                       </div>
                       {currentSessionRating ? (
                         <div className="rating-area speed-rating-area">
-                          <p>已记录；模糊和未知会在本轮结束后重刷。</p>
                           <button className="reveal-button speed-next-button" type="button" onClick={advanceSpeedWord} disabled={grading} aria-keyshortcuts="X">
                             <span>下一个词</span>
                             <kbd className="speed-next-key" aria-hidden="true">X</kbd>
@@ -3645,7 +3682,7 @@ export default function Home() {
                                 key={option.id}
                               >
                                 <small>{option.type}</small>
-                                <strong>{option.meaning}</strong>
+                                <strong>{firstThreeMeanings(option.meaning)}</strong>
                                 <span className="meaning-key" aria-hidden="true">{index + 1}</span>
                               </button>
                             );
@@ -3654,7 +3691,7 @@ export default function Home() {
                         {grading && selectedChoiceId ? (
                           <div className={selectedChoiceId === currentWord.id ? "choice-auto-result correct" : "choice-auto-result incorrect"} role="status">
                             <strong>{selectedChoiceId === currentWord.id ? "选择正确 · 光点 +1" : "正确词义"}</strong>
-                            <span>{currentWord.meaning}</span>
+                            <span>{firstThreeMeanings(currentWord.meaning)}</span>
                             {selectedChoiceId !== currentWord.id && <small>1 秒后自动进入下一个单词</small>}
                           </div>
                         ) : (
@@ -3745,7 +3782,7 @@ export default function Home() {
                     <div className="answer-sheet" aria-live="polite">
                       <div className="meaning-line">
                         <span className="answer-label">释义</span>
-                        <strong>{currentWord.meaning}</strong>
+                        <strong>{firstThreeMeanings(currentWord.meaning)}</strong>
                       </div>
                       {currentWord.example && (
                         <blockquote>
@@ -3824,7 +3861,7 @@ export default function Home() {
                     disabled={mastered}
                     onClick={() => startQueue([word.id], "review")}
                   >
-                    <span><strong><ArticleTerm term={word.term} /></strong><small>{word.meaning}</small></span>
+                    <span><strong><ArticleTerm term={word.term} /></strong><small>{firstThreeMeanings(word.meaning)}</small></span>
                     <ReviewDots record={record} />
                     <span>{record ? `${record.intervalDays || "<1"} 天间隔` : "新词"}</span>
                     <span>{record ? formatDate(record.dueAt) : "尚未学习"}</span>
@@ -3841,7 +3878,7 @@ export default function Home() {
         {view === "library" && (
           <section className="secondary-page">
             <div className="page-heading library-heading">
-              <div><p className="kicker">Wortschatz · 10,000 Wörter</p><h1>你的词，分得清才记得住。</h1></div>
+              <div><p className="kicker">Wortschatz · {TOTAL_LIBRARY_WORD_COUNT.toLocaleString("zh-CN")} Wörter</p><h1>你的词，分得清才记得住。</h1></div>
               <button
                 className={`mastered-library-trigger${masteredDrawerOpen ? " active" : ""}`}
                 type="button"
@@ -3860,7 +3897,7 @@ export default function Home() {
                   <p className="kicker">Wortbücher · 分类浏览</p>
                   <strong>{libraryBookLabel}</strong>
                 </div>
-                <span>按等级拆开 10,000 个词，选择后可继续搜索和单独学习。</span>
+                <span>按词书拆开 {TOTAL_LIBRARY_WORD_COUNT.toLocaleString("zh-CN")} 个词，选择后可继续搜索和展开详情。</span>
               </div>
               <div className="library-book-filter-options" role="group" aria-label="词书分类">
                 <button
@@ -3873,7 +3910,7 @@ export default function Home() {
                   <strong>{libraryWordsUniverse.length}</strong>
                   <small>{libraryMasteredTotal} 已熟记</small>
                 </button>
-                {CEFR_LEVELS.map((level) => {
+                {WORDBOOK_CATEGORIES.map((level) => {
                   const stats = libraryBookStats[level];
                   return (
                     <button
@@ -3883,7 +3920,7 @@ export default function Home() {
                       onClick={() => selectLibraryBook(level)}
                       key={level}
                     >
-                      <span className="library-book-filter-name">{level} · {LEVEL_META[level].title}</span>
+                      <span className="library-book-filter-name">{level === "SPECIAL" ? "专项词书" : `${level} · ${WORDBOOK_META[level].title}`}</span>
                       <strong>{stats.count}</strong>
                       <small>{stats.mastered} 已熟记</small>
                     </button>
@@ -3899,17 +3936,19 @@ export default function Home() {
                   value={libraryQuery}
                   onChange={(event) => {
                     setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
+                    setExpandedLibraryWordId(null);
                     setLibraryQuery(event.target.value);
                   }}
                   onKeyDown={(event) => {
                     if (event.key === "Escape" && libraryQuery) {
                       event.preventDefault();
                       setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
+                      setExpandedLibraryWordId(null);
                       setLibraryQuery("");
                     }
                   }}
                   placeholder="输入德语单词、变位或中文释义"
-                  aria-label="在完整 10,000 词库中进行中德双语检索"
+                  aria-label={`在完整 ${TOTAL_LIBRARY_WORD_COUNT.toLocaleString("zh-CN")} 词库中进行中德双语检索`}
                   autoComplete="off"
                   spellCheck={false}
                 />
@@ -3918,6 +3957,7 @@ export default function Home() {
                     type="button"
                     onClick={() => {
                       setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
+                      setExpandedLibraryWordId(null);
                       setLibraryQuery("");
                     }}
                     aria-label="清空检索"
@@ -3931,6 +3971,20 @@ export default function Home() {
                   ? `在${libraryBookLabel}中找到 ${libraryWords.length} 个结果`
                   : `${libraryBookLabel} · 支持中文与德语检索 · 当前 ${libraryWordsSource.length} 词`}
               </p>
+              <div className="library-sort-tools" role="group" aria-label="词库排序">
+                <span>排序</span>
+                {(["source", "alphabetical", "type"] as const).map((sort) => (
+                  <button
+                    className={librarySort === sort ? "active" : ""}
+                    type="button"
+                    aria-pressed={librarySort === sort}
+                    onClick={() => selectLibrarySort(sort)}
+                    key={sort}
+                  >
+                    {sort === "source" ? "原词书顺序" : sort === "alphabetical" ? "按字母" : "按词性"}
+                  </button>
+                ))}
+              </div>
             </div>
             {libraryWords.length ? (
               <div className="word-library-grid">
@@ -3941,7 +3995,13 @@ export default function Home() {
                       <div className="library-card-top">
                         <span className="folio">{String(index + 1).padStart(2, "0")}</span>
                         <div className="library-card-meta">
-                          <span className="library-level-badge" aria-label={`CEFR 等级 ${word.level}`} title={`CEFR 等级 ${word.level}`}>{word.level}</span>
+                          <span
+                            className="library-level-badge"
+                            aria-label={word.level === "SPECIAL" ? "专项词书" : `CEFR 等级 ${word.level}`}
+                            title={word.level === "SPECIAL" ? "专项词书" : `CEFR 等级 ${word.level}`}
+                          >
+                            {word.level === "SPECIAL" ? "专项" : word.level}
+                          </span>
                           <ReviewDots record={record} />
                         </div>
                       </div>
@@ -3958,8 +4018,28 @@ export default function Home() {
                           <ArticleTerm term={word.term} />
                         </button>
                       </h2>
-                      <p className="library-meaning">{word.meaning}</p>
-                      <button onClick={() => startQueue([word.id], "manual")}>单独学习 <span aria-hidden="true">→</span></button>
+                      <p className="library-meaning">{firstThreeMeanings(word.meaning)}</p>
+                      {expandedLibraryWordId === word.id && (
+                        <div className="library-card-details">
+                          <p><span>词形</span>{wordFormsForDisplay(word)}</p>
+                          {word.grammarTitle && <p><span>词性 / 用法</span>{word.grammarTitle}</p>}
+                          {word.grammar && <p>{word.grammar}</p>}
+                          {word.example && (
+                            <blockquote>
+                              <p lang="de">{word.example}</p>
+                              {word.exampleZh && <footer>{word.exampleZh}</footer>}
+                            </blockquote>
+                          )}
+                        </div>
+                      )}
+                      <button
+                        className="library-card-detail-toggle"
+                        type="button"
+                        aria-expanded={expandedLibraryWordId === word.id}
+                        onClick={() => setExpandedLibraryWordId((current) => current === word.id ? null : word.id)}
+                      >
+                        {expandedLibraryWordId === word.id ? "收起详情 ↑" : "展开详情 →"}
+                      </button>
                     </article>
                   );
                 })}
@@ -3997,7 +4077,7 @@ export default function Home() {
                 <aside className="mastered-drawer" role="dialog" aria-modal="true" aria-label="已熟记词库">
                   <div className="mastered-drawer-header">
                     <div>
-                      <p className="kicker">DAS ARCHIV · 10,000 WÖRTER</p>
+                      <p className="kicker">DAS ARCHIV · {TOTAL_LIBRARY_WORD_COUNT.toLocaleString("zh-CN")} WÖRTER</p>
                       <h2>已熟记词库</h2>
                       <p>三颗金色光点代表已经熟记，不再进入自动复习队列。</p>
                     </div>
@@ -4016,10 +4096,10 @@ export default function Home() {
                         <span className="folio">{String(index + 1).padStart(2, "0")}</span>
                         <div>
                           <strong><ArticleTerm term={word.term} /></strong>
-                          <span>{word.meaning}</span>
+                          <span>{firstThreeMeanings(word.meaning)}</span>
                         </div>
                         <ReviewDots record={learning.records[word.id]} />
-                        <button type="button" onClick={() => startQueue([word.id], "manual")}>单独学习</button>
+                        <button type="button" onClick={(event) => openDictionary(word, event.currentTarget)}>查看详情</button>
                       </article>
                     )) : (
                       <div className="mastered-drawer-empty">
