@@ -7222,3 +7222,95 @@ html[data-layout="mobile"] kbd {
     backdrop-filter: none;
   }
 }
+
+/* A narrow viewport is always touch-first, even when the saved layout mode
+   is desktop. This keeps a phone or small tablet usable after a mode switch. */
+@media (max-width: 900px) {
+  html[data-layout] .topbar {
+    min-height: 70px;
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 12px 14px;
+  }
+
+  html[data-layout] .main-nav {
+    position: fixed;
+    right: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: 10px;
+    z-index: 80;
+    width: auto;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2px;
+    padding: 6px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--paper-light) 95%, transparent);
+    box-shadow: 0 10px 30px rgb(18 29 22 / 0.22);
+    backdrop-filter: blur(18px) saturate(135%);
+  }
+
+  html[data-layout] .nav-item {
+    min-width: 0;
+    min-height: 50px;
+    flex: 1 1 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border-radius: 12px;
+    font-size: 11px;
+  }
+
+  html[data-layout] .nav-item::after {
+    right: 25%;
+    bottom: 4px;
+    left: 25%;
+    height: 2px;
+    border-radius: 999px;
+  }
+
+  html[data-layout] .main-content {
+    width: calc(100% - 22px);
+    padding-top: 20px;
+    padding-bottom: calc(104px + env(safe-area-inset-bottom));
+  }
+
+  html[data-layout] .word-card {
+    padding-bottom: 245px;
+  }
+
+  html[data-layout] .word-card::before {
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  html[data-layout] .speed-review {
+    position: relative;
+    z-index: 1;
+  }
+
+  html[data-layout] .rating-area {
+    position: fixed;
+    right: 14px;
+    bottom: calc(82px + env(safe-area-inset-bottom));
+    left: 14px;
+    z-index: 70;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--paper-light);
+    box-shadow: 0 8px 24px rgb(18 29 22 / 0.28);
+    backdrop-filter: blur(18px) saturate(135%);
+  }
+
+  html[data-layout] .rating-area > p,
+  html[data-layout] kbd {
+    display: none !important;
+  }
+}
