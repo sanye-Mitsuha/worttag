@@ -30,6 +30,22 @@ type LibrarySort = "source" | "alphabetical" | "type";
 type WordOrder = "sequential" | "random";
 type StudyMode = "mastery" | "speed";
 type SpeechSpeed = "0.5" | "0.75" | "1" | "1.25";
+type WordExample = {
+  meaning: string;
+  example: string;
+  exampleZh: string;
+};
+type ConjugationRow = {
+  person: string;
+  form: string;
+};
+type ConjugationTable = {
+  pos: string;
+  rows: ConjugationRow[];
+  past: string;
+  participle: string;
+  infinitive: string;
+};
 type WordCard = {
   id: string;
   level: WordbookCategory;
@@ -44,6 +60,8 @@ type WordCard = {
   grammarTitle: string;
   grammar: string;
   memory: string;
+  examples?: WordExample[];
+  conjugations?: ConjugationTable[];
 };
 
 function ExampleAudioButton({
@@ -88,6 +106,15 @@ type PackedWordType =
   | "prop"
   | "phrase";
 
+type PackedExampleRow = [meaning: string, example: string, exampleZh: string];
+type PackedConjugation = {
+  pos: string;
+  rows: [person: string, form: string][];
+  past: string;
+  participle: string;
+  infinitive: string;
+};
+
 type PackedWordRow = [
   id: string,
   term: string,
@@ -98,10 +125,12 @@ type PackedWordRow = [
   exampleZh: string,
   grammarTitle: string,
   grammar: string,
+  examples: PackedExampleRow[],
+  conjugations: PackedConjugation[],
 ];
 
 type PackedWordbook = {
-  schemaVersion: 2;
+  schemaVersion: 3;
   level: WordbookCategory;
   count: number;
   fields: [
@@ -114,6 +143,8 @@ type PackedWordbook = {
     "exampleZh",
     "grammarTitle",
     "grammar",
+    "examples",
+    "conjugations",
   ];
   words: PackedWordRow[];
 };
@@ -239,6 +270,8 @@ const PACKED_WORD_FIELDS: PackedWordbook["fields"] = [
   "exampleZh",
   "grammarTitle",
   "grammar",
+  "examples",
+  "conjugations",
 ];
 const PACKED_WORD_TYPES = new Set<PackedWordType>([
   "nm",
@@ -596,12 +629,28 @@ function packedWordDetails(typeCode: PackedWordType, term: string, forms: string
 }
 
 function isPackedWordRow(value: unknown): value is PackedWordRow {
-  return Array.isArray(value) &&
-    value.length === PACKED_WORD_FIELDS.length &&
-    value.every((field, index) =>
-      typeof field === "string" && (index >= 5 || field.trim().length > 0),
-    ) &&
-    PACKED_WORD_TYPES.has(value[3] as PackedWordType);
+  if (!Array.isArray(value) || value.length !== PACKED_WORD_FIELDS.length) return false;
+  if (!value.slice(0, 9).every((field, index) =>
+    typeof field === "string" && (index >= 5 || field.trim().length > 0),
+  )) return false;
+  if (!PACKED_WORD_TYPES.has(value[3] as PackedWordType)) return false;
+  const examples = value[9];
+  if (!Array.isArray(examples) || !examples.every((example) =>
+    Array.isArray(example) && example.length === 3 && example.every((field) => typeof field === "string"),
+  )) return false;
+  const conjugations = value[10];
+  return Array.isArray(conjugations) && conjugations.every((conjugation) => {
+    if (!conjugation || typeof conjugation !== "object") return false;
+    const candidate = conjugation as Partial<PackedConjugation>;
+    return typeof candidate.pos === "string" &&
+      typeof candidate.past === "string" &&
+      typeof candidate.participle === "string" &&
+      typeof candidate.infinitive === "string" &&
+      Array.isArray(candidate.rows) &&
+      candidate.rows.every((row) =>
+        Array.isArray(row) && row.length === 2 && row.every((field) => typeof field === "string"),
+      );
+  });
 }
 
 function parsePackedWordbook(value: unknown, expectedLevel: WordbookCategory, expectedCount: number): PackedWordbook {
@@ -613,7 +662,7 @@ function parsePackedWordbook(value: unknown, expectedLevel: WordbookCategory, ex
     candidate.fields.length === PACKED_WORD_FIELDS.length &&
     PACKED_WORD_FIELDS.every((field, index) => candidate.fields?.[index] === field);
   if (
-    candidate.schemaVersion !== 2 ||
+    candidate.schemaVersion !== 3 ||
     candidate.level !== expectedLevel ||
     candidate.count !== expectedCount ||
     !validFields ||
@@ -627,7 +676,7 @@ function parsePackedWordbook(value: unknown, expectedLevel: WordbookCategory, ex
 }
 
 function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
-  return resource.words.map(([id, term, forms, typeCode, meaning, example, exampleZh, grammarTitle, grammar]) => {
+  return resource.words.map(([id, term, forms, typeCode, meaning, example, exampleZh, grammarTitle, grammar, examples, conjugations]) => {
     const details = packedWordDetails(typeCode, term, forms);
     return {
       id,
@@ -646,6 +695,18 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
       grammarTitle: grammarTitle || details.grammarTitle,
       grammar: grammar || details.grammar,
       memory: details.memory,
+      examples: examples.map(([exampleMeaning, sourceExample, sourceExampleZh]) => ({
+        meaning: exampleMeaning,
+        example: sourceExample,
+        exampleZh: sourceExampleZh,
+      })),
+      conjugations: conjugations.map((table) => ({
+        pos: table.pos,
+        rows: table.rows.map(([person, form]) => ({ person, form })),
+        past: table.past,
+        participle: table.participle,
+        infinitive: table.infinitive,
+      })),
     };
   });
 }
@@ -657,7 +718,7 @@ function loadExpandedWordbooks() {
       // expanded books appear empty after a release.
       const fileName = level === "SPECIAL" ? "special" : level.toLowerCase();
       const expectedCount = level === "SPECIAL" ? SPECIAL_WORD_COUNT : COURSE_WORD_COUNTS[level];
-      const response = await fetch(`/wordbooks/${fileName}-v2.json?corpus=combined-wordbooks-10151`, { cache: "no-store" });
+      const response = await fetch(`/wordbooks/${fileName}-v2.json?corpus=combined-wordbooks-10151-v3`, { cache: "no-store" });
       if (!response.ok) throw new Error(`${level} wordbook could not be loaded.`);
       return parsePackedWordbook(await response.json(), level, expectedCount);
     })).then((resources) => {
@@ -1171,6 +1232,16 @@ function firstThreeMeanings(value: string) {
     .filter(Boolean);
   if (parts.length <= 3) return value;
   return `${parts.slice(0, 3).join("；")}…`;
+}
+
+function examplesForWord(word: WordCard): WordExample[] {
+  if (word.examples?.length) return word.examples;
+  if (!word.example) return [];
+  return [{
+    meaning: word.meaning.split(/[；;]/u)[0]?.trim() || "词条例句",
+    example: word.example,
+    exampleZh: word.exampleZh,
+  }];
 }
 
 function librarySortTerm(value: string) {
@@ -3592,7 +3663,19 @@ export default function Home() {
                         </span>
                       )}
                     </div>
-                    <p className="word-forms">{wordFormsForDisplay(currentWord)}</p>
+                    {currentWord.conjugations?.length ? (
+                      <button
+                        className="conjugation-trigger"
+                        type="button"
+                        onClick={(event) => openDictionary(currentWord, event.currentTarget)}
+                        aria-haspopup="dialog"
+                        aria-label={`查看 ${currentWord.term} 的变位表`}
+                      >
+                        查看变位表 <span aria-hidden="true">→</span>
+                      </button>
+                    ) : (
+                      <p className="word-forms">{wordFormsForDisplay(currentWord)}</p>
+                    )}
                   </div>
 
                   {activeStudyMode === "speed" ? (
@@ -3635,7 +3718,6 @@ export default function Home() {
                         </div>
                       ) : (
                         <div className="rating-area speed-rating-area">
-                          <p>{currentWord.example ? "先根据德语例句判断，再选择已知、模糊或未知。" : "没有源例句；请直接回忆词义，再选择已知、模糊或未知。"}</p>
                           <div className="rating-buttons" role="group" aria-label="速刷记忆程度">
                             {(["known", "fuzzy", "unknown"] as const).map((status) => (
                               <button
@@ -4562,15 +4644,62 @@ export default function Home() {
               <p id="dictionary-word-summary">{dictionaryWord.meaning}</p>
             </section>
 
-            {dictionaryWord.example && (
+            {dictionaryWord.conjugations?.length ? (
+              <section className="dictionary-conjugation" aria-labelledby="dictionary-conjugation-title">
+                <div className="dictionary-section-heading">
+                  <p className="dictionary-section-label" id="dictionary-conjugation-title">变位表 · Konjugation</p>
+                  <span>来源词库</span>
+                </div>
+                <div className="conjugation-table-list">
+                  {dictionaryWord.conjugations.map((table, index) => (
+                    <div className="conjugation-table-wrap" key={`${table.pos}-${index}`}>
+                      {table.pos && <strong className="conjugation-pos">{table.pos}</strong>}
+                      <table>
+                        <thead>
+                          <tr><th scope="col">人称</th><th scope="col">现在时</th></tr>
+                        </thead>
+                        <tbody>
+                          {table.rows.map((row, rowIndex) => (
+                            <tr key={`${row.person}-${rowIndex}`}>
+                              <th scope="row" lang="de">{row.person}</th>
+                              <td lang="de">{row.form}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        {(table.past || table.participle) && (
+                          <tfoot>
+                            {table.past && <tr><th scope="row">过去式</th><td lang="de">{table.past}</td></tr>}
+                            {table.participle && <tr><th scope="row">第二分词</th><td lang="de">{table.participle}</td></tr>}
+                          </tfoot>
+                        )}
+                      </table>
+                      {table.infinitive && <small>原形：<span lang="de">{table.infinitive}</span></small>}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {examplesForWord(dictionaryWord).length > 0 && (
               <div className="dictionary-detail-grid">
                 <section aria-labelledby="dictionary-example-title">
-                  <p className="dictionary-section-label" id="dictionary-example-title">例句 · Beispiel</p>
-                  <blockquote>
-                    <p lang="de">{dictionaryWord.example}</p>
-                    {dictionaryWord.exampleZh && <footer>{dictionaryWord.exampleZh}</footer>}
-                    <ExampleAudioButton word={dictionaryWord} onPlay={speakExample} />
-                  </blockquote>
+                  <div className="dictionary-section-heading">
+                    <p className="dictionary-section-label" id="dictionary-example-title">例句 · Beispiel</p>
+                    <span>{examplesForWord(dictionaryWord).length} 条来源例句</span>
+                  </div>
+                  <div className="dictionary-example-list">
+                    {examplesForWord(dictionaryWord).map((example, index) => (
+                      <blockquote key={`${example.example}-${index}`}>
+                        <div className="dictionary-example-meaning">
+                          <span>对应释义</span>
+                          <strong>{example.meaning}</strong>
+                        </div>
+                        <p lang="de">{example.example}</p>
+                        {example.exampleZh && <footer>{example.exampleZh}</footer>}
+                        {index === 0 && <ExampleAudioButton word={dictionaryWord} onPlay={speakExample} />}
+                      </blockquote>
+                    ))}
+                  </div>
                 </section>
               </div>
             )}

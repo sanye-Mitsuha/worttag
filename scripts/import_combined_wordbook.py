@@ -7,9 +7,10 @@ The source page contains two kinds of entries:
 * 151 ungrouped special entries (numbers, dates, countries, etc.).
 
 The five CEFR sections form the learning corpus. The special entries are
-also imported as a separate library-only wordbook. The importer copies source
-examples when present and deliberately leaves both example fields empty when
-the source entry has no example.
+also imported as a separate library-only wordbook. The importer copies every
+source example when present, keeps each example next to its source meaning,
+and deliberately leaves the example fields empty when the source entry has no
+example. Verb conjugation tables are preserved as structured data.
 """
 
 from __future__ import annotations
@@ -36,6 +37,8 @@ FIELDS = [
     "exampleZh",
     "grammarTitle",
     "grammar",
+    "examples",
+    "conjugations",
 ]
 TYPE_CODES = {
     "nm",
@@ -224,15 +227,78 @@ def meaning_for(entry) -> str:
     return "释义未标注"
 
 
-def examples_for(entry) -> tuple[str, str]:
-    example = entry.select_one(".a1-example")
-    if not example:
-        return "", ""
-    german = tag_text(example.select_one("i"))
-    if not german:
-        return "", ""
-    chinese = tag_text(example.select_one(".a1-example-zh"))
-    return german, chinese
+def clean_gloss(gloss) -> str:
+    if not gloss:
+        return ""
+    for level in gloss.select(".sense-level"):
+        level.extract()
+    return tag_text(gloss)
+
+
+def examples_for(entry) -> list[list[str]]:
+    """Return [meaning, German, Chinese] rows in source order."""
+
+    examples: list[list[str]] = []
+    groups = entry.select(".a1-pos-group") or [entry]
+    for group_index, group in enumerate(groups):
+        pos = tag_text(group.select_one(".a1-pos-heading")) or "其他词性"
+        for sense_index, sense in enumerate(group.select(".a1-sense")):
+            meaning = clean_gloss(sense.select_one(".a1-gloss"))
+            if group_index and sense_index == 0 and meaning:
+                meaning = f"【{pos}】{meaning}"
+            for example in sense.select(".a1-example"):
+                german = tag_text(example.select_one("i"))
+                if not german:
+                    continue
+                chinese = tag_text(example.select_one(".a1-example-zh"))
+                examples.append([meaning or "词条例句", german, chinese])
+
+    # Keep a safe fallback for a legacy entry whose example is not nested in
+    # an explicit sense block.
+    if not examples:
+        fallback_meaning = meaning_for(entry).split("；", 1)[0].strip()
+        for example in entry.select(".a1-example"):
+            german = tag_text(example.select_one("i"))
+            if german:
+                examples.append([
+                    fallback_meaning or "词条例句",
+                    german,
+                    tag_text(example.select_one(".a1-example-zh")),
+                ])
+    return examples
+
+
+def conjugations_for(entry) -> list[dict]:
+    tables: list[dict] = []
+    for conjugation in entry.select(".a1-conjugation"):
+        group = conjugation.find_parent("section", class_="a1-pos-group")
+        pos = tag_text(group.select_one(".a1-pos-heading")) if group else ""
+        rows: list[list[str]] = []
+        for row in conjugation.select("tbody tr"):
+            cells = [tag_text(cell) for cell in row.select("th, td")]
+            if len(cells) >= 2 and cells[0] and cells[1]:
+                rows.append([cells[0], cells[1]])
+        past = ""
+        participle = ""
+        for row in conjugation.select("tfoot tr"):
+            cells = [tag_text(cell) for cell in row.select("th, td")]
+            if len(cells) < 2:
+                continue
+            if cells[0] == "过去式":
+                past = cells[1]
+            elif cells[0] == "第二分词":
+                participle = cells[1]
+        origin = tag_text(conjugation.select_one("small"))
+        infinitive = re.sub(r"^原形\s*[:：]\s*", "", origin).strip()
+        if rows or past or participle or infinitive:
+            tables.append({
+                "pos": pos,
+                "rows": rows,
+                "past": past,
+                "participle": participle,
+                "infinitive": infinitive,
+            })
+    return tables
 
 
 def grammar_for(entry, code: str) -> tuple[str, str]:
@@ -275,7 +341,9 @@ def import_level(section, level: str, legacy_ids: dict[tuple[str, str], str | No
         if word_id in used_ids:
             raise ValueError(f"duplicate ID {word_id}")
         used_ids.add(word_id)
-        example, example_zh = examples_for(entry)
+        source_examples = examples_for(entry)
+        example = source_examples[0][1] if source_examples else ""
+        example_zh = source_examples[0][2] if source_examples else ""
         grammar_title, grammar = grammar_for(entry, code)
         rows.append([
             word_id,
@@ -287,14 +355,17 @@ def import_level(section, level: str, legacy_ids: dict[tuple[str, str], str | No
             example_zh,
             grammar_title,
             grammar,
+            source_examples,
+            conjugations_for(entry),
         ])
         stats["entries"] += 1
-        stats["examples"] += bool(example)
+        stats["examples"] += bool(source_examples)
+        stats["exampleItems"] += len(source_examples)
         stats["exampleZh"] += bool(example_zh)
         stats[f"type:{code}"] += 1
         stats["legacyIds"] += bool(legacy_id)
     return {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "level": level,
         "count": len(rows),
         "fields": FIELDS,
@@ -335,7 +406,7 @@ def main() -> None:
         cumulative[level] = running
     total = sum(counts.values())
     manifest = {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "corpus": "combined-cefr-10000",
         "source": args.source.name,
         "importNote": "按来源 HTML 的 A1-C1 主分组导入学习词库；专项内容另存为独立词书，仅在词库中浏览，不进入主学习与复习队列。缺少例句的词条保持空白，不补写例句。",
@@ -346,8 +417,10 @@ def main() -> None:
         "specialLearningExcluded": special_count,
         "specialWordbook": "special-v2.json",
         "specialExampleCount": special_stats["examples"],
+        "specialExampleItemCount": special_stats["exampleItems"],
         "specialExampleTranslationCount": special_stats["exampleZh"],
         "exampleCounts": {level: level_stats[level]["examples"] for level in LEVELS},
+        "exampleItemCounts": {level: level_stats[level]["exampleItems"] for level in LEVELS},
         "exampleTranslationCounts": {level: level_stats[level]["exampleZh"] for level in LEVELS},
         "legacyIdsReused": sum(level_stats[level]["legacyIds"] for level in LEVELS),
     }
