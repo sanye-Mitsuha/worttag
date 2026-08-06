@@ -67,6 +67,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /className="dictionary-conjugation-trigger"/);
   assert.match(page, /className="dictionary-noun-plural"/);
   assert.match(page, /className="conjugation-table-wrap"/);
+  assert.doesNotMatch(page, /<small>\{firstThreeMeanings\(word\.meaning\)\}<\/small>/);
   assert.match(page, /影响德语单词和例句朗读/);
   assert.match(page, /function openReleaseNotes/);
   assert.match(page, /已知晓，本版本不再提示/);

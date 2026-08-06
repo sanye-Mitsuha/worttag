@@ -90,6 +90,22 @@ def write_json(path: Path, value: object) -> None:
     )
 
 
+def load_example_translations(path: Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+    document = json.loads(path.read_text(encoding="utf-8"))
+    entries = document.get("entries", document) if isinstance(document, dict) else {}
+    return {
+        str(key): clean_text(str(value))
+        for key, value in entries.items()
+        if clean_text(str(key)) and clean_text(str(value))
+    }
+
+
+def example_translation_key(word_id: str, german: str) -> str:
+    return f"{word_id}\0{german}"
+
+
 def load_legacy_ids(output_root: Path) -> dict[tuple[str, str], str | None]:
     """Reuse IDs for matching old terms so existing progress can carry over."""
 
@@ -235,7 +251,7 @@ def clean_gloss(gloss) -> str:
     return tag_text(gloss)
 
 
-def examples_for(entry) -> list[list[str]]:
+def examples_for(entry, word_id: str, translations: dict[str, str]) -> list[list[str]]:
     """Return [meaning, German, Chinese] rows in source order."""
 
     examples: list[list[str]] = []
@@ -251,6 +267,7 @@ def examples_for(entry) -> list[list[str]]:
                 if not german:
                     continue
                 chinese = tag_text(example.select_one(".a1-example-zh"))
+                chinese = chinese or translations.get(example_translation_key(word_id, german), "")
                 examples.append([meaning or "词条例句", german, chinese])
 
     # Keep a safe fallback for a legacy entry whose example is not nested in
@@ -260,10 +277,12 @@ def examples_for(entry) -> list[list[str]]:
         for example in entry.select(".a1-example"):
             german = tag_text(example.select_one("i"))
             if german:
+                chinese = tag_text(example.select_one(".a1-example-zh"))
+                chinese = chinese or translations.get(example_translation_key(word_id, german), "")
                 examples.append([
                     fallback_meaning or "词条例句",
                     german,
-                    tag_text(example.select_one(".a1-example-zh")),
+                    chinese,
                 ])
     return examples
 
@@ -316,7 +335,12 @@ def grammar_for(entry, code: str) -> tuple[str, str]:
     return pos, "；".join(details)
 
 
-def import_level(section, level: str, legacy_ids: dict[tuple[str, str], str | None]) -> tuple[dict, Counter]:
+def import_level(
+    section,
+    level: str,
+    legacy_ids: dict[tuple[str, str], str | None],
+    translations: dict[str, str],
+) -> tuple[dict, Counter]:
     rows = []
     used_ids: set[str] = set()
     stats: Counter = Counter()
@@ -341,7 +365,7 @@ def import_level(section, level: str, legacy_ids: dict[tuple[str, str], str | No
         if word_id in used_ids:
             raise ValueError(f"duplicate ID {word_id}")
         used_ids.add(word_id)
-        source_examples = examples_for(entry)
+        source_examples = examples_for(entry, word_id, translations)
         example = source_examples[0][1] if source_examples else ""
         example_zh = source_examples[0][2] if source_examples else ""
         grammar_title, grammar = grammar_for(entry, code)
@@ -377,17 +401,23 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path, help="combined-15000-cefr-groups.html")
     parser.add_argument("--output-root", type=Path, default=Path("public/wordbooks"))
+    parser.add_argument(
+        "--example-translations",
+        type=Path,
+        default=Path("data/editorial/source-example-translations-v1.json"),
+    )
     args = parser.parse_args()
 
     soup = BeautifulSoup(args.source.read_text(encoding="utf-8"), "lxml")
     legacy_ids = load_legacy_ids(args.output_root)
+    translations = load_example_translations(args.example_translations)
     documents = {}
     level_stats = {}
     for level in LEVELS:
         section = soup.select_one(f'section.level-section[data-level="{level}"]')
         if section is None:
             raise ValueError(f"Missing CEFR section {level}")
-        document, stats = import_level(section, level, legacy_ids)
+        document, stats = import_level(section, level, legacy_ids, translations)
         documents[level] = document
         level_stats[level] = stats
         write_json(args.output_root / f"{level.lower()}-v2.json", document)
@@ -395,7 +425,7 @@ def main() -> None:
     special_section = soup.select_one('section.level-section[data-level="专项"]')
     if special_section is None:
         raise ValueError("Missing 专项 section")
-    special_document, special_stats = import_level(special_section, "SPECIAL", legacy_ids)
+    special_document, special_stats = import_level(special_section, "SPECIAL", legacy_ids, translations)
     write_json(args.output_root / "special-v2.json", special_document)
     special_count = special_document["count"]
     counts = {level: documents[level]["count"] for level in LEVELS}

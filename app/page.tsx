@@ -3991,7 +3991,7 @@ export default function Home() {
                     disabled={mastered}
                     onClick={() => startQueue([word.id], "review")}
                   >
-                    <span><strong><ArticleTerm term={word.term} /></strong><small>{firstThreeMeanings(word.meaning)}</small></span>
+                    <span><strong><ArticleTerm term={word.term} /></strong></span>
                     <ReviewDots record={record} />
                     <span>{record ? `${record.intervalDays || "<1"} 天间隔` : "新词"}</span>
                     <span>{record ? formatDate(record.dueAt) : "尚未学习"}</span>

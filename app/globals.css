@@ -1840,19 +1840,13 @@ blockquote footer {
 }
 
 .due-row > span:first-child strong,
-.due-row > span:first-child small {
+.due-row > span:first-child {
   display: block;
 }
 
 .due-row > span:first-child strong {
   color: var(--ink);
   font: 600 20px/1.25 var(--serif);
-}
-
-.due-row > span:first-child small {
-  margin-top: 3px;
-  color: #7d7567;
-  font-size: 12px;
 }
 
 .review-dots {
@@ -5527,7 +5521,6 @@ html[data-theme="dark"] .german-story {
 
 html[data-theme="dark"] blockquote footer,
 html[data-theme="dark"] .rating-area > p,
-html[data-theme="dark"] .due-row > span:first-child small,
 html[data-theme="dark"] .progress-stat-grid article > span {
   color: #aab3ab;
 }

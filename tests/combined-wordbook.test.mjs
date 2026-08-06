@@ -35,6 +35,8 @@ test("combined CEFR import keeps the source split and empty source examples", as
       assert.equal(typeof grammar, "string");
       assert.ok(Array.isArray(examples));
       assert.ok(examples.every((item) => Array.isArray(item) && item.length === 3 && item.every((field) => typeof field === "string")));
+      assert.ok(!example || exampleZh.trim(), `${id} is missing a Chinese translation for its primary example`);
+      assert.ok(examples.every((item) => !item[1] || item[2].trim()), `${id} is missing a Chinese translation for a source example`);
       assert.ok(Array.isArray(conjugations));
       assert.ok(conjugations.every((table) =>
         typeof table?.pos === "string" &&
