@@ -20,9 +20,10 @@ import {
 } from "./library-search";
 
 type RecallStatus = "unknown" | "fuzzy" | "known";
-type View = "learn" | "review" | "library" | "settings";
+type View = "learn" | "review" | "library" | "stats" | "settings";
 type ThemeMode = "light" | "dark" | "system";
 type SkinMode = "parchment" | "mist" | "forest" | "wine" | "graphite";
+type LayoutMode = "auto" | "mobile" | "desktop";
 type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1";
 type WordbookCategory = CEFRLevel | "SPECIAL";
 type LibraryBookFilter = "all" | WordbookCategory;
@@ -184,6 +185,7 @@ type LearningState = {
 type AppSettings = {
   theme: ThemeMode;
   skin: SkinMode;
+  layoutMode: LayoutMode;
   wordsPerQueue: number;
   queuesPerDay: number;
   level: CEFRLevel;
@@ -296,6 +298,7 @@ const REVIEW_PAGE_SIZE = 100;
 const DEFAULT_SETTINGS: AppSettings = {
   theme: "system",
   skin: "parchment",
+  layoutMode: "auto",
   wordsPerQueue: 10,
   queuesPerDay: 2,
   level: "A1",
@@ -1349,6 +1352,7 @@ function prepareSavedSettings(value: unknown): AppSettings {
   const saved = value as Partial<AppSettings>;
   const themes: ThemeMode[] = ["light", "dark", "system"];
   const skins: SkinMode[] = ["parchment", "mist", "forest", "wine", "graphite"];
+  const layoutModes: LayoutMode[] = ["auto", "mobile", "desktop"];
   const levels: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
   const orders: WordOrder[] = ["sequential", "random"];
   const studyModes: StudyMode[] = ["mastery", "speed"];
@@ -1366,6 +1370,7 @@ function prepareSavedSettings(value: unknown): AppSettings {
   return {
     theme: themes.includes(saved.theme as ThemeMode) ? saved.theme! : DEFAULT_SETTINGS.theme,
     skin: skins.includes(saved.skin as SkinMode) ? saved.skin! : DEFAULT_SETTINGS.skin,
+    layoutMode: layoutModes.includes(saved.layoutMode as LayoutMode) ? saved.layoutMode! : DEFAULT_SETTINGS.layoutMode,
     wordsPerQueue: queueSizes.includes(saved.wordsPerQueue ?? -1)
       ? saved.wordsPerQueue!
       : DEFAULT_SETTINGS.wordsPerQueue,
@@ -2306,9 +2311,10 @@ export default function Home() {
       document.documentElement.style.colorScheme = resolved;
     };
     applyTheme();
+    document.documentElement.dataset.layout = settings.layoutMode;
     if (settings.theme === "system") media.addEventListener("change", applyTheme);
     return () => media.removeEventListener("change", applyTheme);
-  }, [ready, settings.skin, settings.theme]);
+  }, [ready, settings.layoutMode, settings.skin, settings.theme]);
 
   const currentWordId = sessionQueue[currentIndex];
   const currentWord = WORD_BY_ID.get(currentWordId);
@@ -2368,6 +2374,54 @@ export default function Home() {
       ),
     [bookWords, clock, learning.records],
   );
+
+  const allDueWords = useMemo(
+    () =>
+      libraryWordsUniverse.filter((word) => {
+        const record = learning.records[word.id];
+        return record?.lastReviewedAt !== null && record?.dueAt <= clock && !isMasteredRecord(record);
+      }),
+    [clock, learning.records, libraryWordsUniverse],
+  );
+
+  const learningStatistics = useMemo(() => {
+    const learnedWords = libraryWordsUniverse.filter((word) => Boolean(learning.records[word.id]));
+    const masteredWords = learnedWords.filter((word) => isMasteredRecord(learning.records[word.id]));
+    const statusCounts: Record<RecallStatus, number> = { known: 0, fuzzy: 0, unknown: 0 };
+    learnedWords.forEach((word) => {
+      const status = learning.records[word.id]?.status;
+      if (status) statusCounts[status] += 1;
+    });
+    const recentCutoff = clock - 7 * DAY;
+    const recentWords = learnedWords
+      .filter((word) => (learning.records[word.id]?.lastReviewedAt ?? 0) >= recentCutoff)
+      .sort((left, right) =>
+        (learning.records[right.id]?.lastReviewedAt ?? 0) - (learning.records[left.id]?.lastReviewedAt ?? 0),
+      )
+      .slice(0, 6);
+    const levelRows = WORDBOOK_CATEGORIES.map((level) => {
+      const words = libraryWordsUniverse.filter((word) => isWordInBook(word, level));
+      const learned = words.filter((word) => Boolean(learning.records[word.id])).length;
+      const mastered = words.filter((word) => isMasteredRecord(learning.records[word.id])).length;
+      return {
+        level,
+        count: words.length,
+        learned,
+        mastered,
+        percent: Math.round((mastered / Math.max(1, words.length)) * 100),
+      };
+    });
+    return {
+      learnedCount: learnedWords.length,
+      masteredCount: masteredWords.length,
+      learningCount: Math.max(0, learnedWords.length - masteredWords.length),
+      statusCounts,
+      recentCount: learnedWords.filter((word) => (learning.records[word.id]?.lastReviewedAt ?? 0) >= recentCutoff).length,
+      recentWords,
+      levelRows,
+      masteryPercent: Math.round((masteredWords.length / Math.max(1, libraryWordsUniverse.length)) * 100),
+    };
+  }, [clock, learning.records, libraryWordsUniverse]);
 
   const reviewTotal = bookWords.filter((word) => learning.records[word.id]?.lastReviewedAt !== null && learning.records[word.id]).length;
   const reviewWords = useMemo(
@@ -2973,8 +3027,8 @@ export default function Home() {
       }
     } else if (key === "studyMode") {
       setSettingsNotice(`已自动保存 · ${value === "speed" ? "速刷" : "熟记"}模式从下一次刷词开始生效`);
-    } else if (key === "theme" || key === "skin") {
-      setSettingsNotice("已自动保存 · 外观已在本设备更新");
+    } else if (key === "theme" || key === "skin" || key === "layoutMode") {
+      setSettingsNotice(key === "layoutMode" ? "已自动保存 · 界面布局已在本设备更新" : "已自动保存 · 外观已在本设备更新");
     } else {
       setSettingsNotice("已自动保存 · 新的学习计划从下一队列开始生效");
     }
@@ -3533,6 +3587,7 @@ export default function Home() {
             ["learn", "今日学习"],
             ["review", "复习"],
             ["library", "词库"],
+            ["stats", "学习统计"],
             ["settings", "设置"],
           ] as const).map(([id, label]) => (
             <button
@@ -4250,6 +4305,118 @@ export default function Home() {
           </section>
         )}
 
+        {view === "stats" && (
+          <section className="secondary-page stats-page">
+            <div className="page-heading stats-heading">
+              <div>
+                <p className="kicker">Fortschritt · Lernen</p>
+                <h1>看见每天的积累。</h1>
+                <p className="stats-heading-copy">从掌握数量、复习节奏和词书进度，了解自己的德语词汇成长。</p>
+              </div>
+              <div className="stats-streak-note">
+                <span>连续学习</span>
+                <strong>{learning.streakDays}<small>天</small></strong>
+              </div>
+            </div>
+
+            <div className="stats-overview-grid" aria-label="学习统计概览">
+              <article className="stats-overview-card stats-overview-primary">
+                <span>已熟记</span>
+                <strong>{learningStatistics.masteredCount.toLocaleString("zh-CN")}</strong>
+                <small>三颗光点 · 不再自动复习</small>
+              </article>
+              <article className="stats-overview-card">
+                <span>已学习</span>
+                <strong>{learningStatistics.learnedCount.toLocaleString("zh-CN")}</strong>
+                <small>覆盖全部 {TOTAL_LIBRARY_WORD_COUNT.toLocaleString("zh-CN")} 个词</small>
+              </article>
+              <article className="stats-overview-card">
+                <span>待复习</span>
+                <strong>{allDueWords.length.toLocaleString("zh-CN")}</strong>
+                <small>所有词书合计</small>
+              </article>
+              <article className="stats-overview-card">
+                <span>今日复习</span>
+                <strong>{learning.todayReviewed.toLocaleString("zh-CN")}</strong>
+                <small>当前设备与云端同步记录</small>
+              </article>
+            </div>
+
+            <div className="stats-dashboard-grid">
+              <section className="stats-panel stats-level-panel">
+                <div className="stats-panel-heading">
+                  <div><p className="kicker">Wordbooks</p><h2>词书掌握进度</h2></div>
+                  <strong>{learningStatistics.masteryPercent}%</strong>
+                </div>
+                <p className="stats-panel-intro">已熟记词占全部词库的比例。每个等级都可以在词库中继续展开查看。</p>
+                <div className="stats-level-list">
+                  {learningStatistics.levelRows.map((row) => (
+                    <div className="stats-level-row" key={row.level}>
+                      <div className="stats-level-label">
+                        <strong>{row.level === "SPECIAL" ? "专项词书" : `${row.level} · ${WORDBOOK_META[row.level].title}`}</strong>
+                        <span>{row.mastered} / {row.count} 已熟记 · 已学习 {row.learned}</span>
+                      </div>
+                      <div className="stats-progress-track" aria-label={`${row.level} 掌握 ${row.percent}%`}>
+                        <span style={{ width: `${row.percent}%` }} />
+                      </div>
+                      <strong className="stats-level-percent">{row.percent}%</strong>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="stats-panel stats-recall-panel">
+                <div className="stats-panel-heading">
+                  <div><p className="kicker">Recall state</p><h2>当前记忆状态</h2></div>
+                </div>
+                <div className="stats-recall-list">
+                  {(["known", "fuzzy", "unknown"] as const).map((status) => {
+                    const count = learningStatistics.statusCounts[status];
+                    const percent = Math.round((count / Math.max(1, learningStatistics.learnedCount)) * 100);
+                    return (
+                      <div className={`stats-recall-row ${status}`} key={status}>
+                        <span className="stats-recall-mark" aria-hidden="true">{status === "known" ? "✓" : status === "fuzzy" ? "~" : "×"}</span>
+                        <span><strong>{STATUS_META[status].label}</strong><small>{count} 个词 · {percent}%</small></span>
+                        <div className="stats-recall-track"><span style={{ width: `${percent}%` }} /></div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="stats-recall-note">
+                  <span>近 7 天接触</span>
+                  <strong>{learningStatistics.recentCount}</strong>
+                  <small>个词</small>
+                </div>
+              </section>
+            </div>
+
+            <section className="stats-panel stats-recent-panel">
+              <div className="stats-panel-heading">
+                <div><p className="kicker">Recent words</p><h2>最近学习的词</h2></div>
+                <div className="stats-panel-actions">
+                  <button className="secondary-action" type="button" onClick={() => switchView("review")}>查看复习 →</button>
+                  <button className="reveal-button" type="button" onClick={() => switchView("learn")}>开始学习 →</button>
+                </div>
+              </div>
+              {learningStatistics.recentWords.length ? (
+                <div className="stats-recent-list">
+                  {learningStatistics.recentWords.map((word) => {
+                    const record = learning.records[word.id];
+                    return (
+                      <button className="stats-recent-word" type="button" key={word.id} onClick={(event) => openDictionary(word, event.currentTarget)}>
+                        <span><ArticleTerm term={word.term} /><small>{word.type}</small></span>
+                        <span><ReviewDots record={record} /><small>{record?.lastReviewedAt ? new Date(record.lastReviewedAt).toLocaleDateString("zh-CN", { month: "numeric", day: "numeric" }) : ""}</small></span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="stats-empty">完成第一组学习后，这里会显示最近接触过的单词。</p>
+              )}
+            </section>
+          </section>
+        )}
+
         {view === "settings" && (
           <section className="secondary-page settings-page">
             <div className="page-heading settings-heading">
@@ -4306,6 +4473,26 @@ export default function Home() {
                       <em>{settings.skin === value ? "✓" : ""}</em>
                     </label>
                   ))}
+                </div>
+                <div className="layout-mode-setting">
+                  <div className="layout-mode-copy">
+                    <strong>界面布局</strong>
+                    <small>自动适配最省心；也可以在本设备固定为移动端或桌面端。</small>
+                  </div>
+                  <div className="layout-mode-options" role="radiogroup" aria-label="界面布局">
+                    {([
+                      ["auto", "自动适配", "跟随屏幕宽度"],
+                      ["mobile", "移动端", "单列 · 大触控"],
+                      ["desktop", "桌面端", "宽布局 · 高信息密度"],
+                    ] as const).map(([value, label, description]) => (
+                      <label className={settings.layoutMode === value ? "layout-mode-option selected" : "layout-mode-option"} key={value}>
+                        <input type="radio" name="layoutMode" checked={settings.layoutMode === value} onChange={() => updateSetting("layoutMode", value)} />
+                        <span className="layout-mode-mark" aria-hidden="true">{value === "auto" ? "◌" : value === "mobile" ? "⌁" : "⌘"}</span>
+                        <span><strong>{label}</strong><small>{description}</small></span>
+                        <em>{settings.layoutMode === value ? "✓" : ""}</em>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </fieldset>
 
