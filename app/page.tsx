@@ -24,6 +24,7 @@ type View = "learn" | "review" | "library" | "settings";
 type ThemeMode = "light" | "dark" | "system";
 type SkinMode = "parchment" | "mist" | "forest" | "wine" | "graphite";
 type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1";
+type LibraryBookFilter = "all" | CEFRLevel;
 type WordOrder = "sequential" | "random";
 type StudyMode = "mastery" | "speed";
 type SpeechSpeed = "0.5" | "0.75" | "1" | "1.25";
@@ -189,8 +190,8 @@ type BoardMessage = {
   createdAt: number;
 };
 
-const APP_VERSION = "beta3.9";
-const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.9";
+const APP_VERSION = "beta3.10";
+const VERSION_NOTICE_KEY = "worttag-version-notice-beta3.10";
 const BILIBILI_URL = "https://space.bilibili.com/96625971";
 const GITHUB_URL = "https://github.com/mitsuha";
 
@@ -1473,6 +1474,7 @@ export default function Home() {
   const [clock, setClock] = useState(0);
   const [masteredDrawerOpen, setMasteredDrawerOpen] = useState(false);
   const [libraryQuery, setLibraryQuery] = useState("");
+  const [libraryBookFilter, setLibraryBookFilter] = useState<LibraryBookFilter>("all");
   const [libraryVisibleCount, setLibraryVisibleCount] = useState(LIBRARY_PAGE_SIZE);
   const [reviewVisibleCount, setReviewVisibleCount] = useState(REVIEW_PAGE_SIZE);
   const [dictionaryWord, setDictionaryWord] = useState<WordCard | null>(null);
@@ -2186,12 +2188,33 @@ export default function Home() {
     },
     [settings.level, wordbookRevision],
   );
-  const libraryWordsSource = useMemo(
+  const libraryWordsUniverse = useMemo(
     () => {
       void wordbookRevision;
       return WORDS;
     },
     [wordbookRevision],
+  );
+  const libraryBookStats = useMemo(() => {
+    const stats = {} as Record<CEFRLevel, { count: number; mastered: number }>;
+    CEFR_LEVELS.forEach((level) => {
+      const words = libraryWordsUniverse.filter((word) => isWordInBook(word, level));
+      stats[level] = {
+        count: words.length,
+        mastered: words.filter((word) => isMasteredRecord(learning.records[word.id])).length,
+      };
+    });
+    return stats;
+  }, [learning.records, libraryWordsUniverse]);
+  const libraryMasteredTotal = useMemo(
+    () => libraryWordsUniverse.filter((word) => isMasteredRecord(learning.records[word.id])).length,
+    [learning.records, libraryWordsUniverse],
+  );
+  const libraryWordsSource = useMemo(
+    () => libraryBookFilter === "all"
+      ? libraryWordsUniverse
+      : libraryWordsUniverse.filter((word) => isWordInBook(word, libraryBookFilter)),
+    [libraryBookFilter, libraryWordsUniverse],
   );
   const learnedToday = useMemo(
     () => {
@@ -2242,6 +2265,9 @@ export default function Home() {
     () => libraryWordsSource.filter((word) => isMasteredRecord(learning.records[word.id])),
     [libraryWordsSource, learning.records],
   );
+  const libraryBookLabel = libraryBookFilter === "all"
+    ? "全部词书"
+    : `${libraryBookFilter} · ${LEVEL_META[libraryBookFilter].title}`;
   useEffect(() => {
     if (view !== "library" || libraryVisibleCount >= libraryWords.length) return;
     const target = libraryLoadMoreRef.current;
@@ -2982,6 +3008,11 @@ export default function Home() {
     }
     setView(nextView);
     setFeedback(null);
+  }
+
+  function selectLibraryBook(filter: LibraryBookFilter) {
+    setLibraryBookFilter(filter);
+    setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
   }
 
   useEffect(() => {
@@ -3822,6 +3853,44 @@ export default function Home() {
                 <strong>{masteredWords.length}</strong>
               </button>
             </div>
+            <fieldset className="library-book-filter">
+              <legend>按词书分类</legend>
+              <div className="library-book-filter-heading">
+                <div>
+                  <p className="kicker">Wortbücher · 分类浏览</p>
+                  <strong>{libraryBookLabel}</strong>
+                </div>
+                <span>按等级拆开 10,000 个词，选择后可继续搜索和单独学习。</span>
+              </div>
+              <div className="library-book-filter-options" role="group" aria-label="词书分类">
+                <button
+                  className={`library-book-filter-option${libraryBookFilter === "all" ? " active" : ""}`}
+                  type="button"
+                  aria-pressed={libraryBookFilter === "all"}
+                  onClick={() => selectLibraryBook("all")}
+                >
+                  <span className="library-book-filter-name">全部词书</span>
+                  <strong>{libraryWordsUniverse.length}</strong>
+                  <small>{libraryMasteredTotal} 已熟记</small>
+                </button>
+                {CEFR_LEVELS.map((level) => {
+                  const stats = libraryBookStats[level];
+                  return (
+                    <button
+                      className={`library-book-filter-option${libraryBookFilter === level ? " active" : ""}`}
+                      type="button"
+                      aria-pressed={libraryBookFilter === level}
+                      onClick={() => selectLibraryBook(level)}
+                      key={level}
+                    >
+                      <span className="library-book-filter-name">{level} · {LEVEL_META[level].title}</span>
+                      <strong>{stats.count}</strong>
+                      <small>{stats.mastered} 已熟记</small>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
             <div className="library-search-tools">
               <div className="library-search" role="search">
                 <span className="library-search-mark" aria-hidden="true">⌕</span>
@@ -3859,8 +3928,8 @@ export default function Home() {
               </div>
               <p className="library-search-meta" aria-live="polite">
                 {libraryQueryTokens.length
-                  ? `在完整 10,000 词库中找到 ${libraryWords.length} 个结果`
-                  : `支持中文与德语检索 · 当前 ${libraryWordsSource.length} 词`}
+                  ? `在${libraryBookLabel}中找到 ${libraryWords.length} 个结果`
+                  : `${libraryBookLabel} · 支持中文与德语检索 · 当前 ${libraryWordsSource.length} 词`}
               </p>
             </div>
             {libraryWords.length ? (

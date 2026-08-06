@@ -49,8 +49,8 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.doesNotMatch(page, /下一个词 →/);
   assert.match(page, /candidate\.schemaVersion !== 2/);
   assert.doesNotMatch(page, /className="library-grammar"/);
-  assert.match(page, /beta3\.9/);
-  assert.match(page, /const APP_VERSION = "beta3\.9"/);
+  assert.match(page, /beta3\.10/);
+  assert.match(page, /const APP_VERSION = "beta3\.10"/);
   assert.match(page, /exampleAudioUrl/);
   assert.match(page, /ExampleAudioButton/);
   assert.match(page, /听例句/);
@@ -84,6 +84,12 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /复习次数/);
   assert.match(page, /已熟记词库/);
   assert.match(page, /const libraryWordsSource = useMemo/);
+  assert.match(page, /const \[libraryBookFilter, setLibraryBookFilter\] = useState<LibraryBookFilter>\("all"\)/);
+  assert.match(page, /className="library-book-filter"/);
+  assert.match(page, /按词书分类/);
+  assert.match(page, /libraryBookStats/);
+  assert.match(page, /aria-label="词书分类"/);
+  assert.match(page, /library-book-filter-option/);
   assert.match(page, /libraryWordsSource\.map/);
   assert.match(page, /Wortschatz · 10,000 Wörter/);
   assert.doesNotMatch(page, /example-quality-v1\.json|例句质量|例句审核|example-quality-badge|example-quality-icon|library-quality-summary-note/);
