@@ -54,7 +54,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /beta1\.0/);
   assert.match(page, /const APP_VERSION = "beta1\.0"/);
   assert.match(page, /exampleAudioUrl/);
-  assert.match(page, /exampleAudioUrl: hasFixedAudio \?/);
+  assert.match(page, /exampleAudioUrl: hasExampleAudio \?/);
   assert.match(page, /ExampleAudioButton/);
   assert.match(page, /听例句/);
   assert.match(page, /examplesForWord/);

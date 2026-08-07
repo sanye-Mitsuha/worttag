@@ -329,7 +329,7 @@ const SPEECH_RATES: Record<SpeechSpeed, number> = {
   "1": 1,
   "1.25": 1.25,
 };
-const FIXED_AUDIO_LEVELS: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
+const FIXED_AUDIO_LEVELS: WordbookCategory[] = ["A1", "A2", "B1", "B2", "C1", "SPECIAL"];
 const AUDIO_CACHE_LIMIT = 4;
 
 function currentTimestamp() {
@@ -681,16 +681,15 @@ function parsePackedWordbook(value: unknown, expectedLevel: WordbookCategory, ex
 function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
   return resource.words.map(([id, term, forms, typeCode, meaning, example, exampleZh, grammarTitle, grammar, examples, conjugations]) => {
     const details = packedWordDetails(typeCode, term, forms);
-    const hasFixedAudio = id.startsWith("core6000-")
-      && resource.level !== "SPECIAL"
-      && FIXED_AUDIO_LEVELS.includes(resource.level);
+    const hasFixedAudio = FIXED_AUDIO_LEVELS.includes(resource.level);
+    const hasExampleAudio = hasFixedAudio && example.trim().length > 0;
     const audioLevel = resource.level.toLowerCase();
     return {
       id,
       level: resource.level,
       term,
       audioUrl: hasFixedAudio ? `/audio/${audioLevel}/anna/${id}.m4a` : undefined,
-      exampleAudioUrl: hasFixedAudio ? `/audio/examples/${audioLevel}/anna/${id}.m4a` : undefined,
+      exampleAudioUrl: hasExampleAudio ? `/audio/examples/${audioLevel}/anna/${id}.m4a` : undefined,
       forms,
       type: details.type,
       meaning,
