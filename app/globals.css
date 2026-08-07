@@ -8431,3 +8431,27 @@ html[data-layout="mobile"] .cloud-settings > p {
 html[data-layout="mobile"] .data-actions {
   gap: 8px;
 }
+
+/* Keep the streak as a quiet page-level marker instead of a second heading
+   card on the narrow statistics layout. */
+html[data-layout="mobile"] .stats-heading {
+  position: relative;
+  min-height: 78px;
+  padding-right: 102px;
+}
+
+html[data-layout="mobile"] .stats-heading > .stats-streak-note {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 78px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: right;
+}
+
+html[data-layout="mobile"] .stats-heading > .stats-streak-note strong {
+  font-size: 24px;
+}
