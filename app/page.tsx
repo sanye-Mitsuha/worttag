@@ -1597,6 +1597,7 @@ export default function Home() {
   const [sessionPhase, setSessionPhase] = useState<"study" | "spell-prompt" | "spelling">("study");
   const [sessionCompletionCommitted, setSessionCompletionCommitted] = useState(false);
   const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
+  const [selectedChoiceWordId, setSelectedChoiceWordId] = useState<string | null>(null);
   const [spellingIndex, setSpellingIndex] = useState(0);
   const [spellingInput, setSpellingInput] = useState("");
   const [spellingChecked, setSpellingChecked] = useState(false);
@@ -1702,6 +1703,7 @@ export default function Home() {
     setSessionPhase("study");
     setSessionCompletionCommitted(false);
     setSelectedChoiceId(null);
+    setSelectedChoiceWordId(null);
     setSpellingIndex(0);
     setSpellingInput("");
     setSpellingChecked(false);
@@ -1719,6 +1721,7 @@ export default function Home() {
     setSessionPhase("study");
     setSessionCompletionCommitted(false);
     setSelectedChoiceId(null);
+    setSelectedChoiceWordId(null);
     setRevealed(false);
     setFeedback(null);
     setGrading(false);
@@ -2552,6 +2555,9 @@ export default function Home() {
   const currentAttemptNumber: number = currentWord ? 1 : 0;
   const currentIsRepeat = currentWord ? sessionRound > 1 : false;
   const currentSessionRating = currentWord ? latestSessionRatings.get(currentWord.id) : undefined;
+  const selectedChoiceForCurrentWord = currentWord && selectedChoiceWordId === currentWord.id
+    ? selectedChoiceId
+    : null;
   const currentMeaningChoices = useMemo(
     () => {
       const word = WORD_BY_ID.get(currentWordId);
@@ -2712,6 +2718,7 @@ export default function Home() {
       setFeedback(null);
       setRevealed(false);
       setSelectedChoiceId(null);
+      setSelectedChoiceWordId(null);
       setGrading(false);
       setSessionPhase("spell-prompt");
     }, transitionDelay);
@@ -2824,6 +2831,7 @@ export default function Home() {
         setCurrentIndex((index) => index + 1);
         setRevealed(false);
         setSelectedChoiceId(null);
+        setSelectedChoiceWordId(null);
         setFeedback(null);
         setGrading(false);
       }, options.transitionDelay ?? 620);
@@ -2865,6 +2873,7 @@ export default function Home() {
         setCurrentIndex((index) => index + 1);
         setRevealed(false);
         setSelectedChoiceId(null);
+        setSelectedChoiceWordId(null);
         setFeedback(null);
         setGrading(false);
       }, options.transitionDelay ?? 620);
@@ -2898,6 +2907,7 @@ export default function Home() {
       setCurrentIndex((index) => index + 1);
       setRevealed(false);
       setSelectedChoiceId(null);
+      setSelectedChoiceWordId(null);
       setFeedback(null);
       setGrading(false);
     }, options.transitionDelay ?? 620);
@@ -2929,6 +2939,7 @@ export default function Home() {
     }
     setCurrentIndex((index) => index + 1);
     setSelectedChoiceId(null);
+    setSelectedChoiceWordId(null);
     setFeedback(null);
     setGrading(false);
   }
@@ -2937,6 +2948,7 @@ export default function Home() {
     if (!currentWord || currentPromptMode !== "choice" || currentAttemptNumber !== 1 || grading) return;
     const correct = optionId === currentWord.id;
     setSelectedChoiceId(optionId);
+    setSelectedChoiceWordId(currentWord.id);
     rateCurrent(correct ? "known" : "unknown", {
       allowUnrevealed: true,
       mode: "choice",
@@ -3851,15 +3863,15 @@ export default function Home() {
                     currentPromptMode === "choice" ? (
                       <div className="choice-recall">
                         <div className="ink-divider"><span>第 {sessionRound} 轮 · 选择词义</span></div>
-                        <div className="meaning-options" role="radiogroup" aria-label={`${currentWord.term} 的词义选项`}>
+                        <div key={currentWord.id} className="meaning-options" role="radiogroup" aria-label={`${currentWord.term} 的词义选项`}>
                           {currentMeaningChoices.map((option, index) => {
-                            const optionClass = grading && selectedChoiceId
+                            const optionClass = grading && selectedChoiceForCurrentWord
                               ? option.id === currentWord.id
                                 ? "meaning-option correct-answer"
-                                : option.id === selectedChoiceId
+                                : option.id === selectedChoiceForCurrentWord
                                   ? "meaning-option incorrect-answer"
                                   : "meaning-option muted"
-                              : selectedChoiceId === option.id
+                              : selectedChoiceForCurrentWord === option.id
                                 ? "meaning-option selected"
                                 : "meaning-option";
                             return (
@@ -3867,7 +3879,7 @@ export default function Home() {
                                 className={optionClass}
                                 type="button"
                                 role="radio"
-                                aria-checked={selectedChoiceId === option.id}
+                                aria-checked={selectedChoiceForCurrentWord === option.id}
                                 onClick={() => selectMeaningChoice(option.id)}
                                 disabled={grading}
                                 key={option.id}
@@ -3879,11 +3891,11 @@ export default function Home() {
                             );
                           })}
                         </div>
-                        {grading && selectedChoiceId ? (
-                          <div className={selectedChoiceId === currentWord.id ? "choice-auto-result correct" : "choice-auto-result incorrect"} role="status">
-                            <strong>{selectedChoiceId === currentWord.id ? "选择正确 · 光点 +1" : "正确词义"}</strong>
+                        {grading && selectedChoiceForCurrentWord ? (
+                          <div className={selectedChoiceForCurrentWord === currentWord.id ? "choice-auto-result correct" : "choice-auto-result incorrect"} role="status">
+                            <strong>{selectedChoiceForCurrentWord === currentWord.id ? "选择正确 · 光点 +1" : "正确词义"}</strong>
                             <span>{firstThreeMeanings(currentWord.meaning)}</span>
-                            {selectedChoiceId !== currentWord.id && <small>1 秒后自动进入下一个单词</small>}
+                            {selectedChoiceForCurrentWord !== currentWord.id && <small>1 秒后自动进入下一个单词</small>}
                           </div>
                         ) : (
                           <p className="choice-instruction">本轮按顺序每词一次；答错会在下一轮再出现</p>
@@ -3925,7 +3937,7 @@ export default function Home() {
                     ) : currentPromptMode === "direct" ? (
                       <div className="round-rating">
                         <div className="ink-divider"><span>第 {sessionRound} 轮 · 直接判断</span></div>
-                        <div className="rating-buttons" role="group" aria-label="记忆程度">
+                        <div className="rating-buttons" role="group" aria-label="速刷记忆程度">
                           {(["known", "fuzzy", "unknown"] as const).map((status) => (
                             <button
                               className={`rating-button ${status}`}
@@ -3941,7 +3953,7 @@ export default function Home() {
                               <span className="rating-icon" aria-hidden="true">
                                 {status === "unknown" ? "×" : status === "fuzzy" ? "~" : "✓"}
                               </span>
-                              <strong>{STATUS_META[status].label}</strong>
+                              <span><strong>{STATUS_META[status].label}</strong><small>{previewDue(currentRecord, status, clock)}</small></span>
                               <span className="rating-key" aria-hidden="true">{status === "known" ? "Q" : status === "fuzzy" ? "W" : "E"}</span>
                             </button>
                           ))}

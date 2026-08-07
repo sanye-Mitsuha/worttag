@@ -178,6 +178,10 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /aria-keyshortcuts="F"/);
   assert.match(page, /aria-keyshortcuts="Space"/);
   assert.match(page, /className="meaning-key"/);
+  assert.match(page, /const selectedChoiceForCurrentWord = currentWord/);
+  assert.match(page, /setSelectedChoiceWordId\(currentWord\.id\)/);
+  assert.match(page, /key=\{currentWord\.id\} className="meaning-options"/);
+  assert.match(page, /<small>\{previewDue\(currentRecord, status, clock\)\}<\/small>/);
   assert.match(page, /status === "known" \? "Q"/);
   assert.match(page, /event\.code === "Space"/);
   assert.match(page, /const ratingStage = activeStudyMode === "speed" \|\| revealed \|\| currentPromptMode === "example" \|\| currentPromptMode === "direct"/);
