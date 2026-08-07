@@ -2787,7 +2787,7 @@ export default function Home() {
       transitionDelay?: number;
     } = {},
   ) {
-    if (!currentWord || (!revealed && !options.allowUnrevealed) || grading) return;
+    if (sessionPhase !== "study" || !currentWord || (!revealed && !options.allowUnrevealed) || grading) return;
     if (activeStudyMode === "speed" && sessionLastRatings[currentWord.id]) return;
     hasLocalInteractionRef.current = true;
     const now = currentTimestamp();
@@ -3259,6 +3259,7 @@ export default function Home() {
     if (
       view !== "learn"
       || !currentWord
+      || sessionPhase !== "study"
       || grading
       || confirmReset
     ) return;
@@ -3330,8 +3331,24 @@ export default function Home() {
     settings.autoPronounce,
     activeStudyMode,
     settings.speechSpeed,
+    sessionPhase,
     view,
   ]);
+
+  useEffect(() => {
+    if (view !== "learn" || sessionPhase !== "spelling" || !spellingWord) return;
+    const handleSpellingKeyDown = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() !== "f") return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, select, textarea")) return;
+      event.preventDefault();
+      speak(spellingWord);
+    };
+    window.addEventListener("keydown", handleSpellingKeyDown);
+    return () => window.removeEventListener("keydown", handleSpellingKeyDown);
+    // speak deliberately reads the latest speech preferences listed below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionPhase, settings.speechSpeed, spellingWord, view]);
 
   useEffect(() => {
     if (!boardOpen) return;
@@ -3679,7 +3696,7 @@ export default function Home() {
                 <div className="spelling-cue">
                   <span>{spellingWord.type}</span>
                   <h2>{firstThreeMeanings(spellingWord.meaning)}</h2>
-                  <button className="speak-button" type="button" onClick={() => speak(spellingWord)} aria-label={`朗读 ${spellingWord.term}（快捷键 F）`} aria-keyshortcuts="F">
+                  <button className="speak-button" type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => speak(spellingWord)} aria-label={`朗读 ${spellingWord.term}（快捷键 F）`} aria-keyshortcuts="F">
                     <span className="sound-rings" aria-hidden="true">◖))</span> 听发音
                     <kbd className="feature-shortcut" aria-hidden="true">F</kbd>
                   </button>
