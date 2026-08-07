@@ -23,7 +23,7 @@ type RecallStatus = "unknown" | "fuzzy" | "known";
 type View = "learn" | "review" | "library" | "stats" | "settings";
 type ThemeMode = "light" | "dark" | "system";
 type SkinMode = "parchment" | "mist" | "forest" | "wine" | "graphite";
-type LayoutMode = "auto" | "desktop";
+type LayoutMode = "auto" | "mobile" | "desktop";
 type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1";
 type WordbookCategory = CEFRLevel | "SPECIAL";
 type LibraryBookFilter = "all" | WordbookCategory;
@@ -1351,9 +1351,9 @@ function prepareSavedSettings(value: unknown): AppSettings {
   const saved = value as Partial<AppSettings>;
   const themes: ThemeMode[] = ["light", "dark", "system"];
   const skins: SkinMode[] = ["parchment", "mist", "forest", "wine", "graphite"];
-  const layoutModes: LayoutMode[] = ["auto", "desktop"];
+  const layoutModes: LayoutMode[] = ["auto", "mobile", "desktop"];
   const rawLayoutMode = (value as { layoutMode?: unknown }).layoutMode;
-  const savedLayoutMode = rawLayoutMode === "mobile" ? "auto" : rawLayoutMode;
+  const savedLayoutMode = rawLayoutMode;
   const levels: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
   const orders: WordOrder[] = ["sequential", "random"];
   const studyModes: StudyMode[] = ["mastery", "speed"];
@@ -2307,17 +2307,28 @@ export default function Home() {
 
   useEffect(() => {
     if (!ready) return;
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const themeMedia = window.matchMedia("(prefers-color-scheme: dark)");
+    const layoutMedia = window.matchMedia("(max-width: 900px)");
     const applyTheme = () => {
-      const resolved = settings.theme === "system" ? (media.matches ? "dark" : "light") : settings.theme;
+      const resolved = settings.theme === "system" ? (themeMedia.matches ? "dark" : "light") : settings.theme;
       document.documentElement.dataset.theme = resolved;
       document.documentElement.dataset.skin = settings.skin;
       document.documentElement.style.colorScheme = resolved;
     };
+    const applyLayout = () => {
+      const resolved = settings.layoutMode === "auto"
+        ? layoutMedia.matches ? "mobile" : "desktop"
+        : settings.layoutMode;
+      document.documentElement.dataset.layout = resolved;
+    };
     applyTheme();
-    document.documentElement.dataset.layout = settings.layoutMode;
-    if (settings.theme === "system") media.addEventListener("change", applyTheme);
-    return () => media.removeEventListener("change", applyTheme);
+    applyLayout();
+    if (settings.theme === "system") themeMedia.addEventListener("change", applyTheme);
+    if (settings.layoutMode === "auto") layoutMedia.addEventListener("change", applyLayout);
+    return () => {
+      themeMedia.removeEventListener("change", applyTheme);
+      layoutMedia.removeEventListener("change", applyLayout);
+    };
   }, [ready, settings.layoutMode, settings.skin, settings.theme]);
 
   const currentWordId = sessionQueue[currentIndex];
@@ -4500,11 +4511,12 @@ export default function Home() {
                   <div className="layout-mode-options" role="radiogroup" aria-label="界面布局">
                     {([
                       ["auto", "自动适配", "跟随屏幕宽度"],
+                      ["mobile", "移动端", "单列 · 底部导航 · 大触控"],
                       ["desktop", "桌面端", "宽布局 · 高信息密度"],
                     ] as const).map(([value, label, description]) => (
                       <label className={settings.layoutMode === value ? "layout-mode-option selected" : "layout-mode-option"} key={value}>
                         <input type="radio" name="layoutMode" checked={settings.layoutMode === value} onChange={() => updateSetting("layoutMode", value)} />
-                        <span className="layout-mode-mark" aria-hidden="true">{value === "auto" ? "◌" : "⌘"}</span>
+                        <span className="layout-mode-mark" aria-hidden="true">{value === "auto" ? "◌" : value === "mobile" ? "⌁" : "⌘"}</span>
                         <span><strong>{label}</strong><small>{description}</small></span>
                         <em>{settings.layoutMode === value ? "✓" : ""}</em>
                       </label>

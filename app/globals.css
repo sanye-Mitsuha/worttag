@@ -7339,3 +7339,286 @@ html[data-layout="mobile"] kbd {
     display: none !important;
   }
 }
+
+/* Dedicated mobile mode: a focused, single-column study surface. The mode
+   can be selected explicitly in Settings, while Auto resolves to it on a
+   narrow viewport. */
+html[data-layout="mobile"] body {
+  min-width: 320px;
+  padding-bottom: calc(104px + env(safe-area-inset-bottom));
+}
+
+html[data-layout="mobile"] .topbar {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  padding: 0 17px;
+  border-bottom-color: var(--line);
+  box-shadow: none;
+}
+
+html[data-layout="mobile"] .brand-lockup {
+  height: 100%;
+  gap: 6px;
+}
+
+html[data-layout="mobile"] .brand {
+  gap: 10px;
+}
+
+html[data-layout="mobile"] .brand-word {
+  font-size: 29px;
+  letter-spacing: 0.105em;
+}
+
+html[data-layout="mobile"] .brand-seal {
+  width: 36px;
+  height: 36px;
+  font-size: 19px;
+}
+
+html[data-layout="mobile"] .brand-version {
+  margin-bottom: 3px;
+  font-size: 12px;
+}
+
+html[data-layout="mobile"] .version-notice-dot {
+  top: 67px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+}
+
+html[data-layout="mobile"] .main-nav {
+  right: 16px;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  left: 16px;
+  height: 74px;
+  gap: 3px;
+  padding: 7px 8px;
+  border-radius: 24px;
+  box-shadow: 0 10px 28px rgb(18 29 22 / 0.2);
+}
+
+html[data-layout="mobile"] .nav-item {
+  min-height: 58px;
+  border-radius: 17px;
+  font-size: 13px;
+}
+
+html[data-layout="mobile"] .nav-item::after {
+  right: 22%;
+  bottom: 5px;
+  left: 22%;
+  height: 3px;
+}
+
+html[data-layout="mobile"] .main-content {
+  width: 100%;
+  min-height: calc(100dvh - 100px);
+  padding: 20px 16px calc(132px + env(safe-area-inset-bottom));
+}
+
+html[data-layout="mobile"] .page-heading,
+html[data-layout="mobile"] .learn-heading {
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+html[data-layout="mobile"] .page-heading h1 {
+  font-size: clamp(40px, 11.8vw, 51px);
+  line-height: 1.08;
+}
+
+html[data-layout="mobile"] .progress-copy {
+  margin-bottom: 11px;
+  font-size: 16px;
+}
+
+html[data-layout="mobile"] .progress-copy strong {
+  font-size: 27px;
+}
+
+html[data-layout="mobile"] .progress-track {
+  height: 7px;
+}
+
+html[data-layout="mobile"] .study-layout {
+  display: block;
+}
+
+html[data-layout="mobile"] .session-panel {
+  display: none;
+}
+
+html[data-layout="mobile"] .word-card {
+  width: 100%;
+  min-height: calc(100dvh - 260px);
+  margin: 0;
+  padding: 25px 18px 248px;
+  border-radius: 3px;
+  box-shadow: 5px 6px 0 rgb(112 87 47 / 0.08);
+}
+
+html[data-layout="mobile"] .word-card::after {
+  inset: 8px;
+}
+
+html[data-layout="mobile"] .card-topline {
+  padding: 0 10px;
+}
+
+html[data-layout="mobile"] .card-mode {
+  font-size: 16px;
+  letter-spacing: 0.045em;
+}
+
+html[data-layout="mobile"] .speak-button {
+  min-height: 48px;
+  padding: 9px 16px;
+  font-size: 15px;
+}
+
+html[data-layout="mobile"] .word-front {
+  padding: 70px 4px 33px;
+}
+
+html[data-layout="mobile"] .word-front.exposure-2 {
+  padding-bottom: 28px;
+}
+
+html[data-layout="mobile"] .word-front.exposure-3 {
+  padding-top: 82px;
+  padding-bottom: 46px;
+}
+
+html[data-layout="mobile"] .word-type {
+  margin-bottom: 18px;
+  font-size: 15px;
+}
+
+html[data-layout="mobile"] .word-title-row {
+  align-items: flex-start;
+  gap: 10px;
+}
+
+html[data-layout="mobile"] .word-front h2 {
+  max-width: 100%;
+  font-size: clamp(48px, 14.8vw, 64px);
+  line-height: 1.04;
+}
+
+html[data-layout="mobile"] .word-forms {
+  margin-top: 18px;
+  font-size: 21px;
+  line-height: 1.35;
+}
+
+html[data-layout="mobile"] .conjugation-trigger {
+  min-height: 42px;
+  margin-top: 17px;
+  padding: 9px 14px;
+  font-size: 12px;
+}
+
+html[data-layout="mobile"] .speed-review,
+html[data-layout="mobile"] .round-rating,
+html[data-layout="mobile"] .choice-recall {
+  padding-right: 4px;
+  padding-left: 4px;
+}
+
+html[data-layout="mobile"] .speed-review .ink-divider,
+html[data-layout="mobile"] .round-rating .ink-divider,
+html[data-layout="mobile"] .choice-recall .ink-divider {
+  margin-bottom: 22px;
+  font-size: 15px;
+}
+
+html[data-layout="mobile"] .speed-review blockquote,
+html[data-layout="mobile"] .recall-example {
+  margin: 27px 5px 25px;
+  padding-left: 18px;
+}
+
+html[data-layout="mobile"] .speed-review blockquote p,
+html[data-layout="mobile"] .recall-example p {
+  font-size: clamp(21px, 5.8vw, 27px);
+  line-height: 1.5;
+}
+
+html[data-layout="mobile"] .example-audio-button {
+  min-height: 45px;
+  margin-top: 14px;
+  padding: 8px 15px;
+  font-size: 13px;
+}
+
+html[data-layout="mobile"] .rating-area {
+  right: 16px;
+  bottom: calc(98px + env(safe-area-inset-bottom));
+  left: 16px;
+  padding: 11px 12px;
+  border-radius: 25px;
+  box-shadow: 0 8px 24px rgb(18 29 22 / 0.2);
+}
+
+html[data-layout="mobile"] .rating-buttons {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+html[data-layout="mobile"] .rating-button {
+  min-height: 64px;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 10px 17px;
+  border-radius: 0;
+}
+
+html[data-layout="mobile"] .rating-icon {
+  width: 31px;
+  height: 31px;
+  flex-basis: 31px;
+  font-size: 19px;
+}
+
+html[data-layout="mobile"] .rating-button strong {
+  font-size: 16px;
+}
+
+html[data-layout="mobile"] .rating-button small {
+  font-size: 12px;
+}
+
+html[data-layout="mobile"] .rating-key,
+html[data-layout="mobile"] .feature-shortcut,
+html[data-layout="mobile"] .speed-next-key {
+  display: none !important;
+}
+
+html[data-layout="mobile"] .feedback-toast {
+  display: none;
+}
+
+html[data-layout="mobile"] .meaning-options {
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+html[data-layout="mobile"] .meaning-option {
+  min-height: 78px;
+  border-radius: 0;
+}
+
+html[data-layout="mobile"] .site-footer {
+  display: none;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html[data-layout="mobile"] .main-nav,
+  html[data-layout="mobile"] .rating-area {
+    background: var(--paper-light);
+    backdrop-filter: none;
+  }
+}

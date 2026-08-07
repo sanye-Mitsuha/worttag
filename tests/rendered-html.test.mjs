@@ -163,11 +163,15 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /setSessionLastRatings\(\{\}\)/);
   assert.match(page, /重新拼写/);
   assert.match(page, /预计完成 \{settings\.level\} 词书/);
-  assert.match(page, /type LayoutMode = "auto" \| "desktop"/);
+  assert.match(page, /type LayoutMode = "auto" \| "mobile" \| "desktop"/);
   assert.match(page, /界面布局/);
+  assert.match(page, /\["mobile", "移动端", "单列 · 底部导航 · 大触控"\]/);
   assert.match(page, /学习统计/);
   assert.match(page, /learningStatistics/);
-  assert.match(page, /dataset\.layout = settings\.layoutMode/);
+  assert.match(page, /document\.documentElement\.dataset\.layout = resolved/);
+  assert.match(page, /layoutMedia = window\.matchMedia\("\(max-width: 900px\)"\)/);
+  assert.match(css, /html\[data-layout="mobile"\] \.main-nav/);
+  assert.match(css, /html\[data-layout="mobile"\] \.rating-area/);
   assert.doesNotMatch(page, /className="shortcut-card/);
   assert.doesNotMatch(page, /className="insight-column/);
   assert.doesNotMatch(page, /Tastatur · 快捷键/);
