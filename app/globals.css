@@ -7334,7 +7334,8 @@ html[data-layout="mobile"] kbd {
   }
 
   html[data-layout] .rating-area > p,
-  html[data-layout] kbd {
+  html[data-layout] kbd,
+  html[data-layout] .rating-key {
     display: none !important;
   }
 }

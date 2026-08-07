@@ -54,6 +54,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /beta1\.0/);
   assert.match(page, /const APP_VERSION = "beta1\.0"/);
   assert.match(page, /exampleAudioUrl/);
+  assert.match(page, /exampleAudioUrl: hasFixedAudio \?/);
   assert.match(page, /ExampleAudioButton/);
   assert.match(page, /听例句/);
   assert.match(page, /examplesForWord/);
@@ -69,6 +70,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /className="dictionary-conjugation-trigger"/);
   assert.match(page, /className="dictionary-noun-plural"/);
   assert.match(page, /className="conjugation-table-wrap"/);
+  assert.match(css, /html\[data-layout\] \.rating-key/);
   assert.doesNotMatch(page, /<small>\{firstThreeMeanings\(word\.meaning\)\}<\/small>/);
   assert.match(page, /影响德语单词和例句朗读/);
   assert.match(page, /function openReleaseNotes/);
