@@ -53,9 +53,9 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.doesNotMatch(page, /className="library-grammar"/);
   assert.match(page, /beta1\.0/);
   assert.match(page, /const APP_VERSION = "beta1\.0"/);
-  assert.match(page, /exampleAudioUrl/);
-  assert.match(page, /exampleAudioUrl: hasExampleAudio \?/);
+  assert.doesNotMatch(page, /exampleAudioUrl/);
   assert.match(page, /ExampleAudioButton/);
+  assert.match(page, /new SpeechSynthesisUtterance\(text\.trim\(\)\)/);
   assert.match(page, /听例句/);
   assert.match(page, /examplesForWord/);
   assert.match(page, /对应释义/);

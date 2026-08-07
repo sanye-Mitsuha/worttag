@@ -8,7 +8,6 @@ import { spawn } from "node:child_process";
 const projectRoot = new URL("../", import.meta.url).pathname.replace(/\/$/u, "");
 const wordbooksRoot = join(projectRoot, "public", "wordbooks");
 const audioRoot = join(projectRoot, "public", "audio");
-const exampleAudioRoot = join(audioRoot, "examples");
 const voice = process.env.WORTTAG_AUDIO_VOICE ?? "Anna";
 const bitrate = process.env.WORTTAG_AUDIO_BITRATE ?? "24000";
 const chunkSize = Math.max(10, Number(process.env.WORTTAG_AUDIO_CHUNK_SIZE ?? 50));
@@ -39,7 +38,6 @@ async function outputExists(path) {
 
 async function loadJobs() {
   const words = [];
-  const examples = [];
   const seenIds = new Set();
 
   for (const file of activeWordbookFiles) {
@@ -47,7 +45,7 @@ async function loadJobs() {
     const level = typeof payload.level === "string" ? payload.level : file.slice(0, -5).toUpperCase();
     const levelPath = level.toLowerCase();
     for (const row of payload.words ?? []) {
-      const [id, term, , , , example] = row;
+      const [id, term] = row;
       if (typeof id !== "string" || typeof term !== "string" || !term.trim()) {
         throw new Error(`${file} contains a word without a usable term.`);
       }
@@ -60,18 +58,9 @@ async function loadJobs() {
         output: join(audioRoot, levelPath, "anna", `${id}.m4a`),
         url: `/audio/${levelPath}/anna/${id}.m4a`,
       });
-      if (typeof example === "string" && example.trim()) {
-        examples.push({
-          id,
-          level,
-          text: example.trim(),
-          output: join(exampleAudioRoot, levelPath, "anna", `${id}.m4a`),
-          url: `/audio/examples/${levelPath}/anna/${id}.m4a`,
-        });
-      }
     }
   }
-  return { words, examples };
+  return words;
 }
 
 function parseWav(buffer) {
@@ -155,7 +144,6 @@ function splitWav(buffer, expectedCount) {
 
 async function encodeSegment(job, wav, tempRoot) {
   await mkdir(join(audioRoot, job.level.toLowerCase(), "anna"), { recursive: true });
-  await mkdir(join(exampleAudioRoot, job.level.toLowerCase(), "anna"), { recursive: true });
   const stem = `${job.level}-${job.id.replace(/[^A-Za-z0-9_-]/gu, "_")}`;
   const source = join(tempRoot, `${stem}.wav`);
   await writeFile(source, wav);
@@ -164,7 +152,6 @@ async function encodeSegment(job, wav, tempRoot) {
 
 async function generateSingle(job, tempRoot) {
   await mkdir(join(audioRoot, job.level.toLowerCase(), "anna"), { recursive: true });
-  await mkdir(join(exampleAudioRoot, job.level.toLowerCase(), "anna"), { recursive: true });
   const stem = `single-${job.level}-${job.id.replace(/[^A-Za-z0-9_-]/gu, "_")}`;
   const textPath = join(tempRoot, `${stem}.txt`);
   const source = join(tempRoot, `${stem}.aiff`);
@@ -254,14 +241,12 @@ function createManifest(jobs, kind) {
   };
 }
 
-const { words, examples } = await loadJobs();
+const words = await loadJobs();
 const tempRoot = await mkdtemp(join(tmpdir(), "worttag-audio-"));
 try {
   const addedWords = await generateJobs("单词", words, tempRoot);
-  const addedExamples = await generateJobs("例句", examples, tempRoot);
   await writeFile(join(audioRoot, "manifest-v2.json"), `${JSON.stringify(createManifest(words, "word"), null, 2)}\n`, "utf8");
-  await writeFile(join(exampleAudioRoot, "manifest-v2.json"), `${JSON.stringify(createManifest(examples, "example"), null, 2)}\n`, "utf8");
-  process.stdout.write(`完成：单词 ${words.length} 条（新增 ${addedWords}），例句 ${examples.length} 条（新增 ${addedExamples}）。\n`);
+  process.stdout.write(`完成：单词 ${words.length} 条（新增 ${addedWords}）。\n`);
 } finally {
   await rm(tempRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 250 });
 }

@@ -52,7 +52,6 @@ type WordCard = {
   level: WordbookCategory;
   term: string;
   audioUrl?: string;
-  exampleAudioUrl?: string;
   forms: string;
   type: string;
   meaning: string;
@@ -69,18 +68,20 @@ function ExampleAudioButton({
   word,
   onPlay,
   compact = false,
+  text = word.example,
 }: {
   word: WordCard;
-  onPlay: (word: WordCard) => void;
+  onPlay: (word: WordCard, text?: string) => void;
   compact?: boolean;
+  text?: string;
 }) {
-  if (!word.exampleAudioUrl) return null;
+  if (!text.trim()) return null;
   return (
     <button
       className={`example-audio-button${compact ? " compact" : ""}`}
       type="button"
-      onClick={() => onPlay(word)}
-      aria-label={`朗读例句：${word.example}（快捷键 G）`}
+      onClick={() => onPlay(word, text)}
+      aria-label={`朗读例句：${text}（快捷键 G）`}
       aria-keyshortcuts="G"
     >
       <span className="sound-rings" aria-hidden="true">◖))</span>
@@ -682,14 +683,12 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
   return resource.words.map(([id, term, forms, typeCode, meaning, example, exampleZh, grammarTitle, grammar, examples, conjugations]) => {
     const details = packedWordDetails(typeCode, term, forms);
     const hasFixedAudio = FIXED_AUDIO_LEVELS.includes(resource.level);
-    const hasExampleAudio = hasFixedAudio && example.trim().length > 0;
     const audioLevel = resource.level.toLowerCase();
     return {
       id,
       level: resource.level,
       term,
       audioUrl: hasFixedAudio ? `/audio/${audioLevel}/anna/${id}.m4a` : undefined,
-      exampleAudioUrl: hasExampleAudio ? `/audio/examples/${audioLevel}/anna/${id}.m4a` : undefined,
       forms,
       type: details.type,
       meaning,
@@ -1659,7 +1658,7 @@ export default function Home() {
   const releaseNotesCloseRef = useRef<HTMLButtonElement>(null);
   const releaseNotesTriggerRef = useRef<HTMLElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const exampleAudioCacheRef = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const audioCacheRef = useRef<Map<string, HTMLAudioElement>>(new Map());
   const transitionTimerRef = useRef<number | null>(null);
   const pendingCompletionStateRef = useRef<LearningState | null>(null);
   const libraryLoadMoreRef = useRef<HTMLDivElement>(null);
@@ -2574,23 +2573,23 @@ export default function Home() {
   }
 
   function getCachedAudio(url: string) {
-    const cached = exampleAudioCacheRef.current.get(url);
+    const cached = audioCacheRef.current.get(url);
     if (cached) return cached;
-    while (exampleAudioCacheRef.current.size >= AUDIO_CACHE_LIMIT) {
-      const oldestUrl = exampleAudioCacheRef.current.keys().next().value;
+    while (audioCacheRef.current.size >= AUDIO_CACHE_LIMIT) {
+      const oldestUrl = audioCacheRef.current.keys().next().value;
       if (typeof oldestUrl !== "string") break;
-      const oldestAudio = exampleAudioCacheRef.current.get(oldestUrl);
+      const oldestAudio = audioCacheRef.current.get(oldestUrl);
       oldestAudio?.pause();
       if (oldestAudio) {
         oldestAudio.removeAttribute("src");
         oldestAudio.load();
       }
-      exampleAudioCacheRef.current.delete(oldestUrl);
+      audioCacheRef.current.delete(oldestUrl);
     }
     const audio = new Audio(url);
     audio.preload = "auto";
     audio.load();
-    exampleAudioCacheRef.current.set(url, audio);
+    audioCacheRef.current.set(url, audio);
     return audio;
   }
 
@@ -2605,13 +2604,13 @@ export default function Home() {
     };
     audio.onerror = () => {
       if (audioRef.current === audio) audioRef.current = null;
-      exampleAudioCacheRef.current.delete(url);
+      audioCacheRef.current.delete(url);
       setFeedback(errorMessage);
     };
     audioRef.current = audio;
     void audio.play().catch(() => {
       if (audioRef.current === audio) audioRef.current = null;
-      exampleAudioCacheRef.current.delete(url);
+      audioCacheRef.current.delete(url);
       setFeedback(errorMessage);
     });
   }
@@ -2620,9 +2619,7 @@ export default function Home() {
     if (!ready) return;
     const nextWord = WORD_BY_ID.get(sessionUniqueIds[currentIndex + 1]);
     [currentWord, nextWord].forEach((word) => {
-      [word?.audioUrl, word?.exampleAudioUrl].forEach((url) => {
-        if (url) getCachedAudio(url);
-      });
+      if (word?.audioUrl) getCachedAudio(word.audioUrl);
     });
     // Preload only the current and next sentence so the 10,000-word library does
     // not consume memory or network bandwidth all at once.
@@ -2646,12 +2643,17 @@ export default function Home() {
     window.speechSynthesis.speak(utterance);
   }
 
-  function speakExample(word: WordCard) {
-    if (!word.exampleAudioUrl) {
-      setFeedback("这条例句暂时没有固定语音");
+  function speakExample(word: WordCard, text = word.example) {
+    stopCurrentAudio();
+    if (!("speechSynthesis" in window)) {
+      setFeedback("当前浏览器暂不支持德语朗读");
       return;
     }
-    playFixedAudio(word.exampleAudioUrl, "固定例句语音暂时无法播放，请刷新页面重试");
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text.trim());
+    utterance.lang = "de-DE";
+    utterance.rate = SPEECH_RATES[settings.speechSpeed];
+    window.speechSynthesis.speak(utterance);
   }
 
   function finishSession(nextState: LearningState) {
@@ -4924,7 +4926,13 @@ export default function Home() {
                             </div>
                             <p lang="de">{example.example}</p>
                             {example.exampleZh && <footer>{example.exampleZh}</footer>}
-                            {index === 0 && <ExampleAudioButton word={dictionaryWord} onPlay={speakExample} />}
+                            {index === 0 && (
+                              <ExampleAudioButton
+                                word={dictionaryWord}
+                                text={example.example}
+                                onPlay={speakExample}
+                              />
+                            )}
                           </blockquote>
                         ))}
                       </div>
