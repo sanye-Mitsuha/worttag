@@ -7625,3 +7625,34 @@ html[data-layout="mobile"] .site-footer {
     backdrop-filter: none;
   }
 }
+
+/* Keep the three recall choices visible together on a phone. */
+html[data-layout="mobile"] .word-card {
+  padding-bottom: 175px;
+}
+
+html[data-layout="mobile"] .rating-buttons {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html[data-layout="mobile"] .rating-button {
+  min-height: 72px;
+  gap: 6px;
+  padding: 8px 6px;
+}
+
+html[data-layout="mobile"] .rating-icon {
+  width: 28px;
+  height: 28px;
+  flex-basis: 28px;
+  font-size: 17px;
+}
+
+html[data-layout="mobile"] .rating-button strong {
+  font-size: 14px;
+}
+
+html[data-layout="mobile"] .rating-button small {
+  font-size: 10px;
+}
