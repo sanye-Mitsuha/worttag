@@ -7357,8 +7357,7 @@ html[data-layout="mobile"] .topbar {
   box-shadow: none;
   /* A filtered ancestor becomes the containing block for fixed children.
      The bottom navigation must be fixed to the viewport, not this header. */
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  backdrop-filter: none !important;
 }
 
 html[data-layout="mobile"] .brand-lockup {
