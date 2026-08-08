@@ -1,7 +1,7 @@
 {
   "schemaVersion":3,
   "corpus":"combined-cefr-10000",
-  "source":"combined-15000-cefr-groups.html",
+  "source":"germany-words.html",
   "importNote":"按来源 HTML 的 A1-C1 主分组导入学习词库；专项内容另存为独立词书，仅在词库中浏览，不进入主学习与复习队列。缺少例句的词条保持空白，不补写例句。",
   "wordCounts":{
     "A1":750,
@@ -32,7 +32,7 @@
     "C1":3330
   },
   "exampleItemCounts":{
-    "A1":1426,
+    "A1":1428,
     "A2":1387,
     "B1":1229,
     "B2":2401,

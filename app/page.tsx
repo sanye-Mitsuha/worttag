@@ -720,7 +720,7 @@ function loadExpandedWordbooks() {
       // expanded books appear empty after a release.
       const fileName = level === "SPECIAL" ? "special" : level.toLowerCase();
       const expectedCount = level === "SPECIAL" ? SPECIAL_WORD_COUNT : COURSE_WORD_COUNTS[level];
-      const response = await fetch(`/wordbooks/${fileName}-v2.json?corpus=combined-wordbooks-10151-v3`, { cache: "no-store" });
+      const response = await fetch(`/wordbooks/${fileName}-v2.json?corpus=germany-words-10151-v4`, { cache: "no-store" });
       if (!response.ok) throw new Error(`${level} wordbook could not be loaded.`);
       return parsePackedWordbook(await response.json(), level, expectedCount);
     })).then((resources) => {

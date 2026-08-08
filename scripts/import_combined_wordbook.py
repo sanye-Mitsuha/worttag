@@ -63,8 +63,32 @@ def clean_text(value: str) -> str:
     return re.sub(r"\s+", " ", value).strip()
 
 
+ROMAN_SENSE_MARKERS = {
+    "Ⅰ": "①",
+    "Ⅱ": "②",
+    "Ⅲ": "③",
+    "Ⅳ": "④",
+    "Ⅴ": "⑤",
+    "Ⅵ": "⑥",
+    "Ⅶ": "⑦",
+    "Ⅷ": "⑧",
+    "Ⅸ": "⑨",
+}
+
+
+def normalize_sense_markers(value: str) -> str:
+    """Keep source sense numbering consistent with the Worttag UI."""
+
+    pattern = r"(^|[；;]\s*|】\s*)([ⅠⅡⅢⅣⅤⅥⅦⅧⅨ])(?=\s)"
+    return re.sub(
+        pattern,
+        lambda match: f"{match.group(1)}{ROMAN_SENSE_MARKERS[match.group(2)]}",
+        value,
+    )
+
+
 def tag_text(tag) -> str:
-    return clean_text(tag.get_text(" ", strip=True)) if tag else ""
+    return normalize_sense_markers(clean_text(tag.get_text(" ", strip=True))) if tag else ""
 
 
 def normalize_term(value: str) -> str:
