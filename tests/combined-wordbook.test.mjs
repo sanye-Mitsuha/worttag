@@ -106,6 +106,12 @@ test("source examples stay matched to their meanings and verb tables are preserv
   assert.equal(sollen?.[10][0].rows[0][1], "soll");
   assert.equal(sollen?.[10][0].past, "sollte");
   assert.equal(sollen?.[10][0].participle, "gesollt");
+  assert.deepEqual(
+    sollen?.[10][0].tabs?.map((tab) => tab.key),
+    ["participle", "indicative", "subjunctive1", "subjunctive2", "imperative"],
+  );
+  assert.equal(sollen?.[10][0].tabs?.find((tab) => tab.key === "indicative")?.cards[0].forms?.[0], "soll");
+  assert.equal(sollen?.[10][0].tabs?.find((tab) => tab.key === "imperative")?.cards[0].rows?.length, 4);
 });
 
 test("combined import does not invent an example for an empty source entry", async () => {

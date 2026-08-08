@@ -66,10 +66,14 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /setDictionaryView\("conjugation"\)/);
   assert.match(page, /dictionaryView === "conjugation"/);
   assert.doesNotMatch(page, /className="dictionary-forms"/);
-  assert.match(page, /<ConjugationPanel word=\{word\} \/>/);
+  assert.match(page, /<ConjugationPanel key=\{word\.id\} word=\{word\}/);
   assert.match(page, /className="dictionary-conjugation-trigger"/);
   assert.match(page, /className="dictionary-noun-plural"/);
   assert.match(page, /className="conjugation-table-wrap"/);
+  assert.match(page, /查看完整变位/);
+  assert.match(page, /className="conjugation-modern"/);
+  assert.match(page, /className="conjugation-tab"/);
+  assert.match(page, /className="conjugation-tense-card"/);
   assert.match(css, /html\[data-layout\] \.rating-key/);
   assert.doesNotMatch(page, /<small>\{firstThreeMeanings\(word\.meaning\)\}<\/small>/);
   assert.match(page, /影响德语单词和例句朗读/);

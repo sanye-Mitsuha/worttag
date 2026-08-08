@@ -5156,6 +5156,214 @@ fieldset.settings-card {
   font-size: 10px;
 }
 
+.conjugation-modern {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--brick) 34%, var(--line));
+  background: var(--paper);
+}
+
+.conjugation-modern > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 11px;
+  color: var(--brick);
+  background: color-mix(in srgb, var(--brick) 8%, var(--paper));
+}
+
+.conjugation-modern > summary::before {
+  content: "＋";
+  color: var(--brick);
+}
+
+.conjugation-modern[open] > summary::before {
+  content: "−";
+}
+
+.conjugation-modern > summary span {
+  font-weight: 800;
+}
+
+.conjugation-modern > summary small {
+  min-width: 0;
+  max-width: 56%;
+  margin-left: auto;
+  padding: 0;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conjugation-modern-body {
+  padding: 10px;
+}
+
+.conjugation-tabs {
+  display: flex;
+  gap: 7px;
+  margin: 0 0 12px;
+  overflow-x: auto;
+  padding: 1px 1px 3px;
+}
+
+.conjugation-tab {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  color: var(--conj-color);
+  background: transparent;
+  border: 1px solid var(--conj-color);
+  border-radius: 7px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.conjugation-tab:hover,
+.conjugation-tab[aria-selected="true"] {
+  color: var(--paper);
+  background: var(--conj-color);
+}
+
+.conjugation-tab:focus-visible,
+.conjugation-speak:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--conj-color, var(--brick)) 52%, transparent);
+  outline-offset: 3px;
+}
+
+.conjugation-panel {
+  display: block;
+}
+
+.conjugation-tense-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 10px;
+}
+
+.conjugation-tense-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--paper) 92%, var(--paper-deep));
+}
+
+.conjugation-tense-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 8px 10px;
+  color: var(--paper);
+  background: var(--conj-color);
+}
+
+.conjugation-tense-card-heading > div {
+  min-width: 0;
+}
+
+.conjugation-tense-card-heading strong,
+.conjugation-tense-card-heading small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.conjugation-tense-card-heading strong {
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.conjugation-tense-card-heading small {
+  margin-top: 2px;
+  font-size: 11px;
+  opacity: 0.92;
+}
+
+.conjugation-speak {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 27px;
+  height: 27px;
+  margin-left: auto;
+  padding: 0;
+  color: var(--paper);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--paper) 72%, transparent);
+  border-radius: 50%;
+  font-size: 11px;
+  letter-spacing: -0.12em;
+  cursor: pointer;
+}
+
+.conjugation-speak:hover {
+  color: var(--conj-color);
+  background: var(--paper);
+}
+
+.conjugation-speak:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.conjugation-form-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.conjugation-form-table th,
+.conjugation-form-table td {
+  padding: 7px 9px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.conjugation-form-table tr:last-child th,
+.conjugation-form-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.conjugation-form-table th {
+  width: 31%;
+  color: var(--ink-soft);
+  background: color-mix(in srgb, var(--paper-deep) 34%, var(--paper));
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.conjugation-form-table td {
+  color: var(--ink);
+  font-family: "Times New Roman", Times, serif;
+  font-size: 16px;
+}
+
+.conjugation-participle-value {
+  padding: 12px 10px;
+  color: var(--ink);
+  font-family: "Times New Roman", Times, serif;
+  font-size: 18px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.conjugation-tense-note {
+  margin: 0;
+  padding: 6px 9px;
+  color: var(--ink-soft);
+  border-top: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .dictionary-example-list {
   display: grid;
   gap: 16px;
@@ -8462,4 +8670,26 @@ html[data-layout="mobile"] .stats-heading > .stats-streak-note {
 
 html[data-layout="mobile"] .stats-heading > .stats-streak-note strong {
   font-size: 24px;
+}
+
+html[data-layout="mobile"] .conjugation-modern > summary small {
+  display: none;
+}
+
+html[data-layout="mobile"] .conjugation-modern-body {
+  padding: 8px;
+}
+
+html[data-layout="mobile"] .conjugation-tab {
+  padding: 6px 10px;
+  font-size: 11px;
+}
+
+html[data-layout="mobile"] .conjugation-tense-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+html[data-layout="mobile"] .conjugation-form-table th,
+html[data-layout="mobile"] .conjugation-form-table td {
+  padding: 7px 8px;
 }

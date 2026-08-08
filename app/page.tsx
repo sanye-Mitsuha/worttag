@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   packCloudPayload,
   unpackCloudPayload,
@@ -40,12 +40,33 @@ type ConjugationRow = {
   person: string;
   form: string;
 };
+type ConjugationCardRow = {
+  label: string;
+  value: string;
+};
+type ConjugationCard = {
+  title: string;
+  subtitle: string;
+  value?: string;
+  forms?: string[];
+  rows?: ConjugationCardRow[];
+  note?: string;
+  speechText?: string;
+};
+type ConjugationTab = {
+  key: string;
+  label: string;
+  color: string;
+  cards: ConjugationCard[];
+};
 type ConjugationTable = {
   pos: string;
   rows: ConjugationRow[];
   past: string;
   participle: string;
   infinitive: string;
+  lemma?: string;
+  tabs?: ConjugationTab[];
 };
 type WordCard = {
   id: string;
@@ -109,12 +130,29 @@ type PackedWordType =
   | "phrase";
 
 type PackedExampleRow = [meaning: string, example: string, exampleZh: string];
+type PackedConjugationCard = {
+  title: string;
+  subtitle: string;
+  value?: string;
+  forms?: string[];
+  rows?: { label: string; value: string }[];
+  note?: string;
+  speechText?: string;
+};
+type PackedConjugationTab = {
+  key: string;
+  label: string;
+  color: string;
+  cards: PackedConjugationCard[];
+};
 type PackedConjugation = {
   pos: string;
   rows: [person: string, form: string][];
   past: string;
   participle: string;
   infinitive: string;
+  lemma?: string;
+  tabs?: PackedConjugationTab[];
 };
 
 type PackedWordRow = [
@@ -646,6 +684,35 @@ function isPackedWordRow(value: unknown): value is PackedWordRow {
   return Array.isArray(conjugations) && conjugations.every((conjugation) => {
     if (!conjugation || typeof conjugation !== "object") return false;
     const candidate = conjugation as Partial<PackedConjugation>;
+    const validTabs = !candidate.tabs || (
+      Array.isArray(candidate.tabs) && candidate.tabs.every((tab) => {
+        if (!tab || typeof tab !== "object") return false;
+        const candidateTab = tab as Partial<PackedConjugationTab>;
+        return typeof candidateTab.key === "string" &&
+          typeof candidateTab.label === "string" &&
+          typeof candidateTab.color === "string" &&
+          Array.isArray(candidateTab.cards) &&
+          candidateTab.cards.every((card) => {
+            if (!card || typeof card !== "object") return false;
+            const candidateCard = card as Partial<PackedConjugationCard>;
+            return typeof candidateCard.title === "string" &&
+              typeof candidateCard.subtitle === "string" &&
+              (candidateCard.value === undefined || typeof candidateCard.value === "string") &&
+              (candidateCard.forms === undefined || (
+                Array.isArray(candidateCard.forms) &&
+                candidateCard.forms.every((form) => typeof form === "string")
+              )) &&
+              (candidateCard.rows === undefined || (
+                Array.isArray(candidateCard.rows) &&
+                candidateCard.rows.every((row) =>
+                  Boolean(row) && typeof row.label === "string" && typeof row.value === "string",
+                )
+              )) &&
+              (candidateCard.note === undefined || typeof candidateCard.note === "string") &&
+              (candidateCard.speechText === undefined || typeof candidateCard.speechText === "string");
+          });
+      })
+    );
     return typeof candidate.pos === "string" &&
       typeof candidate.past === "string" &&
       typeof candidate.participle === "string" &&
@@ -653,7 +720,7 @@ function isPackedWordRow(value: unknown): value is PackedWordRow {
       Array.isArray(candidate.rows) &&
       candidate.rows.every((row) =>
         Array.isArray(row) && row.length === 2 && row.every((field) => typeof field === "string"),
-      );
+      ) && validTabs;
   });
 }
 
@@ -708,6 +775,21 @@ function expandPackedWordbook(resource: PackedWordbook): WordCard[] {
         past: table.past,
         participle: table.participle,
         infinitive: table.infinitive,
+        lemma: table.lemma,
+        tabs: table.tabs?.map((tab) => ({
+          key: tab.key,
+          label: tab.label,
+          color: tab.color,
+          cards: tab.cards.map((card) => ({
+            title: card.title,
+            subtitle: card.subtitle,
+            value: card.value,
+            forms: card.forms,
+            rows: card.rows,
+            note: card.note,
+            speechText: card.speechText,
+          })),
+        })),
       })),
     };
   });
@@ -1287,41 +1369,155 @@ function examplesForWord(word: WordCard): WordExample[] {
   }];
 }
 
-function ConjugationPanel({ word }: { word: WordCard }) {
-  if (!word.conjugations?.length) return null;
+const CONJUGATION_PERSON_LABELS = ["ich", "du", "er/sie/es", "wir", "ihr", "sie/Sie"];
+
+function ConjugationSpeakButton({
+  text,
+  onPlay,
+}: {
+  text: string;
+  onPlay?: (text: string) => void;
+}) {
+  const canPlay = Boolean(onPlay && text.trim() && text.trim() !== "—");
+  return (
+    <button
+      className="conjugation-speak"
+      type="button"
+      disabled={!canPlay}
+      onClick={() => onPlay?.(text)}
+      aria-label={`朗读变位：${text}`}
+    >
+      <span aria-hidden="true">◖))</span>
+    </button>
+  );
+}
+
+function ConjugationCardView({
+  card,
+  color,
+  onPlay,
+}: {
+  card: ConjugationCard;
+  color: string;
+  onPlay?: (text: string) => void;
+}) {
+  const rows = card.rows ?? CONJUGATION_PERSON_LABELS.map((label, index) => ({
+    label,
+    value: card.forms?.[index] ?? "—",
+  }));
+  const speechText = card.speechText || card.value || card.forms?.[0] || rows[0]?.value || "";
+  return (
+    <article className="conjugation-tense-card">
+      <div className="conjugation-tense-card-heading" style={{ "--conj-color": color } as CSSProperties}>
+        <div>
+          <strong>{card.title}</strong>
+          <small>{card.subtitle}</small>
+        </div>
+        <ConjugationSpeakButton text={speechText} onPlay={onPlay} />
+      </div>
+      {card.value !== undefined ? (
+        <div className="conjugation-participle-value" lang="de">{card.value}</div>
+      ) : (
+        <table className="conjugation-form-table">
+          <tbody>
+            {rows.map((row, index) => (
+              <tr key={`${row.label}-${index}`}>
+                <th scope="row" lang="de">{row.label}</th>
+                <td lang="de">{row.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {card.note && <p className="conjugation-tense-note">{card.note}</p>}
+    </article>
+  );
+}
+
+function ConjugationPanel({
+  word,
+  onPlay,
+}: {
+  word: WordCard;
+  onPlay?: (text: string) => void;
+}) {
+  const tables = word.conjugations ?? [];
+  const modernTable = tables.find((table) => table.tabs?.length);
+  const modernTabs = modernTable?.tabs ?? [];
+  const [activeTabKey, setActiveTabKey] = useState(modernTabs[0]?.key ?? "participle");
+  const activeTab = modernTabs.find((tab) => tab.key === activeTabKey) ?? modernTabs[0];
+  if (!tables.length) return null;
   return (
     <section className="dictionary-conjugation" aria-labelledby="dictionary-conjugation-title">
       <div className="dictionary-section-heading">
         <p className="dictionary-section-label" id="dictionary-conjugation-title">变位表 · Konjugation</p>
-        <span>来源词库</span>
+        <span>{modernTable?.lemma ?? "来源词库"}</span>
       </div>
-      <div className="conjugation-table-list">
-        {word.conjugations.map((table, index) => (
-          <div className="conjugation-table-wrap" key={`${table.pos}-${index}`}>
-            {table.pos && <strong className="conjugation-pos">{table.pos}</strong>}
-            <table>
-              <thead>
-                <tr><th scope="col">人称</th><th scope="col">现在时</th></tr>
-              </thead>
-              <tbody>
-                {table.rows.map((row, rowIndex) => (
-                  <tr key={`${row.person}-${rowIndex}`}>
-                    <th scope="row" lang="de">{row.person}</th>
-                    <td lang="de">{row.form}</td>
-                  </tr>
+      {modernTable && activeTab ? (
+        <details className="conjugation-modern" open>
+          <summary>
+            <span>查看完整变位</span>
+            <small>{modernTable.lemma ?? modernTable.infinitive} · {modernTable.pos}</small>
+          </summary>
+          <div className="conjugation-modern-body">
+            <div className="conjugation-tabs" role="tablist" aria-label="变位类别">
+              {modernTabs.map((tab) => (
+                <button
+                  className="conjugation-tab"
+                  key={tab.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab.key === activeTab.key}
+                  style={{ "--conj-color": tab.color } as CSSProperties}
+                  onClick={() => setActiveTabKey(tab.key)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <div className="conjugation-panel" role="tabpanel">
+              <div className="conjugation-tense-grid">
+                {activeTab.cards.map((card) => (
+                  <ConjugationCardView
+                    key={`${activeTab.key}-${card.title}-${card.subtitle}`}
+                    card={card}
+                    color={activeTab.color}
+                    onPlay={onPlay}
+                  />
                 ))}
-              </tbody>
-              {(table.past || table.participle) && (
-                <tfoot>
-                  {table.past && <tr><th scope="row">过去式</th><td lang="de">{table.past}</td></tr>}
-                  {table.participle && <tr><th scope="row">第二分词</th><td lang="de">{table.participle}</td></tr>}
-                </tfoot>
-              )}
-            </table>
-            {table.infinitive && <small>原形：<span lang="de">{table.infinitive}</span></small>}
+              </div>
+            </div>
           </div>
-        ))}
-      </div>
+        </details>
+      ) : (
+        <div className="conjugation-table-list">
+          {tables.map((table, index) => (
+            <div className="conjugation-table-wrap" key={`${table.pos}-${index}`}>
+              {table.pos && <strong className="conjugation-pos">{table.pos}</strong>}
+              <table>
+                <thead>
+                  <tr><th scope="col">人称</th><th scope="col">现在时</th></tr>
+                </thead>
+                <tbody>
+                  {table.rows.map((row, rowIndex) => (
+                    <tr key={`${row.person}-${rowIndex}`}>
+                      <th scope="row" lang="de">{row.person}</th>
+                      <td lang="de">{row.form}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                {(table.past || table.participle) && (
+                  <tfoot>
+                    {table.past && <tr><th scope="row">过去式</th><td lang="de">{table.past}</td></tr>}
+                    {table.participle && <tr><th scope="row">第二分词</th><td lang="de">{table.participle}</td></tr>}
+                  </tfoot>
+                )}
+              </table>
+              {table.infinitive && <small>原形：<span lang="de">{table.infinitive}</span></small>}
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -4294,7 +4490,7 @@ export default function Home() {
                       {expandedLibraryWordId === word.id && (
                         <div className="library-card-details">
                           {word.conjugations?.length ? (
-                            <ConjugationPanel word={word} />
+                            <ConjugationPanel key={word.id} word={word} onPlay={(text) => speakExample(word, text)} />
                           ) : word.type.startsWith("名词") ? (
                             <p><span>复数</span>{wordFormsForDisplay(word)}</p>
                           ) : (
@@ -4962,7 +5158,7 @@ export default function Home() {
                     aria-haspopup="dialog"
                     aria-label={`查看 ${dictionaryWord.term} 的变位表`}
                   >
-                    查看变位表 <span aria-hidden="true">→</span>
+                    查看完整变位 <span aria-hidden="true">→</span>
                   </button>
                 ) : dictionaryView === "definition" && dictionaryWord.type.startsWith("名词") ? (
                   <p className="dictionary-noun-plural"><span>复数</span>{wordFormsForDisplay(dictionaryWord)}</p>
@@ -4982,7 +5178,7 @@ export default function Home() {
             </header>
 
             {dictionaryView === "conjugation" ? (
-              <ConjugationPanel word={dictionaryWord} />
+              <ConjugationPanel key={dictionaryWord.id} word={dictionaryWord} onPlay={(text) => speakExample(dictionaryWord, text)} />
             ) : (
               <>
                 <section className="dictionary-meaning" aria-labelledby="dictionary-meaning-title">
