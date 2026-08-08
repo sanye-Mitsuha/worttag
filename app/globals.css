@@ -8789,3 +8789,19 @@ html[data-layout="mobile"] .brand-version {
     font-size: 10px;
   }
 }
+
+/* Keep mobile section headings compact enough to leave the content below
+   visible without changing the desktop reading scale. */
+html[data-layout="mobile"] .page-heading h1,
+html[data-layout="mobile"] .settings-heading h1 {
+  font-size: clamp(30px, 7.8vw, 38px);
+  line-height: 1.1;
+}
+
+@media (max-width: 900px) {
+  html[data-layout="auto"] .page-heading h1,
+  html[data-layout="auto"] .settings-heading h1 {
+    font-size: clamp(30px, 7.8vw, 38px);
+    line-height: 1.1;
+  }
+}

@@ -4593,8 +4593,7 @@ export default function Home() {
             <div className="page-heading stats-heading">
               <div>
                 <p className="kicker">Fortschritt · Lernen</p>
-                <h1>看见每天的积累。</h1>
-                <p className="stats-heading-copy">从掌握数量、复习节奏和词书进度，了解自己的德语词汇成长。</p>
+                <h1>看见每天的积累</h1>
               </div>
               <div className="stats-streak-note">
                 <span>连续学习</span>
