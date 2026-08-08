@@ -1236,6 +1236,47 @@ function firstThreeMeanings(value: string) {
   return `${parts.slice(0, 3).join("；")}…`;
 }
 
+const SENSE_MARKERS: Record<string, string> = {
+  "①": "I",
+  "②": "II",
+  "③": "III",
+  "④": "IV",
+  "⑤": "V",
+  "⑥": "VI",
+  "⑦": "VII",
+  "⑧": "VIII",
+  "⑨": "IX",
+  "⑩": "X",
+  "⑪": "XI",
+  "⑫": "XII",
+  "Ⅰ": "I",
+  "Ⅱ": "II",
+  "Ⅲ": "III",
+  "Ⅳ": "IV",
+  "Ⅴ": "V",
+  "Ⅵ": "VI",
+  "Ⅶ": "VII",
+  "Ⅷ": "VIII",
+  "Ⅸ": "IX",
+  "Ⅹ": "X",
+};
+
+function MeaningText({ value }: { value: string }) {
+  const parts = value.split(/([①②③④⑤⑥⑦⑧⑨⑩⑪⑫ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ])/u);
+  return (
+    <>
+      {parts.map((part, index) => {
+        const marker = SENSE_MARKERS[part];
+        return marker ? (
+          <span className="meaning-sense-index" key={`${part}-${index}`} aria-label={`第${marker}项`}>
+            {marker}
+          </span>
+        ) : part;
+      })}
+    </>
+  );
+}
+
 function examplesForWord(word: WordCard): WordExample[] {
   if (word.examples?.length) return word.examples;
   if (!word.example) return [];
@@ -3695,7 +3736,7 @@ export default function Home() {
                 </div>
                 <div className="spelling-cue">
                   <span>{spellingWord.type}</span>
-                  <h2>{firstThreeMeanings(spellingWord.meaning)}</h2>
+                  <h2><MeaningText value={firstThreeMeanings(spellingWord.meaning)} /></h2>
                   <button className="speak-button" type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => speak(spellingWord)} aria-label={`朗读 ${spellingWord.term}（快捷键 F）`} aria-keyshortcuts="F">
                     <span className="sound-rings" aria-hidden="true">◖))</span> 听发音
                     <kbd className="feature-shortcut" aria-hidden="true">F</kbd>
@@ -3839,7 +3880,7 @@ export default function Home() {
                           <>
                             <div className="meaning-line">
                               <span className="answer-label">释义</span>
-                              <strong>{firstThreeMeanings(currentWord.meaning)}</strong>
+                              <strong><MeaningText value={firstThreeMeanings(currentWord.meaning)} /></strong>
                             </div>
                             {currentWord.example && (
                               <blockquote>
@@ -3913,7 +3954,7 @@ export default function Home() {
                                 key={option.id}
                               >
                                 <small>{option.type}</small>
-                                <strong>{firstThreeMeanings(option.meaning)}</strong>
+                                <strong><MeaningText value={firstThreeMeanings(option.meaning)} /></strong>
                                 <span className="meaning-key" aria-hidden="true">{index + 1}</span>
                               </button>
                             );
@@ -3922,7 +3963,7 @@ export default function Home() {
                         {grading && selectedChoiceForCurrentWord ? (
                           <div className={selectedChoiceForCurrentWord === currentWord.id ? "choice-auto-result correct" : "choice-auto-result incorrect"} role="status">
                             <strong>{selectedChoiceForCurrentWord === currentWord.id ? "选择正确 · 光点 +1" : "正确词义"}</strong>
-                            <span>{firstThreeMeanings(currentWord.meaning)}</span>
+                            <span><MeaningText value={firstThreeMeanings(currentWord.meaning)} /></span>
                             {selectedChoiceForCurrentWord !== currentWord.id && <small>1 秒后自动进入下一个单词</small>}
                           </div>
                         ) : (
@@ -4013,7 +4054,7 @@ export default function Home() {
                     <div className="answer-sheet" aria-live="polite">
                       <div className="meaning-line">
                         <span className="answer-label">释义</span>
-                        <strong>{firstThreeMeanings(currentWord.meaning)}</strong>
+                        <strong><MeaningText value={firstThreeMeanings(currentWord.meaning)} /></strong>
                       </div>
                       {currentWord.example && (
                         <blockquote>
@@ -4249,7 +4290,7 @@ export default function Home() {
                           <ArticleTerm term={word.term} />
                         </button>
                       </h2>
-                      <p className="library-meaning">{firstThreeMeanings(word.meaning)}</p>
+                      <p className="library-meaning"><MeaningText value={firstThreeMeanings(word.meaning)} /></p>
                       {expandedLibraryWordId === word.id && (
                         <div className="library-card-details">
                           {word.conjugations?.length ? (
@@ -4333,7 +4374,7 @@ export default function Home() {
                         <span className="folio">{String(index + 1).padStart(2, "0")}</span>
                         <div>
                           <strong><ArticleTerm term={word.term} /></strong>
-                          <span>{firstThreeMeanings(word.meaning)}</span>
+                          <span><MeaningText value={firstThreeMeanings(word.meaning)} /></span>
                         </div>
                         <ReviewDots record={learning.records[word.id]} />
                         <button type="button" onClick={(event) => openDictionary(word, event.currentTarget)}>查看详情</button>
@@ -4948,7 +4989,7 @@ export default function Home() {
                   <p className="dictionary-section-label" id="dictionary-meaning-title">
                     中文释义 <span>Worttag 课程释义</span>
                   </p>
-                  <p id="dictionary-word-summary">{dictionaryWord.meaning}</p>
+                  <p id="dictionary-word-summary"><MeaningText value={dictionaryWord.meaning} /></p>
                 </section>
 
                 {examplesForWord(dictionaryWord).length > 0 && (
@@ -4963,7 +5004,7 @@ export default function Home() {
                           <blockquote key={`${example.example}-${index}`}>
                             <div className="dictionary-example-meaning">
                               <span>对应释义</span>
-                              <strong>{example.meaning}</strong>
+                              <strong><MeaningText value={example.meaning} /></strong>
                             </div>
                             <p lang="de">{example.example}</p>
                             {example.exampleZh && <footer>{example.exampleZh}</footer>}
