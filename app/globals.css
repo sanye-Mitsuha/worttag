@@ -8693,3 +8693,99 @@ html[data-layout="mobile"] .conjugation-form-table th,
 html[data-layout="mobile"] .conjugation-form-table td {
   padding: 7px 8px;
 }
+
+/* The mobile header belongs to the document flow. Keep only the learning
+   navigation floating at the bottom so the brand never covers page content. */
+html[data-layout="mobile"] .topbar {
+  position: static;
+  top: auto;
+  z-index: auto;
+  min-height: 62px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  box-shadow: none;
+  backdrop-filter: none !important;
+}
+
+html[data-layout="mobile"] .brand-lockup {
+  height: auto;
+  gap: 4px;
+}
+
+html[data-layout="mobile"] .brand {
+  gap: 7px;
+}
+
+html[data-layout="mobile"] .brand-word {
+  font-size: 22px;
+  letter-spacing: 0.12em;
+}
+
+html[data-layout="mobile"] .brand-seal {
+  width: 28px;
+  height: 28px;
+  font-size: 15px;
+}
+
+html[data-layout="mobile"] .brand-version-trigger {
+  align-self: center;
+  height: 30px;
+  padding: 0 3px 0 0;
+  align-items: center;
+}
+
+html[data-layout="mobile"] .brand-version {
+  align-self: center;
+  margin: 0 0 0 -2px;
+  font-size: 10px;
+}
+
+@media (max-width: 900px) {
+  html[data-layout="auto"] .topbar {
+    position: static;
+    top: auto;
+    z-index: auto;
+    min-height: 62px;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    box-shadow: none;
+    backdrop-filter: none !important;
+  }
+
+  html[data-layout="auto"] .brand-lockup {
+    height: auto;
+    gap: 4px;
+  }
+
+  html[data-layout="auto"] .brand {
+    gap: 7px;
+  }
+
+  html[data-layout="auto"] .brand-word {
+    font-size: 22px;
+    letter-spacing: 0.12em;
+  }
+
+  html[data-layout="auto"] .brand-seal {
+    width: 28px;
+    height: 28px;
+    font-size: 15px;
+  }
+
+  html[data-layout="auto"] .brand-version-trigger {
+    align-self: center;
+    height: 30px;
+    padding: 0 3px 0 0;
+    align-items: center;
+  }
+
+  html[data-layout="auto"] .brand-version {
+    align-self: center;
+    margin: 0 0 0 -2px;
+    font-size: 10px;
+  }
+}

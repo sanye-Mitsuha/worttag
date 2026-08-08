@@ -83,6 +83,47 @@ test("special entries are available as a separate library-only wordbook", async 
   assert.equal(book.words[0][1], "null");
   assert.equal(book.words[0][3], "num");
   assert.ok(book.words.every((row) => typeof row[4] === "string" && row[4].trim()));
+  assert.equal(book.words.filter((row) => row[4] === "释义未标注").length, 0);
+});
+
+test("editorial corrections remove fake verb tables and normalize reported headwords", async () => {
+  const books = await Promise.all(["a1", "a2", "b2", "c1"].map(async (level) => (
+    JSON.parse(await readFile(`public/wordbooks/${level}-v2.json`, "utf8"))
+  )));
+  const words = books.flatMap((book) => book.words);
+  const corrections = new Map([
+    ["core6000-a1-0030", ["wir", "pron"]],
+    ["core6000-a1-0046", ["mehr", "adv"]],
+    ["cefr10k-a1-00070", ["das Papier", "nn"]],
+    ["cefr10k-a1-00480", ["das Interview", "nn"]],
+    ["cefr10k-a2-00002", ["die Homepage", "nf"]],
+    ["cefr10k-a2-00046", ["der Partner", "nm"]],
+    ["cefr10k-a2-00070", ["die Reinigung", "nf"]],
+    ["cefr10k-a2-00076", ["die Abfahrt", "nf"]],
+    ["cefr10k-a2-00550", ["das Abgas", "nn"]],
+  ]);
+  for (const [id, [term, typeCode]] of corrections) {
+    const row = words.find((candidate) => candidate[0] === id);
+    assert.equal(row?.[1], term, id);
+    assert.equal(row?.[3], typeCode, id);
+  }
+  const invalidVerbIds = new Set([
+    "cefr10k-b2-01753",
+    "cefr10k-b2-02930",
+    "cefr10k-c1-01202",
+    "cefr10k-c1-01312",
+    "cefr10k-c1-02504",
+    "cefr10k-c1-03291",
+    "cefr10k-c1-03690",
+  ]);
+  assert.deepEqual(
+    words.filter((row) => invalidVerbIds.has(row[0])).map((row) => row[3]),
+    ["adv", "nf", "phrase", "adj", "phrase", "phrase", "prop"],
+  );
+  assert.equal(
+    words.filter((row) => row[3] === "v" && row[10].some((table) => !table.tabs?.length)).length,
+    0,
+  );
 });
 
 test("multi-part-of-speech entries mark later source groups", async () => {

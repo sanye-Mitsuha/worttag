@@ -116434,80 +116434,15 @@
     [
       "cefr10k-c1-01202",
       "fulfill",
-      "ich fulfille · du fulfillst · er/sie/es fulfillt · wir fulfill · ihr fulfillt · sie/Sie fulfill · 过去式 — · 第二分词 — · 原形：fulfill",
-      "v",
-      "① 对...起作用, 按...行动, 作用于。；② 满足（义务）。；③ 跟上。随机（支付）。 act on, fulfill, fulfil, meet, keep up, keep up with, comply with, satisfy, follow, follow later, follow on later；【Vi.】① （诺言）履行。遵守。信守。；② （法规/戒律/医嘱等）遵守。遵循。照做。跟随。迎合。；③ (方向)抓住。固定。；④ （汇率/速度等）维持。维护。 fulfill(US), fulfil(UK), comply with, respect, follow, meet, hold, maintain",
+      "英语：fulfill / fulfil",
+      "phrase",
+      "① 履行；满足（义务、要求等）；遵守；实现",
       "",
       "",
-      "V. / Vi.",
-      "",
+      "Engl.",
+      "英语词条；德语常用对应词：erfüllen。",
       [],
-      [
-        {
-          "pos": "V.",
-          "rows": [
-            [
-              "ich",
-              "fulfille"
-            ],
-            [
-              "du",
-              "fulfillst"
-            ],
-            [
-              "er/sie/es",
-              "fulfillt"
-            ],
-            [
-              "wir",
-              "fulfill"
-            ],
-            [
-              "ihr",
-              "fulfillt"
-            ],
-            [
-              "sie/Sie",
-              "fulfill"
-            ]
-          ],
-          "past": "—",
-          "participle": "—",
-          "infinitive": "fulfill"
-        },
-        {
-          "pos": "Vi.",
-          "rows": [
-            [
-              "ich",
-              "fulfille"
-            ],
-            [
-              "du",
-              "fulfillst"
-            ],
-            [
-              "er/sie/es",
-              "fulfillt"
-            ],
-            [
-              "wir",
-              "fulfill"
-            ],
-            [
-              "ihr",
-              "fulfillt"
-            ],
-            [
-              "sie/Sie",
-              "fulfill"
-            ]
-          ],
-          "past": "—",
-          "participle": "—",
-          "infinitive": "fulfill"
-        }
-      ]
+      []
     ],
     [
       "core6000-c1-5418",
@@ -121592,13 +121527,13 @@
     [
       "cefr10k-c1-01312",
       "geschrieben",
-      "ich geschriebe · du geschriebst · er/sie/es geschriebt · wir geschrieben · ihr geschriebt · sie/Sie geschrieben · 过去式 — · 第二分词 — · 原形：geschrieben",
-      "v",
-      "① 写下来的，成文的",
+      "过去分词：schreiben；常作形容词使用",
+      "adj",
+      "① 写成的；书面的；写下来的",
       "Das ist ein humorvoll geschriebener Roman.",
       "这是一本写得幽默的小说。",
-      "V./Part./Adj.",
-      "搭配：einen Aufsatz schreiben；搭配：写文章；搭配：Gedicht schreiben；搭配：作诗；搭配：ein Drehbuch schreiben；搭配：编剧；搭配：mit der Hand schreiben；搭配：手写；搭配：sich(Dat.) etw. hinter die Ohren schreiben；搭配：牢记；搭配：rote Zahlen schreiben；搭配：亏本",
+      "Part. / Adj.",
+      "来自 schreiben 的第二分词；作定语时按形容词词尾变化。",
       [
         [
           "① 写下来的，成文的",
@@ -121606,40 +121541,7 @@
           "这是一本写得幽默的小说。"
         ]
       ],
-      [
-        {
-          "pos": "V./Part./Adj.",
-          "rows": [
-            [
-              "ich",
-              "geschriebe"
-            ],
-            [
-              "du",
-              "geschriebst"
-            ],
-            [
-              "er/sie/es",
-              "geschriebt"
-            ],
-            [
-              "wir",
-              "geschrieben"
-            ],
-            [
-              "ihr",
-              "geschriebt"
-            ],
-            [
-              "sie/Sie",
-              "geschrieben"
-            ]
-          ],
-          "past": "—",
-          "participle": "—",
-          "infinitive": "geschrieben"
-        }
-      ]
+      []
     ],
     [
       "cefr10k-c1-01313",
@@ -188140,112 +188042,15 @@
     [
       "cefr10k-c1-02504",
       "plasticize",
-      "ich plasticizee · du plasticizest · er/sie/es plasticizet · wir plasticize · ihr plasticizet · sie/Sie plasticize · 过去式 — · 第二分词 — · 原形：plasticize",
-      "v",
-      "① 胶溶：分解沉淀物形成胶质。使成胶体溶液。反絮凝。散凝。反团聚。；② 使可塑。使塑化。增塑。 peptize, deflocculate, plasticize；【Vt.】① 塑炼。增塑。 (橡胶等)(指通过加热及挤压使其粒子软化。 plasticize, plasticate, plastisise；【Vt.】① 使可塑。使塑化。 plasticize, plasticise",
+      "英语动词：plasticize / plasticise",
+      "phrase",
+      "① 使塑化；使可塑；增塑（化学、材料）",
       "",
       "",
-      "Vt.",
-      "",
+      "Engl.",
+      "英语技术词；德语常用对应词：plastifizieren。",
       [],
-      [
-        {
-          "pos": "Vt.",
-          "rows": [
-            [
-              "ich",
-              "plasticizee"
-            ],
-            [
-              "du",
-              "plasticizest"
-            ],
-            [
-              "er/sie/es",
-              "plasticizet"
-            ],
-            [
-              "wir",
-              "plasticize"
-            ],
-            [
-              "ihr",
-              "plasticizet"
-            ],
-            [
-              "sie/Sie",
-              "plasticize"
-            ]
-          ],
-          "past": "—",
-          "participle": "—",
-          "infinitive": "plasticize"
-        },
-        {
-          "pos": "Vt.",
-          "rows": [
-            [
-              "ich",
-              "plasticizee"
-            ],
-            [
-              "du",
-              "plasticizest"
-            ],
-            [
-              "er/sie/es",
-              "plasticizet"
-            ],
-            [
-              "wir",
-              "plasticize"
-            ],
-            [
-              "ihr",
-              "plasticizet"
-            ],
-            [
-              "sie/Sie",
-              "plasticize"
-            ]
-          ],
-          "past": "—",
-          "participle": "—",
-          "infinitive": "plasticize"
-        },
-        {
-          "pos": "Vt.",
-          "rows": [
-            [
-              "ich",
-              "plasticizee"
-            ],
-            [
-              "du",
-              "plasticizest"
-            ],
-            [
-              "er/sie/es",
-              "plasticizet"
-            ],
-            [
-              "wir",
-              "plasticize"
-            ],
-            [
-              "ihr",
-              "plasticizet"
-            ],
-            [
-              "sie/Sie",
-              "plasticize"
-            ]
-          ],
-          "past": "—",
-          "participle": "—",
-          "infinitive": "plasticize"
-        }
-      ]
+      []
     ],
     [
       "core6000-c1-4337",
@@ -236916,48 +236721,15 @@
     [
       "cefr10k-c1-03291",
       "swot",
-      "ich swote · du swotst · er/sie/es swott · wir swot · ihr swott · sie/Sie swot · 过去式 — · 第二分词 — · 原形：swot",
-      "v",
-      "① 敲鼓。击鼓。击剑。大声弹钢琴。击键。刻苦学习。 drum, swot SWOT分析法。优势-劣势-机会-威胁分析法。 SWOT分析实际上是将对企业内部和外部条件各方面内容进行综合和概括，进而分析组织的优劣势、面临的机会和威胁的一种方法。 其中，优劣势分析主要是着眼于企业自身的实力及其与竞争对手的比较，而机会和威胁分析将注意力放在外部环境的变化及对企业的可能影响上，但是，外部环境的变化可能会给具有不同资源和能力的企业带来的机会与威胁却可能完全不同，因此，两者之间又有紧密的联系。 当公司要拓展在某一新的业务或进行新的投资前，以及在制定销售计划时，所用的战略分析方法之一便是SWOT分析。 采用这种决策方法的根本目的是把自己公司和竞争对手公司的优势、劣势、机会和挑战进行比较，然后决定某项新业务或新投资是否可行。做SWOT分析有利于自己的公司在做新业务前是否会充分发挥自己和长处而避免自己的短处，以趋利避害，化劣势为优势，化挑战为机遇。同时，也使自己的公司知道该从学习什么来面对市场商机。即所谓的知己知彼、百战不殆，从而降低公司的经营和投资风险。 SWOT analysis: strength, weakness, opportunities and threats analysis",
+      "英语：swot；SWOT = Strengths, Weaknesses, Opportunities, Threats",
+      "phrase",
+      "① 刻苦学习（英）；② SWOT 分析（缩写）",
       "",
       "",
-      "V.",
-      "",
+      "Engl. / Abk.",
+      "英语词条与缩写；德语中通常说 SWOT-Analyse。",
       [],
-      [
-        {
-          "pos": "V.",
-          "rows": [
-            [
-              "ich",
-              "swote"
-            ],
-            [
-              "du",
-              "swotst"
-            ],
-            [
-              "er/sie/es",
-              "swott"
-            ],
-            [
-              "wir",
-              "swot"
-            ],
-            [
-              "ihr",
-              "swott"
-            ],
-            [
-              "sie/Sie",
-              "swot"
-            ]
-          ],
-          "past": "—",
-          "participle": "—",
-          "infinitive": "swot"
-        }
-      ]
+      []
     ],
     [
       "cefr10k-c1-03292",
@@ -276440,48 +276212,15 @@
     [
       "cefr10k-c1-03690",
       "Vitex",
-      "ich vitexe · du vitexst · er/sie/es vitext · wir vitex · ihr vitext · sie/Sie vitex · 过去式 — · 第二分词 — · 原形：vitex",
-      "v",
-      "① 牡荆。牡荆属。 淡紫花牡荆：几种牡荆属的灌木或乔木，尤指两种东半球的栽培品（白羊牡荆和黄荆），长有芳香的、掌状的复叶及通常为淡紫色的花簇 马鞭草科 verbenaceae Vitex agnus-castus, Chaste tree, Monk's pepper",
+      "植物属名",
+      "prop",
+      "① 牡荆属；牡荆（植物属名）",
       "",
       "",
-      "V.",
-      "",
+      "Bot.",
+      "植物学属名；对应拉丁学名 Vitex。",
       [],
-      [
-        {
-          "pos": "V.",
-          "rows": [
-            [
-              "ich",
-              "vitexe"
-            ],
-            [
-              "du",
-              "vitexst"
-            ],
-            [
-              "er/sie/es",
-              "vitext"
-            ],
-            [
-              "wir",
-              "vitex"
-            ],
-            [
-              "ihr",
-              "vitext"
-            ],
-            [
-              "sie/Sie",
-              "vitex"
-            ]
-          ],
-          "past": "—",
-          "participle": "—",
-          "infinitive": "vitex"
-        }
-      ]
+      []
     ],
     [
       "cefr10k-c1-03691",

@@ -111566,13 +111566,13 @@
     [
       "cefr10k-b2-01753",
       "instand",
-      "ich instande · du instandst · er/sie/es instandt · wir instand · ihr instandt · sie/Sie instand · 过去式 — · 第二分词 — · 原形：instand",
-      "v",
-      "① (adv)(只与 halten,setzen,bringen,kommen,sein等动词连用)完整地,完善地,完好地,能使用地",
+      "用法：instand halten · instand setzen · instand bringen · instand kommen · instand sein",
+      "adv",
+      "①（常与 halten、setzen、bringen、kommen、sein 连用）完好地；完善地；能使用地",
       "Acht Anwendungen, die außerhalb der Gruppe entwickelt worden waren, wurden unabhängig voneinander betrieben und instand gehalten.",
       "在该股之外开发的八项程序正在运作，并得到独立维护。",
-      "V.",
-      "",
+      "Adv.",
+      "instand 通常与相关动词构成固定搭配，不单独作谓语使用。",
       [
         [
           "① (adv)(只与 halten,setzen,bringen,kommen,sein等动词连用)完整地,完善地,完好地,能使用地",
@@ -111580,40 +111580,7 @@
           "在该股之外开发的八项程序正在运作，并得到独立维护。"
         ]
       ],
-      [
-        {
-          "pos": "V.",
-          "rows": [
-            [
-              "ich",
-              "instande"
-            ],
-            [
-              "du",
-              "instandst"
-            ],
-            [
-              "er/sie/es",
-              "instandt"
-            ],
-            [
-              "wir",
-              "instand"
-            ],
-            [
-              "ihr",
-              "instandt"
-            ],
-            [
-              "sie/Sie",
-              "instand"
-            ]
-          ],
-          "past": "—",
-          "participle": "—",
-          "infinitive": "instand"
-        }
-      ]
+      []
     ],
     [
       "cefr10k-b2-01754",
@@ -189373,49 +189340,16 @@
     ],
     [
       "cefr10k-b2-02930",
-      "Abschnittsbesteuerung",
-      "ich abschnittsbesteuerunge · du abschnittsbesteuerungst · er/sie/es abschnittsbesteuerungt · wir abschnittsbesteuerung · ihr abschnittsbesteuerungt · sie/Sie abschnittsbesteuerung · 过去式 — · 第二分词 — · 原形：abschnittsbesteuerung",
-      "v",
-      "① Der Begriff Abschnittsbesteuerung ist ein Grundsatz aus dem deutschen Steuerrecht nach dem die Besteuerungsgrundlagen immer auf regelmäßige Zeitabschnitte bezogen ermittelt werden. In Betracht kommen dafür das Kalender- oder Wirtschaftsjahr, das Quartal oder der Monat. Das Prinzip findet sich vor allem in der Umsatzsteuer, den Ertragsteuern und dem Bilanzsteuerrecht. Zugrunde liegt der Gedanke, dass nur die Umsätze, Einnahmen und Gewinne aus dem jeweiligen Abschnitt der Besteuerung unterworfen werden. Besondere Bedeutung kommt der Abschnittbesteuerung hinsichtlich der rechtlichen Würdigung von steuererheblichen Sachverhalten zu. Weil jeder Veranlagungszeitraum für sich zu beurteilen ist, ergeben sich im Regelfall keine zeitraumübergreifenden Bindungen an die rechtliche Beurteilung in einer Vorperiode. Die (fehlerhafte) Anerkennung eines steuermindernden Sachverhalts in Vorjahren bindet die Finanzbehörden auch dann nicht für die Zukunft, wenn diese Sachverhalte über mehrere Veranlagungszeiträume hinweg anerkannt wurden. Auch der Einwand, dass eine Nicht-Anerkennung gegen den Grundsatz von Treu und Glauben verstößt, ist wegen des Prinzips der Abschnittsbesteuerung und der damit verbundenen ständigen rechtlichen Neubewertung der zugrundeliegenden Sachverhaltes nicht stichhaltig. Eine Ausnahme für eine Bindung im Hinblick auf die steuerliche Behandlung über mehrere Zeiträume hinweg, ist nur durch eine verbindliche Zusage gegeben.",
+      "die Abschnittsbesteuerung",
+      "Plural: Abschnittsbesteuerungen",
+      "nf",
+      "① 分期课税；按期间征税（按日历年、财政年度、季度或月份确定计税基础）",
       "",
       "",
-      "V.",
-      "",
+      "N.",
+      "复数：Abschnittsbesteuerungen",
       [],
-      [
-        {
-          "pos": "V.",
-          "rows": [
-            [
-              "ich",
-              "abschnittsbesteuerunge"
-            ],
-            [
-              "du",
-              "abschnittsbesteuerungst"
-            ],
-            [
-              "er/sie/es",
-              "abschnittsbesteuerungt"
-            ],
-            [
-              "wir",
-              "abschnittsbesteuerung"
-            ],
-            [
-              "ihr",
-              "abschnittsbesteuerungt"
-            ],
-            [
-              "sie/Sie",
-              "abschnittsbesteuerung"
-            ]
-          ],
-          "past": "—",
-          "participle": "—",
-          "infinitive": "abschnittsbesteuerung"
-        }
-      ]
+      []
     ],
     [
       "cefr10k-b2-02931",
