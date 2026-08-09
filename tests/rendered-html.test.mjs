@@ -79,6 +79,9 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /影响德语单词和例句朗读/);
   assert.match(page, /function openReleaseNotes/);
   assert.match(page, /已知晓，本版本不再提示/);
+  assert.match(page, /className="install-tip"/);
+  assert.match(page, /添加到主屏幕/);
+  assert.match(page, /程序坞/);
   assert.match(page, /https:\/\/space\.bilibili\.com\/96625971/);
   assert.doesNotMatch(page, /className="header-bilibili-link"/);
   assert.doesNotMatch(page, /RELEASE_NOTES/);
@@ -139,6 +142,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(css, /\.board-backdrop\s*\{/);
   assert.match(css, /\.board-message-content\s*\{/);
   assert.match(css, /\.release-notes-dialog\s*\{/);
+  assert.match(css, /\.install-tip\s*\{/);
   assert.match(css, /\.version-notice-dot\s*\{/);
   assert.match(css, /\.example-audio-button\s*\{/);
   assert.match(page, /return word\.level === level/);

@@ -4668,6 +4668,27 @@ fieldset.settings-card {
   line-height: 1.8;
 }
 
+.install-tip {
+  display: grid;
+  gap: 5px;
+  margin: 0 0 20px;
+  padding: 13px 15px;
+  border: 1px solid color-mix(in srgb, #ff6699 55%, var(--line));
+  background: rgb(255 102 153 / 0.08);
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.install-tip strong {
+  color: color-mix(in srgb, #ff6699 72%, var(--ink));
+  font: 600 14px/1.25 var(--serif);
+}
+
+.install-tip span {
+  display: block;
+}
+
 .release-links {
   display: grid;
   gap: 10px;
@@ -6732,6 +6753,16 @@ html[data-theme="dark"] .release-notes-close {
 
   .release-notes-dialog h2 {
     font-size: 30px;
+  }
+
+  .install-tip {
+    margin-bottom: 17px;
+    padding: 11px 13px;
+    font-size: 11px;
+  }
+
+  .install-tip strong {
+    font-size: 13px;
   }
 
   .release-notes-dialog::before,

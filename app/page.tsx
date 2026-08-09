@@ -5152,6 +5152,10 @@ export default function Home() {
             <h2 id="release-notes-title">Worttag 已更新</h2>
             <p className="release-notes-version">当前版本 {APP_VERSION}</p>
             <p id="release-notes-description">查看本版本的更新记录与最新动态。确认后，本版本将不再显示提醒。</p>
+            <div className="install-tip" id="release-notes-install-tip" role="note">
+              <strong>装到桌面，更像 App</strong>
+              <span>用 Safari 点“分享”→“添加到主屏幕”，即可装在桌面或程序坞。</span>
+            </div>
             <div className="release-links">
               <a className="release-link release-link-bilibili" href={BILIBILI_URL} target="_blank" rel="noreferrer">
                 <span className="release-link-icon bilibili-icon" aria-hidden="true">B</span>
