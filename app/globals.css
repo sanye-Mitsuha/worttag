@@ -4668,6 +4668,64 @@ fieldset.settings-card {
   line-height: 1.8;
 }
 
+.release-announcement {
+  margin: 24px 0 20px;
+  padding: 16px 17px 18px;
+  border: 1px solid color-mix(in srgb, #ff6699 55%, var(--line));
+  background: rgb(255 102 153 / 0.06);
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.release-announcement h3 {
+  margin: 0 0 9px;
+  color: var(--ink);
+  font: 600 17px/1.35 var(--serif);
+}
+
+.release-announcement h3:not(:first-child) {
+  margin-top: 20px;
+}
+
+.release-announcement p {
+  margin: 0 0 12px;
+}
+
+.release-announcement p:last-child {
+  margin-bottom: 0;
+}
+
+.release-announcement ol,
+.release-announcement ul {
+  margin: 0 0 13px;
+  padding-left: 1.55em;
+}
+
+.release-announcement li + li {
+  margin-top: 8px;
+}
+
+.release-announcement li > ul {
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+.release-announcement a {
+  color: color-mix(in srgb, #ff6699 78%, var(--ink));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.release-announcement a:hover,
+.release-announcement a:focus-visible {
+  color: var(--ink);
+}
+
+.announcement-domains {
+  margin-bottom: 15px;
+}
+
 .install-tip {
   display: grid;
   gap: 5px;
@@ -6753,6 +6811,18 @@ html[data-theme="dark"] .release-notes-close {
 
   .release-notes-dialog h2 {
     font-size: 30px;
+  }
+
+  .release-announcement {
+    margin-top: 19px;
+    margin-bottom: 17px;
+    padding: 13px 13px 14px;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .release-announcement h3 {
+    font-size: 16px;
   }
 
   .install-tip {

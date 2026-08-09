@@ -264,8 +264,8 @@ type BoardMessage = {
   createdAt: number;
 };
 
-const APP_VERSION = "beta1.0";
-const VERSION_NOTICE_KEY = "worttag-version-notice-beta1.0";
+const APP_VERSION = "v0.99";
+const VERSION_NOTICE_KEY = "worttag-version-notice-v0.99";
 const BILIBILI_URL = "https://space.bilibili.com/96625971";
 const GITHUB_URL = "https://github.com/sanye-Mitsuha";
 
@@ -5149,9 +5149,36 @@ export default function Home() {
               <span aria-hidden="true">×</span>
             </button>
             <p className="kicker">WORTTAG · CHANGELOG</p>
-            <h2 id="release-notes-title">Worttag 已更新</h2>
+            <h2 id="release-notes-title">重要公告</h2>
             <p className="release-notes-version">当前版本 {APP_VERSION}</p>
-            <p id="release-notes-description">查看本版本的更新记录与最新动态。确认后，本版本将不再显示提醒。</p>
+            <div id="release-notes-description" className="release-announcement">
+              <h3>一、官方域名与仿冒站点声明</h3>
+              <p>本站的官方网址只有以下这些：</p>
+              <ul className="announcement-domains">
+                <li><a href="https://worttag.qd.je" target="_blank" rel="noreferrer">worttag.qd.je</a></li>
+                <li><a href="https://worttag-deutsch-lernen.mitsuhaalpha.chatgpt.site/" target="_blank" rel="noreferrer">https://worttag-deutsch-lernen.mitsuhaalpha.chatgpt.site/</a></li>
+              </ul>
+              <p>在其他任何域名下出现的「Worttag德语背单词」，都不是本站，与本站没有任何关系。本站不对这些站点的内容、行为、数据处理方式及其后果承担任何责任，请勿因名称相似而对其产生信任。</p>
+
+              <h3>二、开源授权范围与免责声明</h3>
+              <p>项目代码开源，是为了技术分享。仓库里只有「德语背单词」本身的代码——不含任何其他内容。</p>
+              <ol>
+                <li><strong>权利保留。</strong>本项目未附任何开源许可证。依据《中华人民共和国著作权法》及相关国际公约，著作权自作品完成之日起自动产生，未经明确授权的权利由作者全部保留。在代码托管平台上浏览与 fork，仅是该平台服务条款范围内的行为，不构成作者对平台之外任何使用的授权。</li>
+                <li><strong>授权范围。</strong>作者仅许可将本项目代码下载到本地，用于个人学习、研究与技术交流。超出此范围的使用均须事先取得作者的书面许可。</li>
+                <li>
+                  <strong>明确禁止的行为。</strong>以下行为未获授权，一律禁止：
+                  <ul>
+                    <li><strong>云端二次部署：</strong>将本项目代码（无论是否修改）部署到任何服务器、云平台、小程序、公众号或其他可供公众访问的环境并对外提供服务。本项目只支持本地部署。</li>
+                    <li><strong>改造成侵害他人权益的内容或服务：</strong>在本项目基础上增加、替换或改写任何侵犯他人人格权、名誉权、肖像权、著作权、商标权或其他合法权益的信息。</li>
+                    <li><strong>盗用本站接口：</strong>未经许可调用本站域名下的 /api/* 等服务，把它接到自己的网站或应用上。本站接口仅供上述官方网址下的页面使用，从未对外开放。</li>
+                    <li><strong>冒用本站名义：</strong>以本站的名称、页面、标识对外宣传，让人误以为与本站相关。</li>
+                    <li><strong>用于违法或不良用途：</strong>包括但不限于赌博、色情、诈骗、引流导流、恶意广告、传播违法信息，以及任何违反所在地法律法规的用途。</li>
+                  </ul>
+                </li>
+                <li><strong>免责。</strong>任何人擅自使用、修改、传播或部署本项目代码所实施的一切行为，均系其个人行为，与本站及作者无关。由此产生的全部法律责任、争议、损失与后果，由行为人自行承担，本站及作者不承担任何形式的责任，亦不提供任何担保。</li>
+                <li><strong>追责。</strong>对上述禁止行为，本站保留在技术上予以阻断，并依法追究其法律责任的全部权利。如果你在别处遇到了这类站点，它与本站没有任何关系。</li>
+              </ol>
+            </div>
             <div className="install-tip" id="release-notes-install-tip" role="note">
               <strong>装到桌面，更像 App</strong>
               <span>用 Safari 点“分享”→“添加到主屏幕”，即可装在桌面或程序坞。</span>

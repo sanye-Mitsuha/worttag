@@ -51,8 +51,9 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.doesNotMatch(page, /下一个词 →/);
   assert.match(page, /candidate\.schemaVersion !== 3/);
   assert.doesNotMatch(page, /className="library-grammar"/);
-  assert.match(page, /beta1\.0/);
-  assert.match(page, /const APP_VERSION = "beta1\.0"/);
+  assert.doesNotMatch(page, /beta1\.0/);
+  assert.match(page, /const APP_VERSION = "v0\.99"/);
+  assert.match(page, /const VERSION_NOTICE_KEY = "worttag-version-notice-v0\.99"/);
   assert.doesNotMatch(page, /exampleAudioUrl/);
   assert.match(page, /ExampleAudioButton/);
   assert.match(page, /new SpeechSynthesisUtterance\(text\.trim\(\)\)/);
@@ -78,6 +79,11 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.doesNotMatch(page, /<small>\{firstThreeMeanings\(word\.meaning\)\}<\/small>/);
   assert.match(page, /影响德语单词和例句朗读/);
   assert.match(page, /function openReleaseNotes/);
+  assert.match(page, /<h2 id="release-notes-title">重要公告<\/h2>/);
+  assert.match(page, /官方域名与仿冒站点声明/);
+  assert.match(page, /worttag\.qd\.je/);
+  assert.match(page, /api\/\*/);
+  assert.match(page, /className="release-announcement"/);
   assert.match(page, /已知晓，本版本不再提示/);
   assert.match(page, /className="install-tip"/);
   assert.match(page, /添加到主屏幕/);
