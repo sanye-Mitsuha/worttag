@@ -267,8 +267,8 @@ type CloudSnapshot = {
   serverUpdatedAt: string;
 };
 
-const APP_VERSION = "beta1.0";
-const VERSION_NOTICE_KEY = "worttag-version-notice-beta1.0";
+const APP_VERSION = "online v1.0";
+const VERSION_NOTICE_KEY = "worttag-version-notice-online-v1.0";
 const BILIBILI_URL = "https://space.bilibili.com/96625971";
 const GITHUB_URL = "https://github.com/sanye-Mitsuha";
 
