@@ -22,7 +22,7 @@ import {
 type RecallStatus = "unknown" | "fuzzy" | "known";
 type View = "learn" | "review" | "library" | "stats" | "settings";
 type ThemeMode = "light" | "dark" | "system";
-type SkinMode = "parchment" | "mist" | "forest" | "wine" | "graphite";
+type SkinMode = "parchment" | "mist" | "forest" | "wine" | "graphite" | "ocean" | "peach" | "indigo";
 type LayoutMode = "auto" | "mobile" | "desktop";
 type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1";
 type WordbookCategory = CEFRLevel | "SPECIAL";
@@ -1587,7 +1587,7 @@ function prepareSavedSettings(value: unknown): AppSettings {
   if (!value || typeof value !== "object") return DEFAULT_SETTINGS;
   const saved = value as Partial<AppSettings>;
   const themes: ThemeMode[] = ["light", "dark", "system"];
-  const skins: SkinMode[] = ["parchment", "mist", "forest", "wine", "graphite"];
+  const skins: SkinMode[] = ["parchment", "mist", "forest", "wine", "graphite", "ocean", "peach", "indigo"];
   const layoutModes: LayoutMode[] = ["auto", "mobile", "desktop"];
   const rawLayoutMode = (value as { layoutMode?: unknown }).layoutMode;
   const savedLayoutMode = rawLayoutMode;
@@ -4754,6 +4754,9 @@ export default function Home() {
                     ["forest", "苔绿书房", "苔绿 · 木棕"],
                     ["wine", "酒红典藏", "勃艮第 · 旧玫瑰"],
                     ["graphite", "石墨报刊", "灰白 · 炭黑"],
+                    ["ocean", "海盐书页", "海松 · 雾白"],
+                    ["peach", "杏桃晨刊", "陶粉 · 奶油"],
+                    ["indigo", "靛蓝档案", "靛蓝 · 银灰"],
                   ] as const).map(([value, label, description]) => (
                     <label className={settings.skin === value ? "skin-option selected" : "skin-option"} key={value}>
                       <input type="radio" name="skin" value={value} checked={settings.skin === value} onChange={() => updateSetting("skin", value)} />

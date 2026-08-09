@@ -139,6 +139,84 @@ html[data-skin="graphite"] {
   --topbar-shadow: 0 4px 20px rgb(38 42 42 / 0.07);
 }
 
+html[data-skin="ocean"] {
+  --ink: #214653;
+  --ink-soft: #5b7278;
+  --paper: #e9f0ee;
+  --paper-light: #f7fbfa;
+  --paper-deep: #cbdcdf;
+  --canvas: #b6ced0;
+  --line: #a4b9bd;
+  --line-dark: #708d92;
+  --brick: #b65449;
+  --brick-dark: #8f3d37;
+  --sage: #d5e3df;
+  --ochre: #a97e39;
+  --known: #34745e;
+  --solid-ink: #234c58;
+  --on-solid: #f8fcfb;
+  --body-glow-a: rgb(236 249 248 / 0.76);
+  --body-glow-b: rgb(206 231 234 / 0.46);
+  --body-fiber: rgb(28 71 78 / 0.018);
+  --shell-start: rgb(240 247 245 / 0.86);
+  --shell-end: rgb(207 226 228 / 0.9);
+  --shell-fiber: rgb(29 68 75 / 0.014);
+  --topbar-surface: rgb(237 246 244 / 0.92);
+  --topbar-shadow: 0 4px 20px rgb(34 76 83 / 0.07);
+}
+
+html[data-skin="peach"] {
+  --ink: #503634;
+  --ink-soft: #7b6460;
+  --paper: #f5e8df;
+  --paper-light: #fff7f0;
+  --paper-deep: #e4c9bd;
+  --canvas: #d9b9ac;
+  --line: #d0ada0;
+  --line-dark: #9d776b;
+  --brick: #b95347;
+  --brick-dark: #873c35;
+  --sage: #ead8ca;
+  --ochre: #aa7934;
+  --known: #3d765f;
+  --solid-ink: #5a3835;
+  --on-solid: #fff6ef;
+  --body-glow-a: rgb(255 243 232 / 0.76);
+  --body-glow-b: rgb(244 214 202 / 0.48);
+  --body-fiber: rgb(88 46 39 / 0.018);
+  --shell-start: rgb(251 240 232 / 0.88);
+  --shell-end: rgb(228 201 190 / 0.9);
+  --shell-fiber: rgb(88 44 38 / 0.014);
+  --topbar-surface: rgb(250 238 229 / 0.92);
+  --topbar-shadow: 0 4px 20px rgb(91 48 42 / 0.07);
+}
+
+html[data-skin="indigo"] {
+  --ink: #29384d;
+  --ink-soft: #667287;
+  --paper: #e9edf4;
+  --paper-light: #f8f9fc;
+  --paper-deep: #cdd4e1;
+  --canvas: #b8c3d5;
+  --line: #a7b3c7;
+  --line-dark: #71809a;
+  --brick: #b45b52;
+  --brick-dark: #893f3b;
+  --sage: #d8e0ed;
+  --ochre: #aa7a36;
+  --known: #3e765f;
+  --solid-ink: #304663;
+  --on-solid: #f8f7ef;
+  --body-glow-a: rgb(241 246 255 / 0.76);
+  --body-glow-b: rgb(211 221 239 / 0.5);
+  --body-fiber: rgb(41 57 80 / 0.018);
+  --shell-start: rgb(241 245 251 / 0.88);
+  --shell-end: rgb(211 220 234 / 0.9);
+  --shell-fiber: rgb(39 53 76 / 0.014);
+  --topbar-surface: rgb(239 244 250 / 0.92);
+  --topbar-shadow: 0 4px 20px rgb(42 58 87 / 0.07);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -3743,6 +3821,18 @@ fieldset.settings-card {
 .skin-swatch.graphite i:first-child { background: #2c3031; }
 .skin-swatch.graphite i:nth-child(2) { background: #f7f5ef; }
 .skin-swatch.graphite i:nth-child(3) { background: #b45342; }
+.skin-swatch.ocean { background: #b6ced0; }
+.skin-swatch.ocean i:first-child { background: #214653; }
+.skin-swatch.ocean i:nth-child(2) { background: #f7fbfa; }
+.skin-swatch.ocean i:nth-child(3) { background: #b65449; }
+.skin-swatch.peach { background: #d9b9ac; }
+.skin-swatch.peach i:first-child { background: #503634; }
+.skin-swatch.peach i:nth-child(2) { background: #fff7f0; }
+.skin-swatch.peach i:nth-child(3) { background: #b95347; }
+.skin-swatch.indigo { background: #b8c3d5; }
+.skin-swatch.indigo i:first-child { background: #29384d; }
+.skin-swatch.indigo i:nth-child(2) { background: #f8f9fc; }
+.skin-swatch.indigo i:nth-child(3) { background: #b45b52; }
 
 .setting-row {
   display: grid;
@@ -6065,6 +6155,72 @@ html[data-theme="dark"][data-skin="graphite"] {
   --shell-end: rgb(13 15 16 / 0.95);
   --shell-fiber: rgb(229 227 220 / 0.014);
   --topbar-surface: rgb(23 25 26 / 0.95);
+}
+
+html[data-theme="dark"][data-skin="ocean"] {
+  --ink: #dcebed;
+  --ink-soft: #a8c0c4;
+  --paper: #17272c;
+  --paper-light: #1f353a;
+  --paper-deep: #0d171b;
+  --canvas: #0a1215;
+  --line: #46616a;
+  --line-dark: #738e95;
+  --brick: #e18470;
+  --brick-dark: #bd5e52;
+  --sage: #2e4a4d;
+  --solid-ink: #285462;
+  --on-solid: #fbf5e8;
+  --body-glow-a: rgb(69 111 121 / 0.24);
+  --body-glow-b: rgb(118 75 67 / 0.14);
+  --shell-start: rgb(22 39 44 / 0.95);
+  --shell-end: rgb(9 18 21 / 0.95);
+  --shell-fiber: rgb(220 235 237 / 0.014);
+  --topbar-surface: rgb(15 29 33 / 0.95);
+}
+
+html[data-theme="dark"][data-skin="peach"] {
+  --ink: #f0ded5;
+  --ink-soft: #c7aaa3;
+  --paper: #2a1b1b;
+  --paper-light: #382327;
+  --paper-deep: #1a0f11;
+  --canvas: #140b0c;
+  --line: #66474a;
+  --line-dark: #98777a;
+  --brick: #e07b6d;
+  --brick-dark: #bb5e53;
+  --sage: #513b39;
+  --solid-ink: #613735;
+  --on-solid: #fff4ec;
+  --body-glow-a: rgb(129 76 72 / 0.23);
+  --body-glow-b: rgb(110 79 59 / 0.14);
+  --shell-start: rgb(42 27 27 / 0.95);
+  --shell-end: rgb(19 11 12 / 0.95);
+  --shell-fiber: rgb(240 222 213 / 0.014);
+  --topbar-surface: rgb(34 19 20 / 0.95);
+}
+
+html[data-theme="dark"][data-skin="indigo"] {
+  --ink: #e4e9f2;
+  --ink-soft: #b3bdcf;
+  --paper: #1b2330;
+  --paper-light: #252f3e;
+  --paper-deep: #101722;
+  --canvas: #0c111a;
+  --line: #4a5870;
+  --line-dark: #7d8aa2;
+  --brick: #df7d6b;
+  --brick-dark: #b95c4d;
+  --sage: #35465e;
+  --solid-ink: #354f70;
+  --on-solid: #f9f4e8;
+  --body-glow-a: rgb(72 99 139 / 0.24);
+  --body-glow-b: rgb(119 75 66 / 0.14);
+  --shell-start: rgb(27 35 48 / 0.95);
+  --shell-end: rgb(12 17 26 / 0.95);
+  --shell-fiber: rgb(228 233 242 / 0.014);
+  --topbar-surface: rgb(19 25 36 / 0.95);
 }
 
 html[data-theme="dark"] body {
@@ -8857,6 +9013,112 @@ html[data-layout="mobile"] .word-front.exposure-1 {
   padding-bottom: 22px;
 }
 
+/* Keep the narrow settings page compact: headings share one scale, while
+   the high-choice settings use the available width instead of stacking. */
+html[data-layout="mobile"] .page-heading h1,
+html[data-layout="mobile"] .secondary-page > .page-heading h1,
+html[data-layout="mobile"] .settings-heading h1,
+html[data-layout="mobile"] .daily-library-title h1 {
+  font-size: clamp(27px, 6.8vw, 32px);
+  line-height: 1.08;
+}
+
+html[data-layout="mobile"] .theme-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+html[data-layout="mobile"] .theme-option {
+  min-height: 88px;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto auto;
+  align-items: start;
+  gap: 2px;
+  padding: 7px 6px;
+}
+
+html[data-layout="mobile"] .theme-swatch {
+  width: 100%;
+  height: 29px;
+  grid-row: auto;
+  margin-bottom: 3px;
+}
+
+html[data-layout="mobile"] .theme-option strong {
+  font-size: 12px;
+}
+
+html[data-layout="mobile"] .theme-option small {
+  margin-top: 0;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+html[data-layout="mobile"] .theme-option em {
+  right: 5px;
+  bottom: 4px;
+  font-size: 8px;
+}
+
+html[data-layout="mobile"] .skin-options {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+html[data-layout="mobile"] .skin-option {
+  min-height: 60px;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  gap: 6px;
+  padding: 6px;
+}
+
+html[data-layout="mobile"] .skin-swatch {
+  width: 38px;
+  height: 30px;
+}
+
+html[data-layout="mobile"] .skin-option strong {
+  font-size: 11px;
+}
+
+html[data-layout="mobile"] .skin-option small {
+  margin-top: 1px;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+html[data-layout="mobile"] .study-mode-options {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+
+html[data-layout="mobile"] .study-mode-option {
+  min-height: 92px;
+  grid-template-columns: 23px minmax(0, 1fr) 10px;
+  gap: 6px;
+  padding: 8px;
+}
+
+html[data-layout="mobile"] .study-mode-mark {
+  width: 23px;
+  height: 23px;
+  font-size: 13px;
+}
+
+html[data-layout="mobile"] .study-mode-option strong {
+  font-size: 13px;
+}
+
+html[data-layout="mobile"] .study-mode-option small {
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+html[data-layout="mobile"] .study-mode-option em {
+  font-size: 11px;
+}
+
 @media (max-width: 900px) {
   html[data-layout="auto"] .daily-library-title h1 {
     display: flex;
@@ -8903,6 +9165,110 @@ html[data-layout="mobile"] .word-front.exposure-1 {
   html[data-layout="auto"] .word-front.exposure-1 {
     padding-top: 38px;
     padding-bottom: 22px;
+  }
+
+  html[data-layout="auto"] .page-heading h1,
+  html[data-layout="auto"] .secondary-page > .page-heading h1,
+  html[data-layout="auto"] .settings-heading h1,
+  html[data-layout="auto"] .daily-library-title h1 {
+    font-size: clamp(27px, 6.8vw, 32px);
+    line-height: 1.08;
+  }
+
+  html[data-layout="auto"] .theme-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  html[data-layout="auto"] .theme-option {
+    min-height: 88px;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    align-items: start;
+    gap: 2px;
+    padding: 7px 6px;
+  }
+
+  html[data-layout="auto"] .theme-swatch {
+    width: 100%;
+    height: 29px;
+    grid-row: auto;
+    margin-bottom: 3px;
+  }
+
+  html[data-layout="auto"] .theme-option strong {
+    font-size: 12px;
+  }
+
+  html[data-layout="auto"] .theme-option small {
+    margin-top: 0;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  html[data-layout="auto"] .theme-option em {
+    right: 5px;
+    bottom: 4px;
+    font-size: 8px;
+  }
+
+  html[data-layout="auto"] .skin-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  html[data-layout="auto"] .skin-option {
+    min-height: 60px;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    gap: 6px;
+    padding: 6px;
+  }
+
+  html[data-layout="auto"] .skin-swatch {
+    width: 38px;
+    height: 30px;
+  }
+
+  html[data-layout="auto"] .skin-option strong {
+    font-size: 11px;
+  }
+
+  html[data-layout="auto"] .skin-option small {
+    margin-top: 1px;
+    font-size: 8px;
+    white-space: nowrap;
+  }
+
+  html[data-layout="auto"] .study-mode-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  html[data-layout="auto"] .study-mode-option {
+    min-height: 92px;
+    grid-template-columns: 23px minmax(0, 1fr) 10px;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  html[data-layout="auto"] .study-mode-mark {
+    width: 23px;
+    height: 23px;
+    font-size: 13px;
+  }
+
+  html[data-layout="auto"] .study-mode-option strong {
+    font-size: 13px;
+  }
+
+  html[data-layout="auto"] .study-mode-option small {
+    font-size: 9px;
+    line-height: 1.35;
+  }
+
+  html[data-layout="auto"] .study-mode-option em {
+    font-size: 11px;
   }
 }
 
