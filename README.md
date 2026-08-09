@@ -9,6 +9,17 @@
 
 [在线体验 Worttag](https://worttag-deutsch-lernen.mitsuhaalpha.chatgpt.site/)
 
+## 官方站点与同步方式
+
+Worttag 目前提供两个使用入口，请根据网络条件选择：
+
+| 入口 | 访问条件 | 多端同步 |
+| --- | --- | --- |
+| [当前在线站点](https://worttag-deutsch-lernen.mitsuhaalpha.chatgpt.site/) | 非香港地区需要科学网络，并需要 OpenAI 账号 | 登录同一账号后自动云同步 |
+| [无需科学网络的本地站点](https://www.worttag.qd.je/) | 无需科学网络，不要求 OpenAI 账号 | 在“设置 → 学习数据”中手动导出 JSON，再在另一台设备导入 |
+
+当前在线站点适合希望自动云同步的用户；本地站点适合无法使用科学网络的用户，可通过手动导出与导入学习数据实现多端同步。
+
 ![Worttag 羊皮纸风格封面](public/og.png)
 
 ## 项目简介
@@ -31,7 +42,7 @@ Worttag 希望把“认识一次”变成“真正记住”。每个单词需要
 - **词典核验弹窗**：点击学习页或词库中的单词，可查看 Worttag 中文义项、德语 Wiktionary 开放释义、DWDS 收录证据，并直达 Duden、PONS 与 Langenscheidt 原词条。
 - **间隔复习**：根据未知、模糊、已知三档判断自动安排下次出现时间。
 - **每日短文**：完成当天计划后，使用当日学习词汇生成分级德语短文。
-- **云存档**：登录同一 ChatGPT 账户后，可在电脑、平板与手机之间自由同步进度。
+- **云存档与手动迁移**：当前在线站点登录同一 OpenAI 账号后，可在电脑、平板与手机之间自动同步；本地站点可通过“设置 → 学习数据”手动导出与导入 JSON，实现多端同步。
 - **键盘操作**：`F` 播放发音、空格揭晓、`Q/W/E` 进行记忆判断。
 - **个性化设置**：深色、浅色、跟随系统；队列词数、每日队列数、词书等级、学习顺序、自动朗读等。
 
@@ -71,7 +82,7 @@ CEFR 是能力描述框架，不规定一份唯一且固定的德语词表。Wor
 ### 安装
 
 ```bash
-git clone https://github.com/mitsuhaalpha-web/worttag.git
+git clone https://github.com/sanye-Mitsuha/worttag.git
 cd worttag
 npm install
 npm run dev
