@@ -224,6 +224,16 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.match(page, /本轮按顺序每词一次；答错会在下一轮再出现/);
   assert.match(page, /确定重置所有学习进度/);
   assert.match(page, /取消，保留进度/);
+  assert.match(page, /type LearningDataExportPayload/);
+  assert.match(page, /function isLearningDataExportPayload\(/);
+  assert.match(page, /function exportLearningData\(/);
+  assert.match(page, /function importLearningData\(event: ChangeEvent<HTMLInputElement>\)/);
+  assert.match(page, /accept="application\/json,\.json"/);
+  assert.match(page, /className="data-transfer-actions"/);
+  assert.match(page, /className="data-transfer-status"/);
+  assert.match(page, /正在读取 \$\{file\.name\}/);
+  assert.match(css, /\.data-transfer-actions\s*\{/);
+  assert.match(css, /\.data-import-input\s*\{/);
   assert.match(page, /云存档已同步 · 电脑 · 平板 · 手机/);
   assert.doesNotMatch(page, /className="streak"/);
   assert.doesNotMatch(page, /className="plan-card paper-panel"/);

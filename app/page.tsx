@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type ChangeEvent, type CSSProperties, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   packCloudPayload,
   unpackCloudPayload,
@@ -249,6 +249,16 @@ type CloudPayload = {
   settingsUpdatedAt: number;
 };
 
+type LearningDataExportPayload = {
+  app: "Worttag";
+  schemaVersion: 1;
+  appVersion: string;
+  exportedAt: string;
+  learning: LearningState;
+  settings: SyncedSettings;
+  settingsUpdatedAt: number;
+};
+
 type CloudSnapshot = {
   payload: unknown;
   revision: number;
@@ -365,6 +375,23 @@ const SPEECH_RATES: Record<SpeechSpeed, number> = {
   "1": 1,
   "1.25": 1.25,
 };
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function isLearningDataExportPayload(value: unknown): value is LearningDataExportPayload {
+  if (!isPlainObject(value)) return false;
+  if (value.app !== "Worttag" || value.schemaVersion !== 1) return false;
+  if (typeof value.appVersion !== "string" || typeof value.exportedAt !== "string") return false;
+  if (!Number.isFinite(Date.parse(value.exportedAt))) return false;
+  if (!isPlainObject(value.learning) || !isPlainObject(value.learning.records)) return false;
+  if (typeof value.learning.todayKey !== "string") return false;
+  if (!Object.values(value.learning.records).every(isPlainObject)) return false;
+  if (!isPlainObject(value.settings)) return false;
+  return Number.isSafeInteger(value.settingsUpdatedAt) && value.settingsUpdatedAt >= 0;
+}
+
 const FIXED_AUDIO_LEVELS: WordbookCategory[] = ["A1", "A2", "B1", "B2", "C1", "SPECIAL"];
 const AUDIO_CACHE_LIMIT = 4;
 
@@ -1829,6 +1856,7 @@ export default function Home() {
   const [grading, setGrading] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [settingsNotice, setSettingsNotice] = useState("正在准备安全的云端同步");
+  const [dataTransferNotice, setDataTransferNotice] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [planDirty, setPlanDirty] = useState(false);
   const [queueUnavailable, setQueueUnavailable] = useState(false);
@@ -1866,6 +1894,7 @@ export default function Home() {
   const resetCancelRef = useRef<HTMLButtonElement>(null);
   const resetDialogRef = useRef<HTMLElement>(null);
   const spellingInputRef = useRef<HTMLInputElement>(null);
+  const importDataInputRef = useRef<HTMLInputElement>(null);
   const dictionaryDialogRef = useRef<HTMLElement>(null);
   const dictionaryCloseRef = useRef<HTMLButtonElement>(null);
   const dictionaryTriggerRef = useRef<HTMLElement | null>(null);
@@ -3286,6 +3315,120 @@ export default function Home() {
       setSettingsNotice("已自动保存 · 新的学习计划从下一队列开始生效");
     }
     setConfirmReset(false);
+  }
+
+  function exportLearningData() {
+    const timestamp = currentTimestamp();
+    const payload: LearningDataExportPayload = {
+      app: "Worttag",
+      schemaVersion: 1,
+      appVersion: APP_VERSION,
+      exportedAt: new Date(timestamp).toISOString(),
+      learning: learningRef.current,
+      settings: syncedSettings(settingsRef.current),
+      settingsUpdatedAt: settingsUpdatedAtRef.current,
+    };
+    const filename = `worttag-learning-data-${dayKey(timestamp)}.json`;
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    setDataTransferNotice(`已导出 ${filename}`);
+  }
+
+  async function importLearningData(event: ChangeEvent<HTMLInputElement>) {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file) return;
+
+    if (file.size > 20 * 1024 * 1024) {
+      setDataTransferNotice("导入失败：文件超过 20 MB，请选择 Worttag 导出的学习数据文件");
+      return;
+    }
+
+    setDataTransferNotice(`正在读取 ${file.name}…`);
+    try {
+      const parsed = JSON.parse(await file.text()) as unknown;
+      if (!isLearningDataExportPayload(parsed)) {
+        throw new Error("文件格式不受支持，请选择 Worttag 导出的 JSON 学习数据文件");
+      }
+
+      const now = currentTimestamp();
+      const importedSettings = prepareSavedSettings({
+        ...settingsRef.current,
+        ...parsed.settings,
+        theme: settingsRef.current.theme,
+        skin: settingsRef.current.skin,
+        layoutMode: settingsRef.current.layoutMode,
+        studyMode: settingsRef.current.studyMode,
+        autoPronounce: settingsRef.current.autoPronounce,
+        showTranslation: settingsRef.current.showTranslation,
+        speechSpeed: settingsRef.current.speechSpeed,
+      });
+      let importedLearning = prepareSavedState(parsed.learning, now, true);
+      if (importedLearning.todayQueueLevel !== importedSettings.level) {
+        importedLearning = {
+          ...importedLearning,
+          todayQueuesCompleted: 0,
+          todayQueueCompletionIds: [],
+          sessionComplete: false,
+          todayQueueLevel: importedSettings.level,
+          todayQueueGoal: importedSettings.queuesPerDay,
+        };
+      } else if (importedLearning.todayQueueGoal === null) {
+        importedLearning = {
+          ...importedLearning,
+          todayQueueGoal: importedSettings.queuesPerDay,
+        };
+      }
+      importedLearning = {
+        ...importedLearning,
+        updatedAt: Math.max(importedLearning.updatedAt, now),
+      };
+      const importedSettingsUpdatedAt = Math.max(parsed.settingsUpdatedAt, now);
+      const queueGoal = importedLearning.todayQueueGoal ?? importedSettings.queuesPerDay;
+      const complete = importedLearning.todayQueueLevel === importedSettings.level &&
+        (importedLearning.sessionComplete || importedLearning.todayQueuesCompleted >= queueGoal);
+      const nextQueue = complete ? [] : buildDailyQueue(importedLearning, importedSettings, now);
+
+      clearTransitionTimer();
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      pendingResetRef.current = null;
+      resetConfirmedRef.current = false;
+      hasLocalInteractionRef.current = false;
+      learningRef.current = importedLearning;
+      settingsRef.current = importedSettings;
+      settingsUpdatedAtRef.current = importedSettingsUpdatedAt;
+      setLearning(importedLearning);
+      setSettings(importedSettings);
+      setSettingsUpdatedAt(importedSettingsUpdatedAt);
+      resetSessionQueue(nextQueue);
+      setQueueSource("daily");
+      setReturnView("learn");
+      setCurrentIndex(0);
+      setRevealed(false);
+      setGrading(false);
+      setFeedback(null);
+      setPlanDirty(false);
+      setQueueUnavailable(!nextQueue.length && !complete);
+      setMasteredDrawerOpen(false);
+      setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
+      setReviewVisibleCount(REVIEW_PAGE_SIZE);
+      setConfirmReset(false);
+      setView("learn");
+      setSettingsNotice("学习数据已导入，正在同步到所有设备");
+      setDataTransferNotice(`已导入 ${file.name} · 学习进度已恢复`);
+      window.setTimeout(() => void synchronizeCloud(false), 0);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "无法读取这个学习数据文件";
+      setDataTransferNotice(`导入失败：${message}`);
+    }
   }
 
   function restoreDefaultSettings() {
@@ -4853,9 +4996,22 @@ export default function Home() {
               <section className="settings-card data-settings">
                 <div className="data-heading"><span className="settings-index">07</span><span><small>Data controls</small><strong>学习数据</strong></span></div>
                 <div className="data-actions">
-                  <button className="secondary-action" onClick={restoreDefaultSettings}>恢复默认设置</button>
+                  <div className="data-transfer-actions">
+                    <button className="secondary-action" type="button" onClick={exportLearningData}>导出学习数据</button>
+                    <input
+                      ref={importDataInputRef}
+                      className="data-import-input"
+                      type="file"
+                      accept="application/json,.json"
+                      onChange={(event) => void importLearningData(event)}
+                      aria-label="选择学习数据文件"
+                    />
+                    <button className="secondary-action" type="button" onClick={() => importDataInputRef.current?.click()}>导入学习数据</button>
+                  </div>
+                  <button className="secondary-action" type="button" onClick={restoreDefaultSettings}>恢复默认设置</button>
                   <button
                     ref={resetTriggerRef}
+                    type="button"
                     className="danger-link"
                     aria-haspopup="dialog"
                     onClick={() => {
@@ -4866,6 +5022,7 @@ export default function Home() {
                     重置学习进度
                   </button>
                 </div>
+                {dataTransferNotice && <p className="data-transfer-status" role="status" aria-live="polite">{dataTransferNotice}</p>}
               </section>
             </div>
           </section>

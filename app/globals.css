@@ -4453,9 +4453,33 @@ fieldset.settings-card {
 
 .data-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 15px;
+  gap: 10px;
+}
+
+.data-transfer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.data-import-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.data-transfer-status {
+  grid-column: 2 / -1;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .secondary-action {
@@ -6902,6 +6926,20 @@ html[data-theme="dark"] .release-notes-close {
   .data-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .data-transfer-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .data-transfer-actions .secondary-action {
+    width: 100%;
+  }
+
+  .data-transfer-status {
+    grid-column: auto;
   }
 
   .reset-confirm {
