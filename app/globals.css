@@ -4050,7 +4050,7 @@ fieldset.settings-card {
 
 .level-options {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -4088,6 +4088,10 @@ fieldset.settings-card {
 .level-option em {
   color: var(--line-dark);
   font: normal 11px/1 var(--sans);
+}
+
+.level-option.special {
+  background: color-mix(in srgb, var(--brick) 7%, transparent);
 }
 
 .cefr-note {
@@ -4171,7 +4175,7 @@ fieldset.settings-card {
   min-height: 89px;
   display: grid;
   grid-template-columns: 28px 1fr 15px;
-  align-items: start;
+  align-items: center;
   gap: 10px;
   padding: 12px;
   border: 1px solid var(--line);
@@ -8666,6 +8670,8 @@ html[data-layout="mobile"] .layout-mode-option small {
 }
 
 html[data-layout="mobile"] .setting-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 9px;
   padding: 13px 0;
 }
@@ -9173,6 +9179,11 @@ html[data-layout="mobile"] .study-mode-option em {
   html[data-layout="auto"] .daily-library-title h1 {
     font-size: clamp(27px, 6.8vw, 32px);
     line-height: 1.08;
+  }
+
+  html[data-layout="auto"] .setting-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
   }
 
   html[data-layout="auto"] .theme-options {

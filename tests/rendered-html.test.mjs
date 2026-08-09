@@ -84,7 +84,7 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.doesNotMatch(page, /RELEASE_NOTES/);
   assert.doesNotMatch(page, /release-link-github/);
   assert.match(page, /bilibili：三叶-Mitsuha/);
-  assert.match(page, /github：mitsuha/);
+  assert.match(page, /github：sanye-Mitsuha/);
   assert.match(page, /from "ts-fsrs"/);
   assert.match(page, /const REVIEW_FSRS_SCHEDULER = fsrs\(/);
   assert.match(page, /function gradeReviewMemory\(/);
@@ -165,8 +165,15 @@ test("keeps the mastery loop, keyboard controls and destructive reset warning", 
   assert.doesNotMatch(page, /feedbackText/);
   assert.match(page, /remainingIds = sessionUniqueIds\.filter/);
   assert.match(page, /setSessionLastRatings\(\{\}\)/);
+  assert.match(page, /function advanceSpelling\(/);
+  assert.match(page, /event\.key === "Enter"/);
+  assert.match(page, /event\.key\.toLowerCase\(\) === "r"/);
+  assert.match(page, /aria-keyshortcuts="R"/);
+  assert.match(page, /aria-keyshortcuts="Enter"/);
+  assert.match(page, /<kbd className="feature-shortcut" aria-hidden="true">R<\/kbd>/);
+  assert.match(page, /<kbd className="feature-shortcut" aria-hidden="true">Enter<\/kbd>/);
   assert.match(page, /重新拼写/);
-  assert.match(page, /预计完成 \{settings\.level\} 词书/);
+  assert.match(page, /预计完成 \{displayWordbookLevel\(settings\.level\)\} 词书/);
   assert.match(page, /type LayoutMode = "auto" \| "mobile" \| "desktop"/);
   assert.match(page, /界面布局/);
   assert.match(page, /\["mobile", "移动端", "单列 · 底部导航 · 大触控"\]/);

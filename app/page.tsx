@@ -215,7 +215,7 @@ type LearningState = {
   sessionComplete: boolean;
   todayQueuesCompleted: number;
   todayQueueCompletionIds: string[];
-  todayQueueLevel: CEFRLevel | null;
+  todayQueueLevel: WordbookCategory | null;
   todayQueueGoal: number | null;
   updatedAt: number;
   resetAt: number;
@@ -227,7 +227,7 @@ type AppSettings = {
   layoutMode: LayoutMode;
   wordsPerQueue: number;
   queuesPerDay: number;
-  level: CEFRLevel;
+  level: WordbookCategory;
   order: WordOrder;
   studyMode: StudyMode;
   autoPronounce: boolean;
@@ -267,7 +267,7 @@ type BoardMessage = {
 const APP_VERSION = "beta1.0";
 const VERSION_NOTICE_KEY = "worttag-version-notice-beta1.0";
 const BILIBILI_URL = "https://space.bilibili.com/96625971";
-const GITHUB_URL = "https://github.com/mitsuha";
+const GITHUB_URL = "https://github.com/sanye-Mitsuha";
 
 const STORAGE_KEY = "worttag-learning-state-v1";
 const SETTINGS_KEY = "worttag-settings-v1";
@@ -360,6 +360,10 @@ const WORDBOOK_META: Record<WordbookCategory, { title: string; description: stri
   ...LEVEL_META,
   SPECIAL: { title: "专项", description: "数字、日期、国家与其他专项词条" },
 };
+
+function displayWordbookTitle(level: WordbookCategory) {
+  return level === "SPECIAL" ? "专项词书" : WORDBOOK_META[level].title;
+}
 
 const SPEECH_SPEED_VALUES: SpeechSpeed[] = ["0.5", "0.75", "1", "1.25"];
 const SPEECH_RATES: Record<SpeechSpeed, number> = {
@@ -557,6 +561,14 @@ function isWordInBook(word: WordCard, level: WordbookCategory) {
 
 function isCEFRLevel(value: unknown): value is CEFRLevel {
   return typeof value === "string" && CEFR_LEVELS.includes(value as CEFRLevel);
+}
+
+function isWordbookCategory(value: unknown): value is WordbookCategory {
+  return typeof value === "string" && WORDBOOK_CATEGORIES.includes(value as WordbookCategory);
+}
+
+function displayWordbookLevel(level: WordbookCategory) {
+  return level === "SPECIAL" ? "专项" : level;
 }
 
 function packedWordDetails(typeCode: PackedWordType, term: string, forms: string) {
@@ -963,7 +975,7 @@ function prepareSavedState(
     : legacyQueueEvents;
   const inferredQueueLevel = savedTodayWordIds
     .map((id) => WORD_BY_ID.get(id)?.level)
-    .find(isCEFRLevel);
+    .find(isWordbookCategory);
   const normalized: LearningState = {
     records: savedRecords,
     todayKey: saved.todayKey ?? currentDay,
@@ -974,7 +986,7 @@ function prepareSavedState(
     sessionComplete: saved.sessionComplete ?? false,
     todayQueuesCompleted: normalizedQueueEvents.length,
     todayQueueCompletionIds: normalizedQueueEvents,
-    todayQueueLevel: isCEFRLevel(saved.todayQueueLevel)
+    todayQueueLevel: isWordbookCategory(saved.todayQueueLevel)
       ? saved.todayQueueLevel
       : inferredQueueLevel ?? null,
     todayQueueGoal: savedQueueGoal,
@@ -1591,7 +1603,7 @@ function prepareSavedSettings(value: unknown): AppSettings {
   const layoutModes: LayoutMode[] = ["auto", "mobile", "desktop"];
   const rawLayoutMode = (value as { layoutMode?: unknown }).layoutMode;
   const savedLayoutMode = rawLayoutMode;
-  const levels: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1"];
+  const levels: WordbookCategory[] = WORDBOOK_CATEGORIES;
   const orders: WordOrder[] = ["sequential", "random"];
   const studyModes: StudyMode[] = ["mastery", "speed"];
   const legacySpeeds: Record<string, SpeechSpeed> = {
@@ -1615,7 +1627,7 @@ function prepareSavedSettings(value: unknown): AppSettings {
     queuesPerDay: dailyQueues.includes(saved.queuesPerDay ?? -1)
       ? saved.queuesPerDay!
       : DEFAULT_SETTINGS.queuesPerDay,
-    level: levels.includes(saved.level as CEFRLevel) ? saved.level! : DEFAULT_SETTINGS.level,
+    level: levels.includes(saved.level as WordbookCategory) ? saved.level! : DEFAULT_SETTINGS.level,
     order: orders.includes(saved.order as WordOrder) ? saved.order! : DEFAULT_SETTINGS.order,
     studyMode: studyModes.includes(saved.studyMode as StudyMode) ? saved.studyMode! : DEFAULT_SETTINGS.studyMode,
     autoPronounce: typeof saved.autoPronounce === "boolean" ? saved.autoPronounce : DEFAULT_SETTINGS.autoPronounce,
@@ -2984,19 +2996,9 @@ export default function Home() {
     finishSession(pendingCompletionStateRef.current ?? learningRef.current);
   }
 
-  function submitSpelling(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function checkSpelling() {
     if (!spellingWord) return;
-    if (spellingChecked) {
-      if (spellingIndex + 1 >= sessionUniqueIds.length) {
-        finishSession(pendingCompletionStateRef.current ?? learningRef.current);
-        return;
-      }
-      setSpellingIndex((index) => index + 1);
-      setSpellingInput("");
-      setSpellingChecked(false);
-      return;
-    }
+    if (spellingChecked) return;
     if (!spellingInput.trim()) return;
     const answer = normalizeSpelling(spellingInput);
     const acceptedAnswers = [
@@ -3006,6 +3008,26 @@ export default function Home() {
     const correct = acceptedAnswers.includes(answer);
     setSpellingResults((results) => [...results, correct]);
     setSpellingChecked(true);
+  }
+
+  function advanceSpelling() {
+    if (!spellingChecked) return;
+    if (spellingIndex + 1 >= sessionUniqueIds.length) {
+      finishSession(pendingCompletionStateRef.current ?? learningRef.current);
+      return;
+    }
+    setSpellingIndex((index) => index + 1);
+    setSpellingInput("");
+    setSpellingChecked(false);
+  }
+
+  function submitSpelling(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (spellingChecked) {
+      advanceSpelling();
+      return;
+    }
+    checkSpelling();
   }
 
   function retrySpelling() {
@@ -3270,7 +3292,7 @@ export default function Home() {
     }
     if (["wordsPerQueue", "level", "order", "dueFirst", "studyMode"].includes(key)) setPlanDirty(true);
     if (key === "level") {
-      const nextLevel = value as CEFRLevel;
+      const nextLevel = value as WordbookCategory;
       setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
       setReviewVisibleCount(REVIEW_PAGE_SIZE);
       setLearning((current) => touchLearning({
@@ -3282,7 +3304,7 @@ export default function Home() {
         todayQueueGoal: settings.queuesPerDay,
       }));
       setQueueUnavailable(false);
-      setSettingsNotice(`已切换到 ${nextLevel} · 今日队列将按新词书重新开始`);
+      setSettingsNotice(`已切换到 ${displayWordbookLevel(nextLevel)} · 今日队列将按新词书重新开始`);
     } else if (key === "queuesPerDay") {
       const canApplyToday = learning.todayReviewed === 0 && learning.todayQueuesCompleted === 0;
       if (canApplyToday) {
@@ -3575,8 +3597,23 @@ export default function Home() {
   useEffect(() => {
     if (view !== "learn" || sessionPhase !== "spelling" || !spellingWord) return;
     const handleSpellingKeyDown = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() !== "f") return;
       const target = event.target as HTMLElement | null;
+      if (event.key === "Enter") {
+        event.preventDefault();
+        if (spellingChecked) {
+          advanceSpelling();
+        } else {
+          checkSpelling();
+        }
+        return;
+      }
+      if (event.key.toLowerCase() === "r") {
+        if (target?.closest("input, select, textarea") || !spellingChecked) return;
+        event.preventDefault();
+        retrySpelling();
+        return;
+      }
+      if (event.key.toLowerCase() !== "f") return;
       if (target?.closest("input, select, textarea")) return;
       event.preventDefault();
       speak(spellingWord);
@@ -3585,7 +3622,7 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleSpellingKeyDown);
     // speak deliberately reads the latest speech preferences listed below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionPhase, settings.speechSpeed, spellingWord, view]);
+  }, [sessionPhase, settings.speechSpeed, spellingChecked, spellingInput, spellingWord, view]);
 
   useEffect(() => {
     if (!boardOpen) return;
@@ -3895,7 +3932,7 @@ export default function Home() {
                 <h1>
                   {queueSource === "daily" ? (
                     <>
-                      <span className="daily-library-level">{settings.level}</span>
+                      <span className="daily-library-level">{displayWordbookLevel(settings.level)}</span>
                       <span>今日词库</span>
                     </>
                   ) : "到期的词，认真想一次。"}
@@ -3967,12 +4004,14 @@ export default function Home() {
                   )}
                   <div className="spelling-form-actions">
                     {spellingChecked && (
-                      <button className="secondary-action" type="button" onClick={retrySpelling}>
+                      <button className="secondary-action" type="button" onClick={retrySpelling} aria-keyshortcuts="R">
                         重新拼写
+                        <kbd className="feature-shortcut" aria-hidden="true">R</kbd>
                       </button>
                     )}
-                    <button className="reveal-button" type="submit" disabled={!spellingChecked && !spellingInput.trim()}>
+                    <button className="reveal-button" type="submit" disabled={!spellingChecked && !spellingInput.trim()} aria-keyshortcuts="Enter">
                       {spellingChecked ? (spellingIndex + 1 >= sessionUniqueTotal ? "完成本轮 →" : "下一个 →") : "检查拼写"}
+                      <kbd className="feature-shortcut" aria-hidden="true">Enter</kbd>
                     </button>
                   </div>
                 </form>
@@ -4293,7 +4332,7 @@ export default function Home() {
               </div>
             ) : queueUnavailable && !dailyComplete ? (
               <section className="empty-state word-card">
-                <p className="kicker">Heute ruhig · {settings.level}</p>
+                <p className="kicker">Heute ruhig · {displayWordbookLevel(settings.level)}</p>
                 <h2>{learnedToday.length ? "今天能学的词已经全部完成。" : "当前词书暂时没有需要学习的词。"}</h2>
                 <p>{learnedToday.length ? `今天已经学习 ${learnedToday.length} 个词，复习安排已保存。` : "新词已经完成，下一次复习会按遗忘曲线准时出现。你也可以先切换另一本词书。"}</p>
                 <div className="empty-actions">
@@ -4319,7 +4358,7 @@ export default function Home() {
         {view === "review" && (
           <section className="secondary-page">
             <div className="page-heading">
-              <div><p className="kicker">Wiederholen · {settings.level}</p><h1>到时间的词，才值得复习。</h1></div>
+              <div><p className="kicker">Wiederholen · {displayWordbookLevel(settings.level)}</p><h1>到时间的词，才值得复习。</h1></div>
               <button className="primary-action" disabled={!dueWords.length} onClick={() => startQueue(dueWords.slice(0, settings.wordsPerQueue).map((word) => word.id), "review")}>
                 {dueWords.length ? `还剩 ${dueWords.length} 个复习` : "今天已清空"}
               </button>
@@ -4719,7 +4758,7 @@ export default function Home() {
             </div>
 
             <section className="settings-plan-summary" aria-label="当前学习计划摘要">
-              <div><span>当前词书</span><strong>{settings.level}</strong><small>{LEVEL_META[settings.level].title}</small></div>
+              <div><span>当前词书</span><strong>{displayWordbookLevel(settings.level)}</strong><small>{displayWordbookTitle(settings.level)}</small></div>
               <div><span>每队列</span><strong>{settings.wordsPerQueue}</strong><small>个单词</small></div>
               <div><span>每天</span><strong>{settings.queuesPerDay}</strong><small>个队列</small></div>
               <div className="daily-goal-seal"><span>每日目标</span><strong>{dailyTarget}</strong><small>张词卡</small></div>
@@ -4792,7 +4831,7 @@ export default function Home() {
                 <fieldset className="settings-card plan-settings">
                   <legend><span className="settings-index">02</span><span><small>Study plan</small>每日学习计划</span></legend>
                   <div className="setting-row">
-                    <div><strong>每个队列的单词数</strong><p>一次专注完成一小组，包含新词与到期复习。</p></div>
+                    <div><strong>每个队列的单词数</strong></div>
                     <div className="number-options" role="radiogroup" aria-label="每个队列的单词数">
                       {[5, 10, 15, 20].map((value) => (
                         <label className={settings.wordsPerQueue === value ? "selected" : ""} key={value}>
@@ -4803,7 +4842,7 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="setting-row">
-                    <div><strong>每天完成几个队列</strong><p>完成最后一个队列后，生成当天的德语短文。</p></div>
+                    <div><strong>每天完成几个队列</strong></div>
                     <div className="number-options" role="radiogroup" aria-label="每天的队列数">
                       {[1, 2, 3, 4, 5].map((value) => (
                         <label className={settings.queuesPerDay === value ? "selected" : ""} key={value}>
@@ -4822,7 +4861,7 @@ export default function Home() {
                 <section className="settings-card forecast-settings" aria-live="polite">
                   <div className="forecast-heading">
                     <span aria-hidden="true">⌛</span>
-                    <div><p className="kicker">Zielprognose</p><h2>预计完成 {settings.level} 词书</h2></div>
+                    <div><p className="kicker">Zielprognose</p><h2>预计完成 {displayWordbookLevel(settings.level)} 词书</h2></div>
                   </div>
                   <div className="forecast-result">
                     {estimatedDaysRemaining ? (
@@ -4845,15 +4884,15 @@ export default function Home() {
               <fieldset className="settings-card wordbook-settings">
                 <legend><span className="settings-index">03</span><span><small>CEFR wordbooks</small>选择单词书</span></legend>
                 <div className="level-options">
-                  {(["A1", "A2", "B1", "B2", "C1"] as const).map((level) => {
+                  {WORDBOOK_CATEGORIES.map((level) => {
                     const levelWords = WORDS.filter((word) => isWordInBook(word, level));
                     const levelCount = levelWords.length;
                     const learnedCount = levelWords.filter((word) => learning.records[word.id]).length;
                     return (
-                      <label className={settings.level === level ? "level-option selected" : "level-option"} key={level}>
+                      <label className={`${settings.level === level ? "level-option selected" : "level-option"}${level === "SPECIAL" ? " special" : ""}`} key={level}>
                         <input type="radio" name="wordbook" checked={settings.level === level} onChange={() => updateSetting("level", level)} />
-                        <span className="level-mark">{level}</span>
-                        <span><strong>{LEVEL_META[level].title}</strong><small>{LEVEL_META[level].description}</small></span>
+                        <span className="level-mark">{displayWordbookLevel(level)}</span>
+                        <span><strong>{WORDBOOK_META[level].title}</strong><small>{WORDBOOK_META[level].description}</small></span>
                         <em>{learnedCount} / {levelCount}</em>
                       </label>
                     );
@@ -4896,7 +4935,7 @@ export default function Home() {
                   <div className="author-credit" aria-label="作者信息">
                     <span>作者</span>
                     <a href={BILIBILI_URL} target="_blank" rel="noreferrer">bilibili：三叶-Mitsuha</a>
-                    <a href={GITHUB_URL} target="_blank" rel="noreferrer">github：mitsuha</a>
+                    <a href={GITHUB_URL} target="_blank" rel="noreferrer">github：sanye-Mitsuha</a>
                   </div>
                 </div>
               </fieldset>
