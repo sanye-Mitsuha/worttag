@@ -3892,7 +3892,14 @@ export default function Home() {
             <section className="page-heading learn-heading">
               <div className={queueSource === "daily" ? "learn-title daily-library-title" : "learn-title"}>
                 <p className="kicker">{queueSource === "daily" ? new Date().toLocaleDateString("de-DE", { weekday: "long" }) : "Wiederholen · 到期复习"}</p>
-                <h1>{queueSource === "daily" ? `${settings.level} 今日词库` : "到期的词，认真想一次。"}</h1>
+                <h1>
+                  {queueSource === "daily" ? (
+                    <>
+                      <span className="daily-library-level">{settings.level}</span>
+                      <span>今日词库</span>
+                    </>
+                  ) : "到期的词，认真想一次。"}
+                </h1>
               </div>
               <div className="heading-progress" aria-label={`今日计划进度 ${sessionProgress}%`}>
                 <div className="progress-copy">
@@ -4704,7 +4711,7 @@ export default function Home() {
             <div className="page-heading settings-heading">
               <div>
                 <p className="kicker">Einstellungen</p>
-                <h1>把每天的词课，调成你的节奏。</h1>
+                <h1>把每天的词课，调成你的节奏</h1>
               </div>
               <div className="settings-save-note">
                 <span aria-hidden="true">✓</span>{settingsNotice}

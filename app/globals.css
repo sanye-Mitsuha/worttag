@@ -8807,3 +8807,127 @@ html[data-layout="mobile"] .settings-heading h1 {
     line-height: 1.1;
   }
 }
+
+/* Narrow mobile hierarchy: keep the lesson title and progress in one compact
+   block, then pull the first card closer to it. */
+html[data-layout="mobile"] .daily-library-title h1 {
+  display: flex;
+  align-items: baseline;
+  gap: 0.22em;
+  font-size: clamp(28px, 7vw, 32px);
+  line-height: 1.08;
+}
+
+html[data-layout="mobile"] .learn-heading {
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+html[data-layout="mobile"] .learn-heading .progress-copy {
+  margin-bottom: 7px;
+  font-size: 13px;
+}
+
+html[data-layout="mobile"] .learn-heading .progress-copy strong {
+  font-size: 22px;
+}
+
+html[data-layout="mobile"] .learn-heading .progress-track {
+  height: 5px;
+}
+
+html[data-layout="mobile"] .secondary-page > .settings-heading h1 {
+  font-size: clamp(27px, 6.8vw, 32px);
+  line-height: 1.08;
+}
+
+html[data-layout="mobile"] .stats-heading {
+  min-height: 52px;
+  gap: 0;
+  margin-bottom: 8px;
+  padding-right: 96px;
+}
+
+html[data-layout="mobile"] .word-front.exposure-1 {
+  padding-top: 38px;
+  padding-bottom: 22px;
+}
+
+@media (max-width: 900px) {
+  html[data-layout="auto"] .daily-library-title h1 {
+    display: flex;
+    align-items: baseline;
+    gap: 0.22em;
+    font-size: clamp(28px, 7vw, 32px);
+    line-height: 1.08;
+  }
+
+  html[data-layout="auto"] .learn-heading {
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  html[data-layout="auto"] .learn-heading .progress-copy {
+    margin-bottom: 7px;
+    font-size: 13px;
+  }
+
+  html[data-layout="auto"] .learn-heading .progress-copy strong {
+    font-size: 22px;
+  }
+
+  html[data-layout="auto"] .learn-heading .progress-track {
+    height: 5px;
+  }
+
+  html[data-layout="auto"] .secondary-page > .settings-heading h1 {
+    font-size: clamp(27px, 6.8vw, 32px);
+    line-height: 1.08;
+  }
+
+  html[data-layout="auto"] .stats-heading {
+    min-height: 52px;
+    gap: 0;
+    margin-bottom: 8px;
+    padding-right: 96px;
+  }
+
+  html[data-layout="auto"] .word-front.exposure-1 {
+    padding-top: 38px;
+    padding-bottom: 22px;
+  }
+}
+
+/* In light mode the plan summary should use the same pale surfaces as the
+   rest of the page instead of keeping the dark-mode solid fills. */
+html:not([data-theme="dark"]) .settings-plan-summary {
+  border-color: var(--line-dark);
+  background: color-mix(in srgb, var(--sage) 78%, var(--paper-light));
+  color: var(--ink);
+  box-shadow: 5px 6px 0 rgb(112 87 47 / 0.08);
+}
+
+html:not([data-theme="dark"]) .settings-plan-summary > div {
+  border-right-color: var(--line);
+}
+
+html:not([data-theme="dark"]) .settings-plan-summary span,
+html:not([data-theme="dark"]) .settings-plan-summary strong,
+html:not([data-theme="dark"]) .settings-plan-summary small {
+  color: var(--ink);
+}
+
+html:not([data-theme="dark"]) .settings-plan-summary span,
+html:not([data-theme="dark"]) .settings-plan-summary small {
+  color: var(--ink-soft);
+}
+
+html:not([data-theme="dark"]) .settings-plan-summary .daily-goal-seal {
+  background: color-mix(in srgb, var(--brick) 24%, var(--paper-light));
+}
+
+html:not([data-theme="dark"]) .settings-plan-summary .daily-goal-seal span,
+html:not([data-theme="dark"]) .settings-plan-summary .daily-goal-seal strong,
+html:not([data-theme="dark"]) .settings-plan-summary .daily-goal-seal small {
+  color: var(--brick-dark);
+}
