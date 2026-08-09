@@ -3505,13 +3505,13 @@ fieldset.settings-card {
   font-weight: 800;
 }
 
-.board-launcher {
+.feedback-launcher {
   margin-top: 22px;
   padding-top: 16px;
   border-top: 1px solid var(--line);
 }
 
-.board-launch-button {
+.feedback-launch-link {
   width: 100%;
   display: grid;
   grid-template-columns: 37px minmax(0, 1fr) auto;
@@ -3522,16 +3522,18 @@ fieldset.settings-card {
   background: color-mix(in srgb, var(--paper-deep) 45%, transparent);
   color: var(--ink);
   text-align: left;
+  text-decoration: none;
   transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
-.board-launch-button:hover {
+.feedback-launch-link:hover,
+.feedback-launch-link:focus-visible {
   border-color: var(--brick);
   background: color-mix(in srgb, var(--brick) 8%, transparent);
   transform: translateY(-1px);
 }
 
-.board-launch-mark {
+.feedback-launch-mark {
   width: 32px;
   height: 32px;
   display: grid;
@@ -3542,24 +3544,26 @@ fieldset.settings-card {
   font: 20px/1 var(--serif);
 }
 
-.board-launch-button > span:nth-child(2) {
+.feedback-launch-link > span:nth-child(2) {
   display: grid;
   gap: 4px;
 }
 
-.board-launch-button strong {
+.feedback-launch-link strong {
   font: 600 17px/1.1 var(--serif);
 }
 
-.board-launch-button small,
-.board-launcher > p {
+.feedback-launch-link small {
   color: var(--ink-soft);
   font-size: 11px;
   line-height: 1.45;
 }
 
-.board-launcher > p {
-  margin: 9px 2px 0;
+.feedback-email {
+  color: var(--brick);
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .author-credit {
@@ -3591,7 +3595,7 @@ fieldset.settings-card {
   text-decoration: underline;
 }
 
-.board-launch-arrow {
+.feedback-launch-arrow {
   color: var(--brick);
   font-size: 22px;
   line-height: 1;
@@ -4511,63 +4515,6 @@ fieldset.settings-card {
   color: var(--on-solid);
 }
 
-.board-backdrop {
-  position: fixed;
-  z-index: 1050;
-  inset: 0;
-  display: grid;
-  place-items: end center;
-  padding: 24px;
-  background:
-    radial-gradient(circle at 50% 10%, rgb(255 249 232 / 0.12), transparent 34%),
-    rgb(16 25 21 / 0.72);
-  backdrop-filter: blur(7px) saturate(0.8);
-  animation: dictionary-backdrop-in 180ms ease-out both;
-}
-
-.board-dialog {
-  position: relative;
-  width: min(860px, 100%);
-  max-height: min(780px, calc(100vh - 48px));
-  max-height: min(780px, calc(100dvh - 48px));
-  overflow: auto;
-  padding: 38px 44px 34px;
-  border: 1px solid var(--line-dark);
-  background:
-    linear-gradient(145deg, rgb(255 255 255 / 0.2), transparent 31%),
-    repeating-linear-gradient(0deg, transparent 0, transparent 5px, var(--body-fiber) 5px, var(--body-fiber) 6px),
-    var(--paper-light);
-  box-shadow:
-    12px 14px 0 rgb(8 14 11 / 0.32),
-    inset 0 0 0 7px color-mix(in srgb, var(--paper-deep) 45%, transparent);
-  animation: dictionary-dialog-in 220ms cubic-bezier(0.2, 0.78, 0.2, 1) both;
-}
-
-.board-dialog::before,
-.board-dialog::after {
-  position: absolute;
-  z-index: 0;
-  width: 44px;
-  height: 44px;
-  border-color: var(--brick);
-  pointer-events: none;
-  content: "";
-}
-
-.board-dialog::before {
-  top: 13px;
-  left: 13px;
-  border-top: 2px solid;
-  border-left: 2px solid;
-}
-
-.board-dialog::after {
-  right: 13px;
-  bottom: 13px;
-  border-right: 2px solid;
-  border-bottom: 2px solid;
-}
-
 .release-notes-backdrop {
   position: fixed;
   z-index: 1060;
@@ -4833,220 +4780,6 @@ fieldset.settings-card {
 .release-acknowledge:hover {
   background: #ee4f89;
   transform: translateY(-1px);
-}
-
-.board-close {
-  position: absolute;
-  z-index: 2;
-  top: 16px;
-  right: 17px;
-  width: 39px;
-  height: 39px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--paper-light) 88%, transparent);
-  color: var(--ink-soft);
-  font: 400 26px/1 var(--sans);
-  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
-}
-
-.board-close:hover {
-  border-color: var(--brick);
-  background: var(--brick);
-  color: var(--on-solid);
-  transform: rotate(5deg);
-}
-
-.board-close:focus-visible,
-.board-launch-button:focus-visible,
-.board-form input:focus-visible,
-.board-form textarea:focus-visible {
-  outline: 3px solid var(--brick);
-  outline-offset: 3px;
-}
-
-.board-header,
-.board-form,
-.board-notice,
-.board-messages {
-  position: relative;
-  z-index: 1;
-}
-
-.board-header {
-  padding: 5px 48px 23px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.board-header .kicker {
-  margin-bottom: 8px;
-}
-
-.board-header h2 {
-  margin: 0;
-  color: var(--ink);
-  font: 600 clamp(35px, 4vw, 51px)/1.06 var(--serif);
-  letter-spacing: -0.025em;
-}
-
-.board-header > p:last-child {
-  max-width: 620px;
-  margin: 12px 0 0;
-  color: var(--ink-soft);
-  font-size: 12px;
-  line-height: 1.7;
-}
-
-.board-form {
-  display: grid;
-  gap: 14px;
-  padding: 23px 0 21px;
-  border-bottom: 1px solid var(--line);
-}
-
-.board-field {
-  display: grid;
-  gap: 6px;
-}
-
-.board-field > span {
-  color: var(--brick);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.board-field input,
-.board-field textarea {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1px solid var(--line-dark);
-  border-radius: 0;
-  background: color-mix(in srgb, var(--paper) 56%, transparent);
-  color: var(--ink);
-  font: inherit;
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-.board-field input {
-  min-height: 42px;
-  padding: 9px 11px;
-}
-
-.board-field textarea {
-  min-height: 112px;
-  resize: vertical;
-  padding: 11px;
-}
-
-.board-field input::placeholder,
-.board-field textarea::placeholder {
-  color: var(--ink-soft);
-  opacity: 0.72;
-}
-
-.board-form-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.board-form-footer small {
-  color: var(--ink-soft);
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.board-form-footer .reveal-button {
-  min-width: 132px;
-}
-
-.board-notice {
-  margin: 16px 0 0;
-  padding: 10px 12px;
-  border-left: 3px solid var(--ochre);
-  background: color-mix(in srgb, var(--ochre) 10%, transparent);
-  color: var(--ink-soft);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.board-messages {
-  padding-top: 23px;
-}
-
-.board-messages-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 15px;
-  margin-bottom: 12px;
-}
-
-.board-messages-heading .kicker {
-  margin-bottom: 5px;
-}
-
-.board-messages-heading h3 {
-  margin: 0;
-  color: var(--ink);
-  font: 600 23px/1.2 var(--serif);
-}
-
-.board-messages-heading > span {
-  color: var(--ink-soft);
-  font-size: 11px;
-}
-
-.board-message-list {
-  display: grid;
-  gap: 9px;
-}
-
-.board-message {
-  padding: 14px 16px;
-  border: 1px solid var(--line);
-  background: color-mix(in srgb, var(--paper) 42%, transparent);
-}
-
-.board-message-meta {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.board-message-meta strong {
-  color: var(--ink);
-  font: 600 16px/1.25 var(--serif);
-}
-
-.board-message-meta time {
-  color: var(--ink-soft);
-  font-size: 10px;
-}
-
-.board-message-content {
-  margin: 8px 0 0;
-  color: var(--ink-soft);
-  font-size: 13px;
-  line-height: 1.7;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.board-empty {
-  margin: 0;
-  padding: 25px 0 10px;
-  color: var(--ink-soft);
-  font-size: 12px;
-  text-align: center;
 }
 
 .dictionary-backdrop {
@@ -6360,7 +6093,6 @@ html[data-theme="dark"] .library-card,
 html[data-theme="dark"] .generated-story,
 html[data-theme="dark"] .story-locked,
 html[data-theme="dark"] .settings-card,
-html[data-theme="dark"] .board-dialog,
 html[data-theme="dark"] .release-notes-dialog {
   background:
     repeating-linear-gradient(0deg, transparent 0, transparent 5px, rgb(238 225 194 / 0.014) 5px, rgb(238 225 194 / 0.014) 6px),
@@ -6690,11 +6422,6 @@ html[data-theme="dark"] .release-notes-close {
     padding-left: 36px;
   }
 
-  .board-dialog {
-    padding-right: 36px;
-    padding-left: 36px;
-  }
-
   .dictionary-source-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -6767,16 +6494,6 @@ html[data-theme="dark"] .release-notes-close {
       max(10px, env(safe-area-inset-left));
   }
 
-  .board-backdrop {
-    align-items: end;
-    padding: 10px;
-    padding:
-      max(10px, env(safe-area-inset-top))
-      max(10px, env(safe-area-inset-right))
-      max(10px, env(safe-area-inset-bottom))
-      max(10px, env(safe-area-inset-left));
-  }
-
   .release-notes-backdrop {
     align-items: end;
     padding: 10px;
@@ -6788,13 +6505,6 @@ html[data-theme="dark"] .release-notes-close {
   }
 
   .dictionary-dialog {
-    max-height: calc(100vh - 20px);
-    max-height: calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-    padding: 28px 21px 24px;
-    box-shadow: 7px 8px 0 rgb(8 14 11 / 0.32), inset 0 0 0 5px color-mix(in srgb, var(--paper-deep) 42%, transparent);
-  }
-
-  .board-dialog {
     max-height: calc(100vh - 20px);
     max-height: calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     padding: 28px 21px 24px;
@@ -6844,36 +6554,6 @@ html[data-theme="dark"] .release-notes-close {
   .release-notes-close {
     top: 12px;
     right: 13px;
-  }
-
-  .board-dialog::before,
-  .board-dialog::after {
-    width: 28px;
-    height: 28px;
-  }
-
-  .board-close {
-    top: 12px;
-    right: 13px;
-  }
-
-  .board-header {
-    padding-top: 14px;
-  }
-
-  .board-form-footer {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .board-form-footer .reveal-button {
-    width: 100%;
-  }
-
-  .board-message-meta {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 4px;
   }
 
   .dictionary-dialog::before,
