@@ -8848,6 +8848,10 @@ html[data-layout="mobile"] .stats-heading {
   padding-right: 96px;
 }
 
+html[data-layout="mobile"] .secondary-page > .stats-heading {
+  margin-bottom: 8px;
+}
+
 html[data-layout="mobile"] .word-front.exposure-1 {
   padding-top: 38px;
   padding-bottom: 22px;
@@ -8890,6 +8894,10 @@ html[data-layout="mobile"] .word-front.exposure-1 {
     gap: 0;
     margin-bottom: 8px;
     padding-right: 96px;
+  }
+
+  html[data-layout="auto"] .secondary-page > .stats-heading {
+    margin-bottom: 8px;
   }
 
   html[data-layout="auto"] .word-front.exposure-1 {
