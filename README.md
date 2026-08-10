@@ -137,3 +137,9 @@ worker/                 部署平台 Worker 入口
 - 第三方数据与许可证摘要见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
 
 Copyright © 2026 Worttag contributors.
+
+## 个人支持
+
+如果您觉得Worttag对您有所帮助，任何金额的个人支持都有助于项目继续进行并保持免费。
+
+![支付宝收款二维码](public/alipay-support.jpeg)
