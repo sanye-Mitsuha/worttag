@@ -234,6 +234,7 @@ type AppSettings = {
   showTranslation: boolean;
   dueFirst: boolean;
   speechSpeed: SpeechSpeed;
+  answerDelay: number;
 };
 
 type SyncedSettings = Pick<
@@ -349,7 +350,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoPronounce: false,
   showTranslation: true,
   dueFirst: true,
-  speechSpeed: "standard",
+  speechSpeed: "1",
+  answerDelay: 0,
 };
 
 const LEVEL_META: Record<CEFRLevel, { title: string; description: string }> = {
@@ -1654,6 +1656,7 @@ function prepareSavedSettings(value: unknown): AppSettings {
     showTranslation: typeof saved.showTranslation === "boolean" ? saved.showTranslation : DEFAULT_SETTINGS.showTranslation,
     dueFirst: typeof saved.dueFirst === "boolean" ? saved.dueFirst : DEFAULT_SETTINGS.dueFirst,
     speechSpeed,
+    answerDelay: [0, 2000, 5000].includes(saved.answerDelay ?? -1) ? saved.answerDelay! : DEFAULT_SETTINGS.answerDelay,
   };
 }
 
@@ -1903,6 +1906,8 @@ export default function Home() {
   const releaseNotesTriggerRef = useRef<HTMLElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioCacheRef = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const pendingAdvanceRef = useRef<(() => void) | null>(null);
+  const [awaitingAdvance, setAwaitingAdvance] = useState(false);
   const transitionTimerRef = useRef<number | null>(null);
   const pendingCompletionStateRef = useRef<LearningState | null>(null);
   const libraryLoadMoreRef = useRef<HTMLDivElement>(null);
@@ -1929,6 +1934,11 @@ export default function Home() {
   }
 
   function resetSessionQueue(ids: string[], source: "daily" | "review" = "daily") {
+    // Discard any transition belonging to the old queue, including at midnight.
+    pendingAdvanceRef.current = null;
+    setAwaitingAdvance(false);
+    if (transitionTimerRef.current !== null) window.clearTimeout(transitionTimerRef.current);
+    transitionTimerRef.current = null;
     const uniqueIds = Array.from(new Set(ids));
     setSessionQueue(uniqueIds);
     setSessionWordIds(uniqueIds);
@@ -1981,9 +1991,29 @@ export default function Home() {
   }
 
   function clearTransitionTimer() {
+    pendingAdvanceRef.current = null;
+    setAwaitingAdvance(false);
     if (transitionTimerRef.current !== null) {
       window.clearTimeout(transitionTimerRef.current);
       transitionTimerRef.current = null;
+    }
+  }
+
+  function advanceStudyWord() {
+    const advance = pendingAdvanceRef.current;
+    if (!advance) return;
+    clearTransitionTimer();
+    stopCurrentAudio();
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    advance();
+  }
+
+  function scheduleStudyAdvance(advance: () => void) {
+    clearTransitionTimer();
+    pendingAdvanceRef.current = advance;
+    setAwaitingAdvance(true);
+    if (settings.answerDelay > 0) {
+      transitionTimerRef.current = window.setTimeout(advanceStudyWord, settings.answerDelay);
     }
   }
 
@@ -2147,6 +2177,7 @@ export default function Home() {
       autoPronounce: settingsRef.current.autoPronounce,
       showTranslation: settingsRef.current.showTranslation,
       speechSpeed: settingsRef.current.speechSpeed,
+      answerDelay: settingsRef.current.answerDelay,
     };
     let ownerSettingsUpdatedAt = 0;
     try {
@@ -2175,6 +2206,7 @@ export default function Home() {
         autoPronounce: settingsRef.current.autoPronounce,
         showTranslation: settingsRef.current.showTranslation,
         speechSpeed: settingsRef.current.speechSpeed,
+        answerDelay: settingsRef.current.answerDelay,
       };
       ownerSettingsUpdatedAt = 0;
     }
@@ -2961,12 +2993,11 @@ export default function Home() {
 
   function offerSpelling(
     nextState: LearningState,
-    transitionDelay = 620,
     points?: Record<string, number>,
   ) {
     pendingCompletionStateRef.current = nextState;
     clearTransitionTimer();
-    transitionTimerRef.current = window.setTimeout(() => {
+    scheduleStudyAdvance(() => {
       transitionTimerRef.current = null;
       if (points) setSessionMasteryPoints(points);
       setFeedback(null);
@@ -2975,7 +3006,7 @@ export default function Home() {
       setSelectedChoiceWordId(null);
       setGrading(false);
       setSessionPhase("spell-prompt");
-    }, transitionDelay);
+    });
   }
 
   function beginSpelling() {
@@ -3037,7 +3068,6 @@ export default function Home() {
     options: {
       allowUnrevealed?: boolean;
       mode?: "choice" | "rating" | "speed";
-      transitionDelay?: number;
     } = {},
   ) {
     if (sessionPhase !== "study" || !currentWord || (!revealed && !options.allowUnrevealed) || grading) return;
@@ -3086,11 +3116,11 @@ export default function Home() {
       setFeedback(null);
       setGrading(true);
       if (currentIndex + 1 >= sessionQueue.length) {
-        finishSession(nextState);
+        scheduleStudyAdvance(() => finishSession(nextState));
         return;
       }
       clearTransitionTimer();
-      transitionTimerRef.current = window.setTimeout(() => {
+      scheduleStudyAdvance(() => {
         transitionTimerRef.current = null;
         setCurrentIndex((index) => index + 1);
         setRevealed(false);
@@ -3098,7 +3128,7 @@ export default function Home() {
         setSelectedChoiceWordId(null);
         setFeedback(null);
         setGrading(false);
-      }, options.transitionDelay ?? 620);
+      });
       return;
     }
 
@@ -3119,19 +3149,19 @@ export default function Home() {
         const remainingIds = sessionUniqueIds.filter((id) => (nextPoints[id] ?? 0) < 3);
         clearTransitionTimer();
         if (!remainingIds.length) {
-          offerSpelling(nextState, options.transitionDelay, nextPoints);
+          offerSpelling(nextState, nextPoints);
           return;
         }
         const nextRound = sessionRound + 1;
-        transitionTimerRef.current = window.setTimeout(() => {
+        scheduleStudyAdvance(() => {
           transitionTimerRef.current = null;
           beginSessionRound(remainingIds, nextPoints, nextRound);
-        }, options.transitionDelay ?? 760);
+        });
         return;
       }
 
       clearTransitionTimer();
-      transitionTimerRef.current = window.setTimeout(() => {
+      scheduleStudyAdvance(() => {
         transitionTimerRef.current = null;
         setSessionMasteryPoints(nextPoints);
         setCurrentIndex((index) => index + 1);
@@ -3140,7 +3170,7 @@ export default function Home() {
         setSelectedChoiceWordId(null);
         setFeedback(null);
         setGrading(false);
-      }, options.transitionDelay ?? 620);
+      });
       return;
     }
 
@@ -3161,12 +3191,12 @@ export default function Home() {
     setGrading(true);
 
     if (currentIndex + 1 >= nextQueue.length) {
-      offerSpelling(nextState, options.transitionDelay, nextPoints);
+      offerSpelling(nextState, nextPoints);
       return;
     }
 
     clearTransitionTimer();
-    transitionTimerRef.current = window.setTimeout(() => {
+    scheduleStudyAdvance(() => {
       transitionTimerRef.current = null;
       setCurrentIndex((index) => index + 1);
       setRevealed(false);
@@ -3174,7 +3204,7 @@ export default function Home() {
       setSelectedChoiceWordId(null);
       setFeedback(null);
       setGrading(false);
-    }, options.transitionDelay ?? 620);
+    });
   }
 
   function advanceSpeedWord() {
@@ -3216,7 +3246,7 @@ export default function Home() {
     rateCurrent(correct ? "known" : "unknown", {
       allowUnrevealed: true,
       mode: "choice",
-      transitionDelay: 1000,
+
     });
   }
 
@@ -3370,6 +3400,7 @@ export default function Home() {
         autoPronounce: settingsRef.current.autoPronounce,
         showTranslation: settingsRef.current.showTranslation,
         speechSpeed: settingsRef.current.speechSpeed,
+        answerDelay: settingsRef.current.answerDelay,
       });
       let importedLearning = prepareSavedState(parsed.learning, now, true);
       if (importedLearning.todayQueueLevel !== importedSettings.level) {
@@ -3521,6 +3552,13 @@ export default function Home() {
   }
 
   function switchView(nextView: View) {
+    if (transitionTimerRef.current !== null && pendingAdvanceRef.current) {
+      window.clearTimeout(transitionTimerRef.current);
+      transitionTimerRef.current = null;
+    }
+    if (nextView === "learn" && pendingAdvanceRef.current && settings.answerDelay > 0) {
+      transitionTimerRef.current = window.setTimeout(advanceStudyWord, settings.answerDelay);
+    }
     if (nextView === "library") setLibraryVisibleCount(LIBRARY_PAGE_SIZE);
     if (nextView === "review") setReviewVisibleCount(REVIEW_PAGE_SIZE);
     if (nextView !== "library") {
@@ -3563,7 +3601,7 @@ export default function Home() {
       view !== "learn"
       || !currentWord
       || sessionPhase !== "study"
-      || grading
+      || (grading && !awaitingAdvance)
       || confirmReset
     ) return;
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -3573,6 +3611,11 @@ export default function Home() {
       // focus. Keep text-entry controls isolated so typing in settings or
       // search fields never changes the active study card.
       if (target?.closest("input, select, textarea")) return;
+      if (awaitingAdvance && event.key.toLowerCase() === "x") {
+        event.preventDefault();
+        advanceStudyWord();
+        return;
+      }
       if (event.key.toLowerCase() === "f") {
         event.preventDefault();
         speak(currentWord);
@@ -3614,7 +3657,7 @@ export default function Home() {
         rateCurrent(rating, {
           allowUnrevealed: activeStudyMode === "speed" || currentPromptMode !== "choice",
           mode: activeStudyMode === "speed" ? "speed" : currentPromptMode === "choice" ? "choice" : "rating",
-          transitionDelay: 620,
+
         });
       }
     };
@@ -3631,6 +3674,8 @@ export default function Home() {
     dictionaryWord,
     grading,
     revealed,
+    awaitingAdvance,
+    settings.answerDelay,
     settings.autoPronounce,
     activeStudyMode,
     settings.speechSpeed,
@@ -4193,7 +4238,7 @@ export default function Home() {
                           <div className={selectedChoiceForCurrentWord === currentWord.id ? "choice-auto-result correct" : "choice-auto-result incorrect"} role="status">
                             <strong>{selectedChoiceForCurrentWord === currentWord.id ? "选择正确 · 光点 +1" : "正确词义"}</strong>
                             <span><MeaningText value={firstThreeMeanings(currentWord.meaning)} /></span>
-                            {selectedChoiceForCurrentWord !== currentWord.id && <small>1 秒后自动进入下一个单词</small>}
+                            <small>{settings.answerDelay === 0 ? "阅读完成后点击下一个" : `${settings.answerDelay / 1000} 秒后自动进入下一个单词`}</small>
                           </div>
                         ) : (
                           <p className="choice-instruction">本轮按顺序每词一次；答错会在下一轮再出现</p>
@@ -4219,7 +4264,7 @@ export default function Home() {
                               onClick={() => rateCurrent(status, {
                                 allowUnrevealed: true,
                                 mode: "rating",
-                                transitionDelay: 620,
+
                               })}
                               disabled={grading}
                             >
@@ -4244,7 +4289,7 @@ export default function Home() {
                               onClick={() => rateCurrent(status, {
                                 allowUnrevealed: true,
                                 mode: "rating",
-                                transitionDelay: 620,
+
                               })}
                               disabled={grading}
                             >
@@ -4311,6 +4356,14 @@ export default function Home() {
                           ))}
                         </div>
                       </div>
+                    </div>
+                  )}
+                  {awaitingAdvance && (
+                    <div className="rating-area">
+                      <p><MeaningText value={firstThreeMeanings(currentWord.meaning)} /></p>
+                      <button className="reveal-button" type="button" onClick={advanceStudyWord} aria-keyshortcuts="X">
+                        下一个词 <kbd aria-hidden="true">X</kbd>
+                      </button>
                     </div>
                   )}
                   {feedback && <div className="feedback-toast" role="status">{feedback}</div>}
@@ -4956,6 +5009,14 @@ export default function Home() {
                   <span><strong>到期复习优先</strong><small>先处理该词书中已经到期的词，再加入新词。</small></span>
                   <input type="checkbox" checked={settings.dueFirst} onChange={(event) => updateSetting("dueFirst", event.target.checked)} />
                   <span className="toggle-control" aria-hidden="true" />
+                </label>
+                <label className="toggle-row">
+                  <span><strong>答案展示节奏</strong><small>熟记评分后停留，速刷仍由“下一个词”推进。</small></span>
+                  <select value={settings.answerDelay} onChange={(event) => updateSetting("answerDelay", Number(event.target.value))} aria-label="答案展示节奏">
+                    <option value={0}>手动 · 点击下一个</option>
+                    <option value={2000}>自动 · 停留 2 秒</option>
+                    <option value={5000}>自动 · 停留 5 秒</option>
+                  </select>
                 </label>
                 <div className="speech-setting">
                   <div><strong>朗读速度 · {settings.speechSpeed}×</strong><small>影响德语单词和例句朗读。</small></div>
